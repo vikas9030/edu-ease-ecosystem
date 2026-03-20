@@ -43,10 +43,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Loader2, Eye, User, Calendar, MapPin, Phone, Heart, AlertCircle, GraduationCap, Plus, Trash2, Upload, Copy, Check } from 'lucide-react';
+import { Search, Loader2, Eye, User, Calendar, MapPin, Phone, Heart, AlertCircle, GraduationCap, Plus, Trash2, Upload, Download, Copy, Check } from 'lucide-react';
 import AttendanceSummary from '@/components/AttendanceSummary';
 import { BackButton } from '@/components/ui/back-button';
 import { toast } from 'sonner';
+import StudentExcelImport from '@/components/students/StudentExcelImport';
+import { exportStudentsToExcel } from '@/components/students/StudentExcelExport';
 
 interface Student {
   id: string;
