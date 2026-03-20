@@ -95,7 +95,7 @@ export default function ParentStudentHistory() {
         </div>
 
         {/* Child selector (if multiple unique children) */}
-        {uniqueAdmNumbers.length > 1 && (
+        {uniqueChildren.length > 1 && (
           <Card>
             <CardContent className="pt-6">
               <Select value={selectedAdmNo} onValueChange={setSelectedAdmNo}>
