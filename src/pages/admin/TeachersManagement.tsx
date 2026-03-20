@@ -500,6 +500,7 @@ export default function TeachersManagement() {
               Export
             </Button>
           </div>
+        </div>
 
         {/* Search */}
         <Card className="card-elevated">
