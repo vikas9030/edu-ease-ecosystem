@@ -1,33 +1,49 @@
 
 
-## Plan: Edit Exam Schedule + Notifications + Entire Class Promotion
+## Plan: Redesign Student History — Class-based navigation with filtered tabs
 
-### What will be built
+### Current behavior
+All 3 history pages (admin, teacher, parent) dump all attendance/marks/fees in flat lists. No way to filter by class year, month, or exam.
 
-**1. Edit Exam Schedule (Admin side)**
-- Add an "Edit" button next to each exam entry in `ExamsManagement.tsx` (both mobile cards and desktop table rows)
-- Create an `EditExamDialog` component with fields: exam date, exam time, max marks, subject, class
-- On save, update the exam record in the database
-- After a successful edit, insert notifications for all parents (of students in that exam's class) and all teachers, informing them the schedule changed
+### New behavior (all 3 panels)
 
-**2. Schedule Change Notifications**
-- When an exam is edited, query `student_parents` + `parents` for parent user_ids of students in the exam's class, and query `user_roles` for teacher user_ids
-- Insert rows into the `notifications` table for each parent and teacher with a message like: "Exam schedule updated: [Exam Name] - [Subject] date changed to [new date]"
-- Existing notification triggers (`send_push_on_notification`) will automatically send push notifications
-
-**3. "Promote Entire Class" Button**
-- The current `StudentPromotion.tsx` already loads all students and selects them all by default — so "entire class" promotion already works
-- Add a prominent "Promote Entire Class" button that auto-selects all students and directly opens the confirmation dialog (shortcut for the existing flow)
-- This skips the manual student selection step when you want to promote everyone at once
+**Flow:**
+1. **Search/select student** (admin/teacher: search bar; parent: auto-loads linked children including promoted records)
+2. **Show list of classes the student studied in** — query `students` table for all records matching the same `admission_number` (active + promoted). Each row = a class card (e.g. "Class 5-A (active)" or "Class 4-B (promoted)")
+3. **User selects a class** → loads data for that specific student record ID
+4. **3 tabs appear with filters:**
+   - **Attendance tab**: Month selector dropdown → shows only that month's attendance
+   - **Marks tab**: Exam name dropdown (populated from exams for that class) → shows marks for selected exam
+   - **Fees tab**: Shows all fees for that student record with paid/unpaid/partial status
 
 ### Technical details
 
-**Files to create:**
-- `src/components/exams/EditExamDialog.tsx` — Dialog with form fields for editing an exam entry (date, time, max marks). On save: updates `exams` table, then inserts notifications for parents + teachers.
+**Create shared component:** `src/components/history/StudentHistoryContent.tsx`
+- Accepts `studentRecords: StudentItem[]` (all records for same student across classes)
+- Shows class selector cards/chips
+- On class select, fetches attendance, marks, fees for that `student.id`
+- Attendance tab: month dropdown filter (derived from fetched dates)
+- Marks tab: exam name dropdown filter (derived from fetched exam data)
+- Fees tab: full list with status badges
 
-**Files to modify:**
-- `src/pages/admin/ExamsManagement.tsx` — Add "Edit" option in the dropdown menu and in mobile cards. Import and render `EditExamDialog`.
-- `src/pages/admin/StudentPromotion.tsx` — Add a "Promote Entire Class" button that selects all students + opens confirm dialog in one click.
+**Modify 3 pages to use shared component:**
 
-**No database changes needed** — the `exams` table already supports updates via RLS for admins, and `notifications` table allows inserts from anyone.
+1. **`src/pages/admin/StudentHistory.tsx`** — Search student → on select, query all student records with same `admission_number` → pass to `StudentHistoryContent`
+2. **`src/pages/teacher/TeacherStudentHistory.tsx`** — Same as admin
+3. **`src/pages/parent/ParentStudentHistory.tsx`** — Fetch linked children (all statuses, not just active) → group by admission_number → pass to `StudentHistoryContent`
+
+**Data queries per selected class (student record ID):**
+- Attendance: `attendance` where `student_id = selected_id`, ordered by date desc
+- Marks: `exam_marks` with joined `exams(name, exam_date, max_marks, subjects(name))` where `student_id = selected_id`
+- Fees: `fees` where `student_id = selected_id`
+
+**No database changes needed** — all data already exists; promoted students keep their old `student.id` with `status='promoted'`.
+
+### Files to create
+- `src/components/history/StudentHistoryContent.tsx` — shared component with class selector, filtered tabs
+
+### Files to modify
+- `src/pages/admin/StudentHistory.tsx` — use shared component
+- `src/pages/teacher/TeacherStudentHistory.tsx` — use shared component
+- `src/pages/parent/ParentStudentHistory.tsx` — use shared component, fetch all statuses
 
