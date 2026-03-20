@@ -1,83 +1,33 @@
 
 
-# Multi-Student Fee Selection + Student History Viewer
+## Plan: Edit Exam Schedule + Notifications + Entire Class Promotion
 
-## Overview
-Three changes: (1) allow selecting multiple students in fee creation's individual mode, (2) add a "Student History" page accessible from admin and teacher panels to view a student's complete historical data (attendance, marks, fees), and (3) add a "View Old Data" button on the promotion page.
+### What will be built
 
-## Changes
+**1. Edit Exam Schedule (Admin side)**
+- Add an "Edit" button next to each exam entry in `ExamsManagement.tsx` (both mobile cards and desktop table rows)
+- Create an `EditExamDialog` component with fields: exam date, exam time, max marks, subject, class
+- On save, update the exam record in the database
+- After a successful edit, insert notifications for all parents (of students in that exam's class) and all teachers, informing them the schedule changed
 
-### 1. CreateFeeDialog: Multi-Student Selection
-**File: `src/components/fees/CreateFeeDialog.tsx`**
-- Replace `selectedStudentId` (string) with `selectedStudentIds` (Set\<string\>)
-- Replace the single `<Select>` dropdown with a scrollable checkbox list (same pattern as StudentPromotion page)
-- Add Select All / Deselect All button
-- Update `handleSubmit` to iterate over all selected student IDs
-- Show selected count in summary
+**2. Schedule Change Notifications**
+- When an exam is edited, query `student_parents` + `parents` for parent user_ids of students in the exam's class, and query `user_roles` for teacher user_ids
+- Insert rows into the `notifications` table for each parent and teacher with a message like: "Exam schedule updated: [Exam Name] - [Subject] date changed to [new date]"
+- Existing notification triggers (`send_push_on_notification`) will automatically send push notifications
 
-### 2. New Student History Page
-**New file: `src/pages/admin/StudentHistory.tsx`**
-- A dedicated page at `/admin/student-history` where admin can:
-  - Search/select any student (including promoted ones) by name or admission number
-  - View tabs: Attendance, Exam Marks, Fees — all queried by `student_id` (no class filter)
-  - Each tab shows ALL historical records regardless of current class
-- Reuse existing components where possible (tables, badges)
+**3. "Promote Entire Class" Button**
+- The current `StudentPromotion.tsx` already loads all students and selects them all by default — so "entire class" promotion already works
+- Add a prominent "Promote Entire Class" button that auto-selects all students and directly opens the confirmation dialog (shortcut for the existing flow)
+- This skips the manual student selection step when you want to promote everyone at once
 
-**New file: `src/pages/teacher/TeacherStudentHistory.tsx`**
-- Same concept at `/teacher/student-history`, but scoped to teacher's assigned classes' students
-- Shows attendance, marks history for selected student
+### Technical details
 
-### 3. Navigation & Routing
-**Files: `src/config/adminSidebar.tsx`, `src/config/teacherSidebar.tsx`, `src/App.tsx`**
-- Add "Student History" sidebar item with `History` icon in both admin and teacher sidebars
-- Add routes `/admin/student-history` and `/teacher/student-history`
+**Files to create:**
+- `src/components/exams/EditExamDialog.tsx` — Dialog with form fields for editing an exam entry (date, time, max marks). On save: updates `exams` table, then inserts notifications for parents + teachers.
 
-### 4. Promotion Page: View Old Data Button
-**File: `src/pages/admin/StudentPromotion.tsx`**
-- Add a "View Student History" button that links to `/admin/student-history`
-- Shown in the header area near the title
+**Files to modify:**
+- `src/pages/admin/ExamsManagement.tsx` — Add "Edit" option in the dropdown menu and in mobile cards. Import and render `EditExamDialog`.
+- `src/pages/admin/StudentPromotion.tsx` — Add a "Promote Entire Class" button that selects all students + opens confirm dialog in one click.
 
-## Technical Details
-
-### Student History Page Query Pattern
-```typescript
-// Fetch ALL attendance for a student (no class filter)
-const { data } = await supabase
-  .from('attendance')
-  .select('*, students(full_name, admission_number)')
-  .eq('student_id', selectedStudentId)
-  .order('date', { ascending: false });
-
-// Fetch ALL fees
-const { data } = await supabase
-  .from('fees')
-  .select('*')
-  .eq('student_id', selectedStudentId);
-
-// Fetch ALL exam marks
-const { data } = await supabase
-  .from('exam_marks')
-  .select('*, exams(name, exam_date, max_marks, subjects(name), classes(name, section))')
-  .eq('student_id', selectedStudentId);
-```
-
-### Multi-Student Selection in CreateFeeDialog
-```typescript
-// Replace single select with checkbox list
-const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
-
-// In handleSubmit, use all selected IDs
-studentIds = [...selectedStudentIds];
-```
-
-## Files to Create
-- `src/pages/admin/StudentHistory.tsx`
-- `src/pages/teacher/TeacherStudentHistory.tsx`
-
-## Files to Modify
-- `src/components/fees/CreateFeeDialog.tsx` — Multi-student checkbox selection
-- `src/config/adminSidebar.tsx` — Add Student History link
-- `src/config/teacherSidebar.tsx` — Add Student History link
-- `src/App.tsx` — Add routes
-- `src/pages/admin/StudentPromotion.tsx` — Add "View History" button
+**No database changes needed** — the `exams` table already supports updates via RLS for admins, and `notifications` table allows inserts from anyone.
 
