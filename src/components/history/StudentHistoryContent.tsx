@@ -62,7 +62,7 @@ export default function StudentHistoryContent({ studentRecords, studentName, adm
         .order('created_at', { ascending: false }),
       supabase
         .from('fees')
-        .select('*')
+        .select('*, fee_class:classes(name, section)' as any)
         .eq('student_id', selectedRecordId)
         .order('due_date', { ascending: false }),
     ]).then(([attRes, marksRes, feesRes]) => {
