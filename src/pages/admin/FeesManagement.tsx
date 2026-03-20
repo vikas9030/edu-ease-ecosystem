@@ -207,7 +207,7 @@ export default function FeesManagement() {
     });
   })();
 
-  const classFeeCount = classFilter ? fees.filter(f => (f.students?.classes as any)?.id === classFilter).length : 0;
+  const classFeeCount = classFilter ? fees.filter(f => (f.class_id || (f.students?.classes as any)?.id) === classFilter).length : 0;
 
   const handleExportReport = () => {
     const dataToExport = filteredFees.length > 0 ? filteredFees : fees;
