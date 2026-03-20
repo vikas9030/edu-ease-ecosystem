@@ -34,6 +34,8 @@ interface Fee {
   paid_at: string | null;
   receipt_number: string | null;
   discount: number | null;
+  class_id?: string | null;
+  fee_class?: { name: string; section: string } | null;
 }
 
 interface Child {
