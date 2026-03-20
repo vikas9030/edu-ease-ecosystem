@@ -43,10 +43,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Loader2, Eye, User, Calendar, MapPin, Phone, Heart, AlertCircle, GraduationCap, Plus, Trash2, Upload, Copy, Check } from 'lucide-react';
+import { Search, Loader2, Eye, User, Calendar, MapPin, Phone, Heart, AlertCircle, GraduationCap, Plus, Trash2, Upload, Download, Copy, Check } from 'lucide-react';
 import AttendanceSummary from '@/components/AttendanceSummary';
 import { BackButton } from '@/components/ui/back-button';
 import { toast } from 'sonner';
+import StudentExcelImport from '@/components/students/StudentExcelImport';
+import { exportStudentsToExcel } from '@/components/students/StudentExcelExport';
 
 interface Student {
   id: string;
@@ -86,6 +88,7 @@ export default function StudentsManagement() {
 
   // Add student state
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -288,10 +291,20 @@ export default function StudentsManagement() {
             <h1 className="font-display text-2xl font-bold">Students Directory</h1>
             <p className="text-muted-foreground">Manage all student records</p>
           </div>
-          <Button onClick={() => setAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Student
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setAddDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Student
+            </Button>
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import
+            </Button>
+            <Button variant="outline" onClick={() => exportStudentsToExcel(filteredStudents)} disabled={filteredStudents.length === 0}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
         </div>
 
         <Card className="card-elevated">
@@ -668,6 +681,8 @@ export default function StudentsManagement() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <StudentExcelImport open={importDialogOpen} onOpenChange={setImportDialogOpen} onSuccess={fetchData} />
       </div>
     </DashboardLayout>
   );

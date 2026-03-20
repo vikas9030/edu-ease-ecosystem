@@ -45,6 +45,7 @@ import {
   Edit,
   Trash2,
   Upload,
+  Download,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -55,6 +56,8 @@ import {
 import { z } from 'zod';
 import { BackButton } from '@/components/ui/back-button';
 import { cn } from '@/lib/utils';
+import TeacherExcelImport from '@/components/teachers/TeacherExcelImport';
+import { exportTeachersToExcel } from '@/components/teachers/TeacherExcelExport';
 
 const teacherSchema = z.object({
   fullName: z.string().min(2, 'Name is required').max(100),
@@ -98,6 +101,7 @@ export default function TeachersManagement() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [loadingTeachers, setLoadingTeachers] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -399,10 +403,11 @@ export default function TeachersManagement() {
             <p className="text-muted-foreground">Manage all teacher accounts and profiles</p>
           </div>
 
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gradient-admin"><Plus className="h-4 w-4 mr-2" />Add Teacher</Button>
-            </DialogTrigger>
+          <div className="flex flex-wrap gap-2">
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gradient-admin"><Plus className="h-4 w-4 mr-2" />Add Teacher</Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-display">Add New Teacher</DialogTitle>
@@ -485,6 +490,15 @@ export default function TeachersManagement() {
               </form>
             </DialogContent>
           </Dialog>
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import
+            </Button>
+            <Button variant="outline" onClick={() => exportTeachersToExcel(filteredTeachers)} disabled={filteredTeachers.length === 0}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
         </div>
 
         {/* Search */}
@@ -721,6 +735,8 @@ export default function TeachersManagement() {
             </form>
           </DialogContent>
         </Dialog>
+
+        <TeacherExcelImport open={importDialogOpen} onOpenChange={setImportDialogOpen} onSuccess={fetchData} />
       </div>
     </DashboardLayout>
   );
