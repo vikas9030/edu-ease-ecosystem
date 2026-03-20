@@ -491,7 +491,15 @@ export default function TeachersManagement() {
               </form>
             </DialogContent>
           </Dialog>
-        </div>
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import
+            </Button>
+            <Button variant="outline" onClick={() => exportTeachersToExcel(filteredTeachers)} disabled={filteredTeachers.length === 0}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
 
         {/* Search */}
         <Card className="card-elevated">
