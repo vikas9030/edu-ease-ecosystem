@@ -147,7 +147,7 @@ export default function FeesManagement() {
     setSelectedStudent({
       name: first.students.full_name,
       admission: first.students.login_id || first.students.admission_number,
-      className: first.students.classes ? `${first.students.classes.name} - ${first.students.classes.section}` : 'N/A',
+      className: getClassName(first),
       fees: studentFees,
     });
   };
