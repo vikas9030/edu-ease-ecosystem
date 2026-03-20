@@ -291,10 +291,20 @@ export default function StudentsManagement() {
             <h1 className="font-display text-2xl font-bold">Students Directory</h1>
             <p className="text-muted-foreground">Manage all student records</p>
           </div>
-          <Button onClick={() => setAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Student
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setAddDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Student
+            </Button>
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import
+            </Button>
+            <Button variant="outline" onClick={() => exportStudentsToExcel(filteredStudents)} disabled={filteredStudents.length === 0}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
         </div>
 
         <Card className="card-elevated">
