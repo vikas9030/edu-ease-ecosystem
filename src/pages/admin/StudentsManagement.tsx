@@ -88,6 +88,7 @@ export default function StudentsManagement() {
 
   // Add student state
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState('');
