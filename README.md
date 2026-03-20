@@ -225,6 +225,10 @@ supabase/
 └── functions/
     ├── create-student/            # Edge function: create student with auth
     ├── create-user/               # Edge function: create user accounts
+    ├── create-razorpay-order/     # Edge function: create Razorpay payment order
+    ├── verify-razorpay-payment/   # Edge function: verify Razorpay payment signature & update fee
+    ├── reset-user-password/       # Edge function: super-admin password reset for any user
+    ├── send-fee-reminders/        # Edge function: automated fee reminder notifications
     ├── full-reset/                # Edge function: reset demo data
     ├── seed-demo-users/           # Edge function: seed demo accounts
     ├── send-push-notification/    # Edge function: Web Push delivery via VAPID
