@@ -101,6 +101,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Messages** | Chat with teachers and admin, with file/image sharing |
 | **Certificates** | Request certificates for child with optional document attachments |
 | **Fees** | View fee details with discount & balance breakdown, pay custom partial amounts via Razorpay, view per-transaction payment history with individual receipts, download PDF receipts |
+| **Student History** | View child's complete academic history across all classes (current & promoted) with attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
 | **Notifications** | View personal notifications (in-app + Web Push) |
 | **Settings** | Profile management |
