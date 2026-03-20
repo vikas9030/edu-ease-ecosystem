@@ -131,7 +131,7 @@ export default function FeesManagement() {
       receiptNumber: fee.receipt_number,
       studentName: fee.students?.full_name || 'N/A',
       admissionNumber: fee.students?.login_id || fee.students?.admission_number,
-      className: fee.students?.classes ? `${fee.students.classes.name} - ${fee.students.classes.section}` : undefined,
+      className: getClassName(fee),
       feeType: fee.fee_type,
       amount: fee.amount,
       paidAmount: fee.paid_amount || 0,
