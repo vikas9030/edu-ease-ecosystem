@@ -162,20 +162,23 @@ export default function FeesManagement() {
     return <Badge className="bg-primary/10 text-primary border-primary/20">Unpaid</Badge>;
   };
 
-  // Unique students for filter, scoped to selected class using fee's class_id
+  // Unique active students for the selected class (from students table, not fees)
   const studentOptions = (() => {
     if (!classFilter) return [];
-    const map = new Map<string, { id: string; name: string }>();
-    fees.forEach(f => {
-      if (!f.students) return;
-      // Use fee's own class_id for matching, fallback to student's current class
-      const feeClassId = f.class_id || (f.students.classes as any)?.id;
-      if (feeClassId !== classFilter) return;
-      if (!map.has(f.student_id)) {
-        map.set(f.student_id, { id: f.student_id, name: f.students.full_name });
-      }
-    });
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+    return allStudents
+      .filter(s => s.class_id === classFilter && s.status === 'active')
+      .map(s => ({ id: s.id, name: s.full_name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  })();
+
+  // Get all student_ids for the selected student (current + promoted records with same name)
+  const allStudentIdsForSelected = (() => {
+    if (!studentFilter) return [];
+    const selected = allStudents.find(s => s.id === studentFilter);
+    if (!selected) return [studentFilter];
+    return allStudents
+      .filter(s => s.full_name === selected.full_name)
+      .map(s => s.id);
   })();
 
   // Reset student filter when class filter changes
@@ -198,15 +201,14 @@ export default function FeesManagement() {
       });
     }
     if (!classFilter || !studentFilter) return [];
+    // Show all fees for this student across all their records (current + promoted)
     return fees.filter((f) => {
       const matchesSearch = f.students?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         f.students?.admission_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         f.fee_type.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'all' || f.payment_status === statusFilter;
-      const feeClassId = f.class_id || (f.students?.classes as any)?.id;
-      const matchesClass = feeClassId === classFilter;
-      const matchesStudent = f.student_id === studentFilter;
-      return matchesSearch && matchesStatus && matchesClass && matchesStudent;
+      const matchesStudent = allStudentIdsForSelected.includes(f.student_id);
+      return matchesSearch && matchesStatus && matchesStudent;
     });
   })();
 
