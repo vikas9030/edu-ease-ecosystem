@@ -34,13 +34,14 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 - **Responsive design** — Works seamlessly on desktop, tablet, and mobile
 - **Dark mode support** — Full light/dark theme with semantic design tokens
 - **Export & reporting** — PDF export for attendance, fees (landscape report with summary stats, color-coded statuses, grand totals), and more
+- **Bulk import/export** — Excel-based bulk import with downloadable templates and progress tracking for Students (with auto parent account creation) and Teachers; Excel export of current data
 
 ### 📊 Admin Panel
 | Module | Description |
 |--------|-------------|
 | **Dashboard** | Overview stats, quick actions, and system health |
-| **Teachers** | Add, edit, and manage teacher profiles and assignments |
-| **Students** | Student registry with admission numbers, class assignments, and profiles |
+| **Teachers** | Add, edit, and manage teacher profiles and assignments; **bulk import from Excel** (with downloadable template) and **export to Excel** |
+| **Students** | Student registry with admission numbers, class assignments, and profiles; **bulk import from Excel** (with downloadable template, sequential edge function calls with progress bar) and **export to Excel** |
 | **Classes** | Create classes with sections and assign class teachers |
 | **Subjects** | Manage subject catalog with codes and categories (academic/competitive) |
 | **Timetable** | Build and publish weekly timetables per class |
@@ -173,6 +174,8 @@ src/
 │   ├── ui/                    # shadcn/ui primitives (Button, Card, Dialog, etc.)
 │   ├── layouts/               # DashboardLayout with sidebar
 │   ├── exams/                 # Exam wizard, marks entry, schedule builder
+│   ├── students/              # StudentExcelImport (dialog), StudentExcelExport (utility)
+│   ├── teachers/              # TeacherExcelImport (dialog), TeacherExcelExport (utility)
 │   ├── leads/                 # Lead forms, call logs, Excel import, settings
 │   ├── messaging/             # Messaging interface
 │   ├── AttendanceSummary.tsx   # Reusable attendance widget
