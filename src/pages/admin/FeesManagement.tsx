@@ -159,13 +159,15 @@ export default function FeesManagement() {
     return <Badge className="bg-primary/10 text-primary border-primary/20">Unpaid</Badge>;
   };
 
-  // Unique students for filter, scoped to selected class
+  // Unique students for filter, scoped to selected class using fee's class_id
   const studentOptions = (() => {
     if (!classFilter) return [];
     const map = new Map<string, { id: string; name: string }>();
     fees.forEach(f => {
       if (!f.students) return;
-      if ((f.students.classes as any)?.id !== classFilter) return;
+      // Use fee's own class_id for matching, fallback to student's current class
+      const feeClassId = f.class_id || (f.students.classes as any)?.id;
+      if (feeClassId !== classFilter) return;
       if (!map.has(f.student_id)) {
         map.set(f.student_id, { id: f.student_id, name: f.students.full_name });
       }
@@ -198,13 +200,14 @@ export default function FeesManagement() {
         f.students?.admission_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         f.fee_type.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'all' || f.payment_status === statusFilter;
-      const matchesClass = (f.students?.classes as any)?.id === classFilter;
+      const feeClassId = f.class_id || (f.students?.classes as any)?.id;
+      const matchesClass = feeClassId === classFilter;
       const matchesStudent = f.student_id === studentFilter;
       return matchesSearch && matchesStatus && matchesClass && matchesStudent;
     });
   })();
 
-  const classFeeCount = classFilter ? fees.filter(f => (f.students?.classes as any)?.id === classFilter).length : 0;
+  const classFeeCount = classFilter ? fees.filter(f => (f.class_id || (f.students?.classes as any)?.id) === classFilter).length : 0;
 
   const handleExportReport = () => {
     const dataToExport = filteredFees.length > 0 ? filteredFees : fees;
