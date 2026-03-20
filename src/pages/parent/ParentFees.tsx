@@ -157,7 +157,7 @@ export default function ParentFees() {
           childrenData.push({
             id: link.student_id,
             name: (link as any).students?.full_name || '',
-            fees: feesData || [],
+            fees: (feesData as any as Fee[]) || [],
           });
         }
         setChildren(childrenData);
