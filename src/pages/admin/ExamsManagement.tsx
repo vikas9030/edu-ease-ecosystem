@@ -20,6 +20,7 @@ import WeeklyExamsSection from '@/components/exams/WeeklyExamsSection';
 import WeeklyExamMarksEntry from '@/components/exams/WeeklyExamMarksEntry';
 import { Exam, ClassItem, SubjectItem } from '@/components/exams/types';
 import { BackButton } from '@/components/ui/back-button';
+import EditExamDialog from '@/components/exams/EditExamDialog';
 
 export default function ExamsManagement() {
   const adminSidebarItems = useAdminSidebar();
