@@ -53,6 +53,7 @@ export default function FeesManagement() {
   const { toast } = useToast();
 
   const [fees, setFees] = useState<FeeRecord[]>([]);
+  const [allStudents, setAllStudents] = useState<{ id: string; full_name: string; class_id: string | null; status: string | null }[]>([]);
   const [classes, setClasses] = useState<{ id: string; name: string; section: string }[]>([]);
   const getClassName = (fee: FeeRecord) => {
     if (fee.class_id) {
