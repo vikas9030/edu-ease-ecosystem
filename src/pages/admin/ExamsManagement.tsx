@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Loader2, MoreHorizontal, Trash2, Calendar, FileText, ClipboardList, BarChart3, Clock, RotateCcw, FlaskConical } from 'lucide-react';
+import { Plus, Search, Loader2, MoreHorizontal, Trash2, Calendar, FileText, ClipboardList, BarChart3, Clock, RotateCcw, FlaskConical, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import ExamCreationWizard from '@/components/exams/ExamCreationWizard';
 import ExamMarksEntry from '@/components/exams/ExamMarksEntry';
@@ -20,6 +20,7 @@ import WeeklyExamsSection from '@/components/exams/WeeklyExamsSection';
 import WeeklyExamMarksEntry from '@/components/exams/WeeklyExamMarksEntry';
 import { Exam, ClassItem, SubjectItem } from '@/components/exams/types';
 import { BackButton } from '@/components/ui/back-button';
+import EditExamDialog from '@/components/exams/EditExamDialog';
 
 export default function ExamsManagement() {
   const adminSidebarItems = useAdminSidebar();
@@ -33,6 +34,8 @@ export default function ExamsManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('schedule');
+  const [editingExam, setEditingExam] = useState<Exam | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || (userRole !== 'admin' && userRole !== 'super_admin'))) {
@@ -185,6 +188,12 @@ export default function ExamsManagement() {
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete All
                           </DropdownMenuItem>
+                          {examList.length === 1 && (
+                            <DropdownMenuItem onClick={() => { setEditingExam(examList[0]); setEditDialogOpen(true); }}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -218,14 +227,24 @@ export default function ExamsManagement() {
                                 <span>Max: {exam.max_marks}</span>
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive shrink-0"
-                              onClick={() => handleDeleteExam(exam.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-1 shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => { setEditingExam(exam); setEditDialogOpen(true); }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteExam(exam.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -271,14 +290,24 @@ export default function ExamsManagement() {
                               </TableCell>
                               <TableCell>{exam.max_marks}</TableCell>
                               <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteExam(exam.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => { setEditingExam(exam); setEditDialogOpen(true); }}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                    onClick={() => handleDeleteExam(exam.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -330,6 +359,14 @@ export default function ExamsManagement() {
           onOpenChange={setDialogOpen}
           classes={classes}
           subjects={subjects.filter(s => s.category !== 'competitive')}
+          onSuccess={fetchData}
+        />
+
+        {/* Edit Exam Dialog */}
+        <EditExamDialog
+          exam={editingExam}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
           onSuccess={fetchData}
         />
       </div>
