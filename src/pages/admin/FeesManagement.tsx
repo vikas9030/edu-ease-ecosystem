@@ -159,13 +159,15 @@ export default function FeesManagement() {
     return <Badge className="bg-primary/10 text-primary border-primary/20">Unpaid</Badge>;
   };
 
-  // Unique students for filter, scoped to selected class
+  // Unique students for filter, scoped to selected class using fee's class_id
   const studentOptions = (() => {
     if (!classFilter) return [];
     const map = new Map<string, { id: string; name: string }>();
     fees.forEach(f => {
       if (!f.students) return;
-      if ((f.students.classes as any)?.id !== classFilter) return;
+      // Use fee's own class_id for matching, fallback to student's current class
+      const feeClassId = f.class_id || (f.students.classes as any)?.id;
+      if (feeClassId !== classFilter) return;
       if (!map.has(f.student_id)) {
         map.set(f.student_id, { id: f.student_id, name: f.students.full_name });
       }
