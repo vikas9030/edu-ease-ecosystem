@@ -29,6 +29,7 @@ interface StudentInfo {
   id: string;
   full_name: string;
   admission_number: string;
+  class_id: string | null;
 }
 
 interface ClassInfo {
