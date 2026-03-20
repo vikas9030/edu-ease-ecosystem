@@ -365,6 +365,7 @@ export default function ParentFees() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Fee Type</TableHead>
+                        <TableHead>Class</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Discount</TableHead>
                         <TableHead>Net Amount</TableHead>
