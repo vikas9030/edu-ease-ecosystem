@@ -147,11 +147,11 @@ export default function CreateFeeDialog({ open, onOpenChange, onSuccess }: Props
     setLoadingStudents(true);
     const { data } = await supabase
       .from('students')
-      .select('id, full_name, admission_number')
+      .select('id, full_name, admission_number, class_id')
       .in('class_id', classIds)
       .eq('status', 'active')
       .order('full_name');
-    if (data) setStudents(data);
+    if (data) setStudents(data as StudentInfo[]);
     setLoadingStudents(false);
   };
 
