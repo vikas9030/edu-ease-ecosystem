@@ -290,13 +290,22 @@ export default function ExamsManagement() {
                               </TableCell>
                               <TableCell>{exam.max_marks}</TableCell>
                               <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteExam(exam.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => { setEditingExam(exam); setEditDialogOpen(true); }}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                    onClick={() => handleDeleteExam(exam.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
                                 </Button>
                               </TableCell>
                             </TableRow>
