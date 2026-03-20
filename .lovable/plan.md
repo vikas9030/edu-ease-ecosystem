@@ -1,42 +1,29 @@
 
 
-## Problem
+## Plan: Update README.md with latest features
 
-The **Student Promotion** code (lines 137-145 in `StudentPromotion.tsx`) does an **in-place UPDATE** — it changes the student's `class_id` and `admission_number` directly. It does NOT create a separate record for the old class. So after promoting "kalyan" from 1-A to 3-A:
+The README already has extensive documentation. Two recent features need to be updated to reflect the new implementation:
 
-- The old record is gone (overwritten)
-- There's only 1 record with admission_number `KALYAN-3-A` and class 3-A
-- Student History queries `WHERE admission_number = 'KALYAN-3-A'` — finds only the current record, no previous class
+### Changes needed in README.md
 
-**Two bugs to fix:**
+**1. Update "Student Promotion" description (line 63)**
+Current text says "in-place record update". Must be updated to describe the new **versioned record model**: old record marked as `promoted`, new record created for the new class, parent links copied automatically.
 
-### Fix 1: Promotion must preserve old record
+**2. Update "Historical Data Search" description (line 64)**
+Replace with the new **Student History** module description: class-based navigation with selectable class cards (Current/Previous), filtered tabs for attendance (by month), marks (by exam name), and fees (paid/unpaid list). Shared across Admin, Teacher, and Parent panels.
 
-Change promotion logic to:
-1. **Mark the old record** as `status = 'promoted'` (keep it intact with old class_id and admission_number)
-2. **Create a NEW record** copying all student fields (name, parent info, user_id, etc.) with the new class_id, new admission_number, and `status = 'active'`
-3. Copy `student_parents` links to the new record so parent access works
+**3. Add "Student History" to Teacher Panel table (~line 82)**
+Add row for the new Student History module in the teacher section.
 
-### Fix 2: History must find records by student name/base identifier, not exact admission_number
+**4. Add "Student History" to Parent Panel table (~line 103)**
+Add row for the new Student History module in the parent section.
 
-Since admission_number changes per class (e.g. `KALYAN-1-A` → `KALYAN-3-A`), history lookup needs to:
-1. Extract the base name from admission_number (e.g. `KALYAN` from `KALYAN-3-A`)
-2. Search for all records matching `admission_number ILIKE 'KALYAN%'`
-3. OR better: search by `full_name` exact match combined with base admission pattern
+**5. Update Project Structure section (~line 185)**
+Add `components/history/` directory with `StudentHistoryContent.tsx` shared component.
+
+**6. Add edge functions that are missing**
+Add `reset-user-password`, `send-fee-reminders`, `verify-razorpay-payment`, `create-razorpay-order` to the edge functions list (~line 228).
 
 ### Files to modify
-
-1. **`src/pages/admin/StudentPromotion.tsx`** — Change `handlePromote` to:
-   - Update old record: set `status = 'promoted'` (don't change class_id or admission_number)
-   - Insert new record with new class_id, new admission_number, copy all other fields
-   - Copy student_parents links to new student record
-
-2. **`src/pages/admin/StudentHistory.tsx`** — Change `selectStudent` to query by `full_name` (exact match) instead of exact `admission_number`, so it finds all class records
-
-3. **`src/pages/teacher/TeacherStudentHistory.tsx`** — Same change as admin
-
-4. **`src/pages/parent/ParentStudentHistory.tsx`** — Update to fetch all student records (including promoted) linked to the parent, not just active ones
-
-### No database changes needed
-The students table already has a `status` column that supports 'promoted'. The `student_parents` table can hold multiple links.
+- `README.md` — Update 6 sections as described above
 
