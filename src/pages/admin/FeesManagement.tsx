@@ -474,7 +474,7 @@ export default function FeesManagement() {
                                   <div className="text-xs text-muted-foreground font-mono">{fee.students?.login_id || fee.students?.admission_number}</div>
                                 </button>
                               </TableCell>
-                              <TableCell>{fee.students?.classes ? `${fee.students.classes.name} - ${fee.students.classes.section}` : 'N/A'}</TableCell>
+                              <TableCell>{getClassName(fee)}</TableCell>
                               <TableCell className="capitalize">{fee.fee_type}</TableCell>
                               <TableCell className="font-medium">₹{fee.amount.toLocaleString()}</TableCell>
                               <TableCell>{(fee.discount || 0) > 0 ? <span className="text-success">₹{(fee.discount || 0).toLocaleString()}</span> : '-'}</TableCell>
