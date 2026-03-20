@@ -54,6 +54,13 @@ export default function FeesManagement() {
 
   const [fees, setFees] = useState<FeeRecord[]>([]);
   const [classes, setClasses] = useState<{ id: string; name: string; section: string }[]>([]);
+  const getClassName = (fee: FeeRecord) => {
+    if (fee.class_id) {
+      const cls = classes.find(c => c.id === fee.class_id);
+      if (cls) return `${cls.name} - ${cls.section}`;
+    }
+    return fee.students?.classes ? `${fee.students.classes.name} - ${fee.students.classes.section}` : 'N/A';
+  };
   const [loadingData, setLoadingData] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
