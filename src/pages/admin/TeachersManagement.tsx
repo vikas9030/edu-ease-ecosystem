@@ -45,6 +45,7 @@ import {
   Edit,
   Trash2,
   Upload,
+  Download,
 } from 'lucide-react';
 import {
   DropdownMenu,
