@@ -263,7 +263,7 @@ export default function FeesManagement() {
           i + 1,
           f.students?.full_name || 'N/A',
           f.students?.login_id || f.students?.admission_number || '-',
-          f.students?.classes ? `${f.students.classes.name}-${f.students.classes.section}` : '-',
+          getClassName(f),
           f.fee_type,
           f.amount.toLocaleString(),
           (f.discount || 0).toLocaleString(),
