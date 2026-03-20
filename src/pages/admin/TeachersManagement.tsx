@@ -735,6 +735,8 @@ export default function TeachersManagement() {
             </form>
           </DialogContent>
         </Dialog>
+
+        <TeacherExcelImport open={importDialogOpen} onOpenChange={setImportDialogOpen} onSuccess={fetchData} />
       </div>
     </DashboardLayout>
   );
