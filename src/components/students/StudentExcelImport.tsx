@@ -173,7 +173,7 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
               body: JSON.stringify({
                 studentId,
                 fullName: name,
-                dateOfBirth: row['Date of Birth'] ? String(row['Date of Birth']).trim() : null,
+                dateOfBirth: parseDate(row['Date of Birth']),
                 classId,
                 address: row['Address'] ? String(row['Address']).trim() : null,
                 bloodGroup: row['Blood Group'] ? String(row['Blood Group']).trim() : null,
