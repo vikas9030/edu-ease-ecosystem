@@ -60,8 +60,8 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Gallery** | Manage photo gallery with folders |
 | **Notifications** | View and manage admin notifications |
 | **Settings** | App configuration, module toggles, and lead permissions |
-| **Student Promotion** | Promote students to next class with in-place record update — admission number & login ID auto-regenerated as `{Name}-{Class}-{Section}`, bulk or individual selection, retained students marked separately, all historical data (attendance, marks, fees) stays linked to same student ID |
-| **Historical Data Search** | Cross-class student search in Attendance & Fees modules — type a student name or admission number to bypass class filters and view their complete historical records across all academic years |
+| **Student Promotion** | Versioned record model — old record marked as `status = 'promoted'` (preserving original class_id & admission_number), new record created for the target class with auto-regenerated admission number & login ID (`{Name}-{Class}-{Section}`), parent links (`student_parents`) automatically copied to new record, bulk or individual selection, retained students marked separately |
+| **Student History** | Search any student by name or admission number, view all class records (current & previous) as selectable cards, drill into each class with tabbed view: Attendance (calendar by month), Marks (by exam name with grades), Fees (payment status & amounts). Shared across Admin, Teacher, and Parent panels |
 
 ### 👩‍🏫 Teacher Panel
 | Module | Description |
@@ -80,6 +80,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Leads** | Manage admission leads with inline status dropdown (when enabled by admin) |
 | **Messages** | Communicate with parents and admin with file/image sharing |
 | **Timetable** | View personal teaching schedule ("My Schedule" tab) and browse all class timetables ("Class Timetables" tab) with class filter, CSV/PDF export |
+| **Student History** | Search students, view all class records (current & promoted), drill into attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
 | **Notifications** | View personal notifications |
 
@@ -100,6 +101,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Messages** | Chat with teachers and admin, with file/image sharing |
 | **Certificates** | Request certificates for child with optional document attachments |
 | **Fees** | View fee details with discount & balance breakdown, pay custom partial amounts via Razorpay, view per-transaction payment history with individual receipts, download PDF receipts |
+| **Student History** | View child's complete academic history across all classes (current & promoted) with attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
 | **Notifications** | View personal notifications (in-app + Web Push) |
 | **Settings** | Profile management |
@@ -184,6 +186,7 @@ src/
 │   ├── exams/                 # Exam wizard (5 steps), marks entry, schedule builder, results view, weekly exams
 │   ├── exam-cycles/           # Exam cycles & weekly exams tab components
 │   ├── gallery/               # Gallery view component
+│   ├── history/               # StudentHistoryContent — shared history component (Admin/Teacher/Parent)
 │   ├── attendance/            # Attendance calendar component
 ├── hooks/
 │   ├── useAuth.tsx            # Authentication context & provider
@@ -222,6 +225,10 @@ supabase/
 └── functions/
     ├── create-student/            # Edge function: create student with auth
     ├── create-user/               # Edge function: create user accounts
+    ├── create-razorpay-order/     # Edge function: create Razorpay payment order
+    ├── verify-razorpay-payment/   # Edge function: verify Razorpay payment signature & update fee
+    ├── reset-user-password/       # Edge function: super-admin password reset for any user
+    ├── send-fee-reminders/        # Edge function: automated fee reminder notifications
     ├── full-reset/                # Edge function: reset demo data
     ├── seed-demo-users/           # Edge function: seed demo accounts
     ├── send-push-notification/    # Edge function: Web Push delivery via VAPID
