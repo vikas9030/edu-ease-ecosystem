@@ -102,6 +102,7 @@ export default function TeachersManagement() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [loadingTeachers, setLoadingTeachers] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
