@@ -55,6 +55,10 @@ import {
 import { z } from 'zod';
 import { BackButton } from '@/components/ui/back-button';
 import { cn } from '@/lib/utils';
+import TeacherExcelImport from '@/components/teachers/TeacherExcelImport';
+import { exportTeachersToExcel } from '@/components/teachers/TeacherExcelExport';
+import { Download } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const teacherSchema = z.object({
   fullName: z.string().min(2, 'Name is required').max(100),
