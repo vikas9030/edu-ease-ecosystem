@@ -49,9 +49,9 @@ export default function ParentStudentHistory() {
 
           if (studentsData) {
             setAllChildren(studentsData as any);
-            // Auto-select first unique admission number
-            const firstAdm = studentsData[0]?.admission_number;
-            if (firstAdm) setSelectedAdmNo(firstAdm);
+            // Auto-select first child by full_name
+            const firstName = studentsData[0]?.full_name;
+            if (firstName) setSelectedAdmNo(firstName);
           }
         }
       }
@@ -60,23 +60,23 @@ export default function ParentStudentHistory() {
     fetchChildren();
   }, [user]);
 
-  // Group by admission number for the child selector
-  const uniqueAdmNumbers = useMemo(() => {
+  // Group by full_name for the child selector (since admission_number changes per class)
+  const uniqueChildren = useMemo(() => {
     const map = new Map<string, { name: string; admNo: string }>();
     allChildren.forEach(c => {
-      if (!map.has(c.admission_number)) {
-        map.set(c.admission_number, { name: c.full_name, admNo: c.admission_number });
+      if (!map.has(c.full_name)) {
+        map.set(c.full_name, { name: c.full_name, admNo: c.full_name });
       }
     });
     return Array.from(map.values());
   }, [allChildren]);
 
-  // Records for selected child (all classes)
+  // Records for selected child (all classes including promoted)
   const selectedRecords = useMemo(() => {
-    return allChildren.filter(c => c.admission_number === selectedAdmNo);
+    return allChildren.filter(c => c.full_name === selectedAdmNo);
   }, [allChildren, selectedAdmNo]);
 
-  const selectedChild = uniqueAdmNumbers.find(c => c.admNo === selectedAdmNo);
+  const selectedChild = uniqueChildren.find(c => c.admNo === selectedAdmNo);
 
   if (authLoading || loadingChildren) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -95,7 +95,7 @@ export default function ParentStudentHistory() {
         </div>
 
         {/* Child selector (if multiple unique children) */}
-        {uniqueAdmNumbers.length > 1 && (
+        {uniqueChildren.length > 1 && (
           <Card>
             <CardContent className="pt-6">
               <Select value={selectedAdmNo} onValueChange={setSelectedAdmNo}>
@@ -103,7 +103,7 @@ export default function ParentStudentHistory() {
                   <SelectValue placeholder="Select your child" />
                 </SelectTrigger>
                 <SelectContent>
-                  {uniqueAdmNumbers.map(c => (
+                  {uniqueChildren.map(c => (
                     <SelectItem key={c.admNo} value={c.admNo}>
                       {c.name} ({c.admNo})
                     </SelectItem>

@@ -120,31 +120,65 @@ export default function StudentPromotion() {
       let promotedCount = 0;
 
       for (const student of selectedStudents) {
-        // Extract base name from admission number (e.g., "KALYAN-2-A" → "KALYAN")
-        // Supports formats: NAME-CLASS-SECTION, or CLASS/NAME/YEAR, or plain text
+        // Extract base name from admission number
         let baseName = student.admission_number;
-        // Strip class-section suffix like "-2-A"
         baseName = baseName.replace(/-[^-]+-[^-]+$/, '');
-        // Strip class prefix like "5A/"
         baseName = baseName.replace(/^[A-Za-z0-9]+[A-Za-z]\//, '');
-        // Strip year suffix like "/2526"
         baseName = baseName.replace(/\/\d{4}$/, '');
-        // If nothing useful remains, use full_name
         if (!baseName.trim()) baseName = student.full_name.toUpperCase().replace(/\s+/g, '');
 
         const newAdmissionNumber = `${baseName}-${targetClass?.name || ''}-${targetClass?.section || ''}`;
 
-        // UPDATE existing student record in-place
+        // 1. Mark old record as 'promoted' (preserve it)
         const { error: updateError } = await supabase
           .from('students')
-          .update({
-            class_id: toClass,
-            admission_number: newAdmissionNumber,
-            login_id: newAdmissionNumber,
-          })
+          .update({ status: 'promoted' })
           .eq('id', student.id);
 
         if (updateError) throw updateError;
+
+        // 2. Insert NEW record for the new class
+        const { data: newStudent, error: insertError } = await supabase
+          .from('students')
+          .insert({
+            full_name: student.full_name,
+            admission_number: newAdmissionNumber,
+            login_id: newAdmissionNumber,
+            class_id: toClass,
+            status: 'active',
+            photo_url: student.photo_url,
+            date_of_birth: student.date_of_birth,
+            blood_group: student.blood_group,
+            address: student.address,
+            parent_name: student.parent_name,
+            parent_phone: student.parent_phone,
+            emergency_contact: student.emergency_contact,
+            emergency_contact_name: student.emergency_contact_name,
+            user_id: student.user_id,
+          })
+          .select('id')
+          .single();
+
+        if (insertError) throw insertError;
+
+        // 3. Copy student_parents links to new record
+        if (newStudent) {
+          const { data: parentLinks } = await supabase
+            .from('student_parents')
+            .select('parent_id, relationship')
+            .eq('student_id', student.id);
+
+          if (parentLinks && parentLinks.length > 0) {
+            await supabase
+              .from('student_parents')
+              .insert(parentLinks.map(link => ({
+                student_id: newStudent.id,
+                parent_id: link.parent_id,
+                relationship: link.relationship,
+              })));
+          }
+        }
+
         promotedCount++;
       }
 

@@ -52,10 +52,11 @@ export default function TeacherStudentHistory() {
     setSelectedName(student.full_name);
     setSelectedAdmNo(student.admission_number);
 
+    // Fetch all records with same full_name to find promoted/previous class records
     const { data } = await supabase
       .from('students')
       .select('id, full_name, admission_number, status, class_id, classes(name, section)')
-      .eq('admission_number', student.admission_number)
+      .eq('full_name', student.full_name)
       .order('created_at', { ascending: false });
 
     setStudentRecords((data as any) || []);
