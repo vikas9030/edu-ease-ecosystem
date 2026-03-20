@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Loader2, MoreHorizontal, Trash2, Calendar, FileText, ClipboardList, BarChart3, Clock, RotateCcw, FlaskConical } from 'lucide-react';
+import { Plus, Search, Loader2, MoreHorizontal, Trash2, Calendar, FileText, ClipboardList, BarChart3, Clock, RotateCcw, FlaskConical, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import ExamCreationWizard from '@/components/exams/ExamCreationWizard';
 import ExamMarksEntry from '@/components/exams/ExamMarksEntry';
