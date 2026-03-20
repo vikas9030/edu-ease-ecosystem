@@ -103,7 +103,7 @@ export default function ParentStudentHistory() {
                   <SelectValue placeholder="Select your child" />
                 </SelectTrigger>
                 <SelectContent>
-                  {uniqueAdmNumbers.map(c => (
+                  {uniqueChildren.map(c => (
                     <SelectItem key={c.admNo} value={c.admNo}>
                       {c.name} ({c.admNo})
                     </SelectItem>
