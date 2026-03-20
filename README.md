@@ -186,6 +186,7 @@ src/
 │   ├── exams/                 # Exam wizard (5 steps), marks entry, schedule builder, results view, weekly exams
 │   ├── exam-cycles/           # Exam cycles & weekly exams tab components
 │   ├── gallery/               # Gallery view component
+│   ├── history/               # StudentHistoryContent — shared history component (Admin/Teacher/Parent)
 │   ├── attendance/            # Attendance calendar component
 ├── hooks/
 │   ├── useAuth.tsx            # Authentication context & provider
