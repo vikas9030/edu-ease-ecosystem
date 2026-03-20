@@ -42,6 +42,7 @@ interface FeeRecord {
   payment_status: string;
   paid_at: string | null;
   receipt_number: string | null;
+  class_id?: string | null;
   students?: { full_name: string; admission_number: string; login_id?: string | null; classes?: { name: string; section: string; id?: string } | null } | null;
 }
 
