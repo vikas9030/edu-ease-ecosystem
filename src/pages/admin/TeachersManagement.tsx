@@ -404,10 +404,11 @@ export default function TeachersManagement() {
             <p className="text-muted-foreground">Manage all teacher accounts and profiles</p>
           </div>
 
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gradient-admin"><Plus className="h-4 w-4 mr-2" />Add Teacher</Button>
-            </DialogTrigger>
+          <div className="flex flex-wrap gap-2">
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gradient-admin"><Plus className="h-4 w-4 mr-2" />Add Teacher</Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-display">Add New Teacher</DialogTitle>
