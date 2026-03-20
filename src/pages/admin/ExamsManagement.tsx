@@ -188,6 +188,12 @@ export default function ExamsManagement() {
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete All
                           </DropdownMenuItem>
+                          {examList.length === 1 && (
+                            <DropdownMenuItem onClick={() => { setEditingExam(examList[0]); setEditDialogOpen(true); }}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
