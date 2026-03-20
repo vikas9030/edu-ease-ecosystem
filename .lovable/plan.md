@@ -1,50 +1,54 @@
 
 
-## Problem
+## Bulk Import/Export for Students and Teachers
 
-The `fees` table stores only `student_id` and derives the class name via `students → classes` join. When a student is promoted, their `class_id` changes to the new class, so **all historical fees show the new class name** instead of the class the fee was originally created for. This affects:
+### Overview
+Add Excel bulk import and export functionality to both Students and Teachers management pages, following the existing `LeadExcelImport` pattern.
 
-1. **Admin Fees Management** — class column shows wrong class for pre-promotion fees
-2. **Parent Fees page** — same issue
-3. **Student History fees tab** — fees fetched by `student_id` which is now the promoted record
-4. **Fee receipts (PDF)** — class name is pulled from the student's current class
+### New Files to Create
 
-## Solution
+**1. `src/components/students/StudentExcelImport.tsx`**
+- Dialog component (same pattern as `LeadExcelImport`)
+- Template columns: Student Name, Date of Birth, Class (e.g. "5-A"), Password, Parent Name, Parent Phone, Address, Blood Group, Emergency Contact, Emergency Contact Name
+- Download template with sample data row
+- Parse uploaded Excel, validate required fields (Student Name, Class, Password)
+- For each valid row: call `create-student` edge function (which creates auth account + student + parent records)
+- Show progress bar since each row calls the edge function sequentially
+- Show success/error summary
 
-Add a `class_id` column to the `fees` table that captures the class at fee creation time. Then use this stored class for display instead of the student's current class.
+**2. `src/components/teachers/TeacherExcelImport.tsx`**
+- Same dialog pattern
+- Template columns: Full Name, Email (optional), Phone, Qualification, Password, Subjects (comma-separated)
+- For each valid row: call `create-user` edge function with role=teacher, then insert teacher record
+- Show progress and results
 
-### Step 1: Database migration
-- Add `class_id` column (uuid, nullable) to `fees` table
-- Backfill existing rows: `UPDATE fees SET class_id = s.class_id FROM students s WHERE fees.student_id = s.id AND fees.class_id IS NULL`
+**3. `src/components/students/StudentExcelExport.tsx`** (utility function, not a component)
+- Export current filtered students list to Excel with columns: Admission Number, Student Name, Class, Section, DOB, Parent Name, Parent Phone, Address, Blood Group, Status
 
-### Step 2: Update fee creation (`CreateFeeDialog.tsx`)
-- When inserting fee records, include `class_id` from the student's current class at creation time
-- Look up each student's `class_id` and add it to the insert payload
+**4. `src/components/teachers/TeacherExcelExport.tsx`** (utility function)
+- Export teachers to Excel: Teacher ID, Full Name, Email, Phone, Qualification, Subjects, Status
 
-### Step 3: Update Admin Fees Management (`FeesManagement.tsx`)
-- Change the query to also join `fees.class_id → classes` (as `fee_class`) for display
-- Use `fee_class` name for the class column, falling back to `students.classes` for backward compat
-- Update the export report to use the fee's stored class
-- Update receipt generation to use the fee's stored class
+### Files to Modify
 
-### Step 4: Update Parent Fees page (`ParentFees.tsx`)
-- Fetch fee's `class_id` and join to `classes` to show the original class name per fee
+**5. `src/pages/admin/StudentsManagement.tsx`**
+- Add "Import" and "Export" buttons next to "Add Student"
+- Import button opens `StudentExcelImport` dialog
+- Export button calls export utility with current filtered data
 
-### Step 5: Update Student History Content (`StudentHistoryContent.tsx`)
-- In the fees tab, show the class name from the fee's `class_id` join
+**6. `src/pages/admin/TeachersManagement.tsx`**
+- Add "Import" and "Export" buttons next to "Add Teacher"
+- Same pattern
 
-### Step 6: Update Fee Receipt Generator (`FeeReceiptGenerator.tsx`)
-- No structural change needed — the `className` param is passed by callers; callers just need to pass the fee's class instead of the student's current class
+### Technical Details
 
-### Step 7: Update StudentFeeDetailDialog
-- Display the fee's original class name
+- Uses `xlsx` library (already installed for LeadExcelImport)
+- Student bulk import calls `create-student` edge function per row (creates auth user + parent account). Shows a progress indicator since this is sequential.
+- Teacher bulk import calls `create-user` edge function per row, then inserts into `teachers` table via Supabase client
+- Class matching for students: parse "5-A" format → find matching class by name+section in the classes table
+- Export uses `XLSX.writeFile` to generate downloadable Excel
+- No database changes needed
 
-### Files to modify
-1. **Database migration** — add `class_id` to `fees`, backfill
-2. `src/components/fees/CreateFeeDialog.tsx` — include `class_id` in insert
-3. `src/pages/admin/FeesManagement.tsx` — query & display fee's class
-4. `src/pages/parent/ParentFees.tsx` — query & display fee's class  
-5. `src/components/history/StudentHistoryContent.tsx` — show fee's class
-6. `src/components/fees/StudentFeeDetailDialog.tsx` — use fee's class
-7. `src/components/fees/ClassSummaryView.tsx` — may need update if it groups by class
+### UI
+- Button group: `[+ Add Student] [↑ Import] [↓ Export]` in a flex row
+- Import dialog: download template button, upload button, progress bar during import, results table showing successes and errors
 
