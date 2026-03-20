@@ -49,9 +49,9 @@ export default function ParentStudentHistory() {
 
           if (studentsData) {
             setAllChildren(studentsData as any);
-            // Auto-select first unique admission number
-            const firstAdm = studentsData[0]?.admission_number;
-            if (firstAdm) setSelectedAdmNo(firstAdm);
+            // Auto-select first child by full_name
+            const firstName = studentsData[0]?.full_name;
+            if (firstName) setSelectedAdmNo(firstName);
           }
         }
       }
