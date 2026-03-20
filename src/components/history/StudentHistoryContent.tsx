@@ -62,7 +62,7 @@ export default function StudentHistoryContent({ studentRecords, studentName, adm
         .order('created_at', { ascending: false }),
       supabase
         .from('fees')
-        .select('*')
+        .select('*, fee_class:classes(name, section)' as any)
         .eq('student_id', selectedRecordId)
         .order('due_date', { ascending: false }),
     ]).then(([attRes, marksRes, feesRes]) => {
@@ -291,6 +291,7 @@ export default function StudentHistoryContent({ studentRecords, studentName, adm
                           <TableHeader>
                             <TableRow>
                               <TableHead>Fee Type</TableHead>
+                              <TableHead>Class</TableHead>
                               <TableHead>Amount</TableHead>
                               <TableHead>Discount</TableHead>
                               <TableHead>Paid</TableHead>
@@ -299,20 +300,25 @@ export default function StudentHistoryContent({ studentRecords, studentName, adm
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {fees.map(f => (
-                              <TableRow key={f.id}>
-                                <TableCell className="font-medium text-sm">{f.fee_type}</TableCell>
-                                <TableCell>₹{Number(f.amount).toLocaleString()}</TableCell>
-                                <TableCell>{f.discount ? `₹${Number(f.discount).toLocaleString()}` : '-'}</TableCell>
-                                <TableCell>₹{Number(f.paid_amount || 0).toLocaleString()}</TableCell>
-                                <TableCell className="font-mono text-sm">{format(new Date(f.due_date), 'dd MMM yyyy')}</TableCell>
-                                <TableCell>
-                                  <Badge variant={f.payment_status === 'paid' ? 'default' : f.payment_status === 'partial' ? 'secondary' : 'destructive'}>
-                                    {f.payment_status || 'unpaid'}
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            ))}
+                            {fees.map(f => {
+                              const feeClass = (f as any).fee_class;
+                              const className = feeClass ? `${feeClass.name}-${feeClass.section}` : (selectedRecord?.classes ? `${selectedRecord.classes.name}-${selectedRecord.classes.section}` : '-');
+                              return (
+                                <TableRow key={f.id}>
+                                  <TableCell className="font-medium text-sm">{f.fee_type}</TableCell>
+                                  <TableCell className="text-sm">{className}</TableCell>
+                                  <TableCell>₹{Number(f.amount).toLocaleString()}</TableCell>
+                                  <TableCell>{f.discount ? `₹${Number(f.discount).toLocaleString()}` : '-'}</TableCell>
+                                  <TableCell>₹{Number(f.paid_amount || 0).toLocaleString()}</TableCell>
+                                  <TableCell className="font-mono text-sm">{format(new Date(f.due_date), 'dd MMM yyyy')}</TableCell>
+                                  <TableCell>
+                                    <Badge variant={f.payment_status === 'paid' ? 'default' : f.payment_status === 'partial' ? 'secondary' : 'destructive'}>
+                                      {f.payment_status || 'unpaid'}
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
                           </TableBody>
                         </Table>
                       </div>

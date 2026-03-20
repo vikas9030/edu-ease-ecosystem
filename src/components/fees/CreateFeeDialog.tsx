@@ -29,6 +29,7 @@ interface StudentInfo {
   id: string;
   full_name: string;
   admission_number: string;
+  class_id: string | null;
 }
 
 interface ClassInfo {
@@ -146,11 +147,11 @@ export default function CreateFeeDialog({ open, onOpenChange, onSuccess }: Props
     setLoadingStudents(true);
     const { data } = await supabase
       .from('students')
-      .select('id, full_name, admission_number')
+      .select('id, full_name, admission_number, class_id')
       .in('class_id', classIds)
       .eq('status', 'active')
       .order('full_name');
-    if (data) setStudents(data);
+    if (data) setStudents(data as StudentInfo[]);
     setLoadingStudents(false);
   };
 
@@ -267,8 +268,9 @@ export default function CreateFeeDialog({ open, onOpenChange, onSuccess }: Props
       const dueDateStr = format(dueDate, 'yyyy-MM-dd');
       const reminderDaysBefore = enableReminder ? parseInt(reminderDays) || 3 : 0;
 
-      const feeRecords = studentIds.flatMap(sid =>
-        feeEntries.map(entry => {
+      const feeRecords = studentIds.flatMap(sid => {
+        const studentClassId = students.find(s => s.id === sid)?.class_id || null;
+        return feeEntries.map(entry => {
           const feeAmount = parseFloat(entry.amount) || 0;
           return {
             student_id: sid,
@@ -277,9 +279,10 @@ export default function CreateFeeDialog({ open, onOpenChange, onSuccess }: Props
             discount: getDiscountForStudent(sid, feeAmount),
             due_date: dueDateStr,
             reminder_days_before: reminderDaysBefore,
+            class_id: studentClassId,
           };
-        })
-      );
+        });
+      });
 
       const { error } = await supabase.from('fees').insert(feeRecords);
       if (error) throw error;

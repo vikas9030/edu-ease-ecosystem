@@ -34,6 +34,8 @@ interface Fee {
   paid_at: string | null;
   receipt_number: string | null;
   discount: number | null;
+  class_id?: string | null;
+  fee_class?: { name: string; section: string } | null;
 }
 
 interface Child {
@@ -148,14 +150,14 @@ export default function ParentFees() {
         for (const link of links) {
           const { data: feesData } = await supabase
             .from('fees')
-            .select('*')
+            .select('*, fee_class:classes(name, section)' as any)
             .eq('student_id', link.student_id)
             .order('due_date', { ascending: false });
 
           childrenData.push({
             id: link.student_id,
             name: (link as any).students?.full_name || '',
-            fees: feesData || [],
+            fees: (feesData as any as Fee[]) || [],
           });
         }
         setChildren(childrenData);
@@ -363,6 +365,7 @@ export default function ParentFees() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Fee Type</TableHead>
+                        <TableHead>Class</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Discount</TableHead>
                         <TableHead>Net Amount</TableHead>
@@ -379,6 +382,7 @@ export default function ParentFees() {
                         return (
                           <TableRow key={fee.id}>
                             <TableCell className="font-medium">{fee.fee_type}</TableCell>
+                            <TableCell className="text-sm">{(fee as any).fee_class ? `${(fee as any).fee_class.name}-${(fee as any).fee_class.section}` : '-'}</TableCell>
                             <TableCell><span className="flex items-center"><IndianRupee className="h-3 w-3" />{fee.amount.toLocaleString()}</span></TableCell>
                             <TableCell>
                               {(fee.discount || 0) > 0 ? (

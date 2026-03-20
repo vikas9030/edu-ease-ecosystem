@@ -42,6 +42,7 @@ interface FeeRecord {
   payment_status: string;
   paid_at: string | null;
   receipt_number: string | null;
+  class_id?: string | null;
   students?: { full_name: string; admission_number: string; login_id?: string | null; classes?: { name: string; section: string; id?: string } | null } | null;
 }
 
@@ -53,6 +54,13 @@ export default function FeesManagement() {
 
   const [fees, setFees] = useState<FeeRecord[]>([]);
   const [classes, setClasses] = useState<{ id: string; name: string; section: string }[]>([]);
+  const getClassName = (fee: FeeRecord) => {
+    if (fee.class_id) {
+      const cls = classes.find(c => c.id === fee.class_id);
+      if (cls) return `${cls.name} - ${cls.section}`;
+    }
+    return fee.students?.classes ? `${fee.students.classes.name} - ${fee.students.classes.section}` : 'N/A';
+  };
   const [loadingData, setLoadingData] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -123,7 +131,7 @@ export default function FeesManagement() {
       receiptNumber: fee.receipt_number,
       studentName: fee.students?.full_name || 'N/A',
       admissionNumber: fee.students?.login_id || fee.students?.admission_number,
-      className: fee.students?.classes ? `${fee.students.classes.name} - ${fee.students.classes.section}` : undefined,
+      className: getClassName(fee),
       feeType: fee.fee_type,
       amount: fee.amount,
       paidAmount: fee.paid_amount || 0,
@@ -139,7 +147,7 @@ export default function FeesManagement() {
     setSelectedStudent({
       name: first.students.full_name,
       admission: first.students.login_id || first.students.admission_number,
-      className: first.students.classes ? `${first.students.classes.name} - ${first.students.classes.section}` : 'N/A',
+      className: getClassName(first),
       fees: studentFees,
     });
   };
@@ -255,7 +263,7 @@ export default function FeesManagement() {
           i + 1,
           f.students?.full_name || 'N/A',
           f.students?.login_id || f.students?.admission_number || '-',
-          f.students?.classes ? `${f.students.classes.name}-${f.students.classes.section}` : '-',
+          getClassName(f),
           f.fee_type,
           f.amount.toLocaleString(),
           (f.discount || 0).toLocaleString(),
@@ -466,7 +474,7 @@ export default function FeesManagement() {
                                   <div className="text-xs text-muted-foreground font-mono">{fee.students?.login_id || fee.students?.admission_number}</div>
                                 </button>
                               </TableCell>
-                              <TableCell>{fee.students?.classes ? `${fee.students.classes.name} - ${fee.students.classes.section}` : 'N/A'}</TableCell>
+                              <TableCell>{getClassName(fee)}</TableCell>
                               <TableCell className="capitalize">{fee.fee_type}</TableCell>
                               <TableCell className="font-medium">₹{fee.amount.toLocaleString()}</TableCell>
                               <TableCell>{(fee.discount || 0) > 0 ? <span className="text-success">₹{(fee.discount || 0).toLocaleString()}</span> : '-'}</TableCell>
