@@ -34,6 +34,8 @@ export default function ExamsManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('schedule');
+  const [editingExam, setEditingExam] = useState<Exam | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || (userRole !== 'admin' && userRole !== 'super_admin'))) {
