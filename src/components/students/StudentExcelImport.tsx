@@ -58,6 +58,28 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
     XLSX.writeFile(wb, 'student_import_template.xlsx');
   };
 
+  const parseDate = (value: any): string | null => {
+    if (!value) return null;
+    if (typeof value === 'number' && value > 1 && value < 100000) {
+      const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+      const date = new Date(excelEpoch.getTime() + value * 86400000);
+      const y = date.getUTCFullYear();
+      const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(date.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    const str = String(value).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    const parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+      const y = parsed.getFullYear();
+      const m = String(parsed.getMonth() + 1).padStart(2, '0');
+      const d = String(parsed.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    return null;
+  };
+
   const findClassId = (classStr: string): string | null => {
     const trimmed = classStr.trim();
     // Try "5-A" or "5 - A" or "5A" formats
