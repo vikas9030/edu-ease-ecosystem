@@ -95,9 +95,10 @@ export default function FeesManagement() {
 
   const fetchData = async () => {
     setLoadingData(true);
-    const [feesRes, classesRes] = await Promise.all([
+    const [feesRes, classesRes, studentsRes] = await Promise.all([
       supabase.from('fees').select('*, students(full_name, admission_number, login_id, classes(id, name, section))').order('due_date', { ascending: false }),
       supabase.from('classes').select('*').order('name'),
+      supabase.from('students').select('id, full_name, class_id, status').order('full_name'),
     ]);
 
     if (feesRes.data) {
@@ -108,6 +109,7 @@ export default function FeesManagement() {
       setStats({ totalDue, totalPaid, overdue });
     }
     if (classesRes.data) setClasses(classesRes.data);
+    if (studentsRes.data) setAllStudents(studentsRes.data);
     setLoadingData(false);
   };
 
