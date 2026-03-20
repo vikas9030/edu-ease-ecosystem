@@ -681,6 +681,8 @@ export default function StudentsManagement() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <StudentExcelImport open={importDialogOpen} onOpenChange={setImportDialogOpen} onSuccess={fetchData} />
       </div>
     </DashboardLayout>
   );
