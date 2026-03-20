@@ -60,20 +60,20 @@ export default function ParentStudentHistory() {
     fetchChildren();
   }, [user]);
 
-  // Group by admission number for the child selector
-  const uniqueAdmNumbers = useMemo(() => {
+  // Group by full_name for the child selector (since admission_number changes per class)
+  const uniqueChildren = useMemo(() => {
     const map = new Map<string, { name: string; admNo: string }>();
     allChildren.forEach(c => {
-      if (!map.has(c.admission_number)) {
-        map.set(c.admission_number, { name: c.full_name, admNo: c.admission_number });
+      if (!map.has(c.full_name)) {
+        map.set(c.full_name, { name: c.full_name, admNo: c.full_name });
       }
     });
     return Array.from(map.values());
   }, [allChildren]);
 
-  // Records for selected child (all classes)
+  // Records for selected child (all classes including promoted)
   const selectedRecords = useMemo(() => {
-    return allChildren.filter(c => c.admission_number === selectedAdmNo);
+    return allChildren.filter(c => c.full_name === selectedAdmNo);
   }, [allChildren, selectedAdmNo]);
 
   const selectedChild = uniqueAdmNumbers.find(c => c.admNo === selectedAdmNo);
