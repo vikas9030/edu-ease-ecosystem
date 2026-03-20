@@ -200,7 +200,8 @@ export default function FeesManagement() {
         f.students?.admission_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         f.fee_type.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'all' || f.payment_status === statusFilter;
-      const matchesClass = (f.students?.classes as any)?.id === classFilter;
+      const feeClassId = f.class_id || (f.students?.classes as any)?.id;
+      const matchesClass = feeClassId === classFilter;
       const matchesStudent = f.student_id === studentFilter;
       return matchesSearch && matchesStatus && matchesClass && matchesStudent;
     });
