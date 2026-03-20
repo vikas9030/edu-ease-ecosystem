@@ -1,49 +1,42 @@
 
 
-## Plan: Redesign Student History — Class-based navigation with filtered tabs
+## Problem
 
-### Current behavior
-All 3 history pages (admin, teacher, parent) dump all attendance/marks/fees in flat lists. No way to filter by class year, month, or exam.
+The **Student Promotion** code (lines 137-145 in `StudentPromotion.tsx`) does an **in-place UPDATE** — it changes the student's `class_id` and `admission_number` directly. It does NOT create a separate record for the old class. So after promoting "kalyan" from 1-A to 3-A:
 
-### New behavior (all 3 panels)
+- The old record is gone (overwritten)
+- There's only 1 record with admission_number `KALYAN-3-A` and class 3-A
+- Student History queries `WHERE admission_number = 'KALYAN-3-A'` — finds only the current record, no previous class
 
-**Flow:**
-1. **Search/select student** (admin/teacher: search bar; parent: auto-loads linked children including promoted records)
-2. **Show list of classes the student studied in** — query `students` table for all records matching the same `admission_number` (active + promoted). Each row = a class card (e.g. "Class 5-A (active)" or "Class 4-B (promoted)")
-3. **User selects a class** → loads data for that specific student record ID
-4. **3 tabs appear with filters:**
-   - **Attendance tab**: Month selector dropdown → shows only that month's attendance
-   - **Marks tab**: Exam name dropdown (populated from exams for that class) → shows marks for selected exam
-   - **Fees tab**: Shows all fees for that student record with paid/unpaid/partial status
+**Two bugs to fix:**
 
-### Technical details
+### Fix 1: Promotion must preserve old record
 
-**Create shared component:** `src/components/history/StudentHistoryContent.tsx`
-- Accepts `studentRecords: StudentItem[]` (all records for same student across classes)
-- Shows class selector cards/chips
-- On class select, fetches attendance, marks, fees for that `student.id`
-- Attendance tab: month dropdown filter (derived from fetched dates)
-- Marks tab: exam name dropdown filter (derived from fetched exam data)
-- Fees tab: full list with status badges
+Change promotion logic to:
+1. **Mark the old record** as `status = 'promoted'` (keep it intact with old class_id and admission_number)
+2. **Create a NEW record** copying all student fields (name, parent info, user_id, etc.) with the new class_id, new admission_number, and `status = 'active'`
+3. Copy `student_parents` links to the new record so parent access works
 
-**Modify 3 pages to use shared component:**
+### Fix 2: History must find records by student name/base identifier, not exact admission_number
 
-1. **`src/pages/admin/StudentHistory.tsx`** — Search student → on select, query all student records with same `admission_number` → pass to `StudentHistoryContent`
-2. **`src/pages/teacher/TeacherStudentHistory.tsx`** — Same as admin
-3. **`src/pages/parent/ParentStudentHistory.tsx`** — Fetch linked children (all statuses, not just active) → group by admission_number → pass to `StudentHistoryContent`
-
-**Data queries per selected class (student record ID):**
-- Attendance: `attendance` where `student_id = selected_id`, ordered by date desc
-- Marks: `exam_marks` with joined `exams(name, exam_date, max_marks, subjects(name))` where `student_id = selected_id`
-- Fees: `fees` where `student_id = selected_id`
-
-**No database changes needed** — all data already exists; promoted students keep their old `student.id` with `status='promoted'`.
-
-### Files to create
-- `src/components/history/StudentHistoryContent.tsx` — shared component with class selector, filtered tabs
+Since admission_number changes per class (e.g. `KALYAN-1-A` → `KALYAN-3-A`), history lookup needs to:
+1. Extract the base name from admission_number (e.g. `KALYAN` from `KALYAN-3-A`)
+2. Search for all records matching `admission_number ILIKE 'KALYAN%'`
+3. OR better: search by `full_name` exact match combined with base admission pattern
 
 ### Files to modify
-- `src/pages/admin/StudentHistory.tsx` — use shared component
-- `src/pages/teacher/TeacherStudentHistory.tsx` — use shared component
-- `src/pages/parent/ParentStudentHistory.tsx` — use shared component, fetch all statuses
+
+1. **`src/pages/admin/StudentPromotion.tsx`** — Change `handlePromote` to:
+   - Update old record: set `status = 'promoted'` (don't change class_id or admission_number)
+   - Insert new record with new class_id, new admission_number, copy all other fields
+   - Copy student_parents links to new student record
+
+2. **`src/pages/admin/StudentHistory.tsx`** — Change `selectStudent` to query by `full_name` (exact match) instead of exact `admission_number`, so it finds all class records
+
+3. **`src/pages/teacher/TeacherStudentHistory.tsx`** — Same change as admin
+
+4. **`src/pages/parent/ParentStudentHistory.tsx`** — Update to fetch all student records (including promoted) linked to the parent, not just active ones
+
+### No database changes needed
+The students table already has a `status` column that supports 'promoted'. The `student_parents` table can hold multiple links.
 
