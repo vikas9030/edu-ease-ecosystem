@@ -306,7 +306,8 @@ export default function ExamsManagement() {
                                     onClick={() => handleDeleteExam(exam.id)}
                                   >
                                     <Trash2 className="h-4 w-4" />
-                                </Button>
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}
