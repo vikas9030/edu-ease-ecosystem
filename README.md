@@ -174,6 +174,8 @@ src/
 │   ├── ui/                    # shadcn/ui primitives (Button, Card, Dialog, etc.)
 │   ├── layouts/               # DashboardLayout with sidebar
 │   ├── exams/                 # Exam wizard, marks entry, schedule builder
+│   ├── students/              # StudentExcelImport (dialog), StudentExcelExport (utility)
+│   ├── teachers/              # TeacherExcelImport (dialog), TeacherExcelExport (utility)
 │   ├── leads/                 # Lead forms, call logs, Excel import, settings
 │   ├── messaging/             # Messaging interface
 │   ├── AttendanceSummary.tsx   # Reusable attendance widget
