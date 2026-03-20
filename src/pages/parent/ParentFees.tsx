@@ -150,7 +150,7 @@ export default function ParentFees() {
         for (const link of links) {
           const { data: feesData } = await supabase
             .from('fees')
-            .select('*')
+            .select('*, fee_class:classes(name, section)' as any)
             .eq('student_id', link.student_id)
             .order('due_date', { ascending: false });
 
