@@ -361,6 +361,14 @@ export default function ExamsManagement() {
           subjects={subjects.filter(s => s.category !== 'competitive')}
           onSuccess={fetchData}
         />
+
+        {/* Edit Exam Dialog */}
+        <EditExamDialog
+          exam={editingExam}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSuccess={fetchData}
+        />
       </div>
     </DashboardLayout>
   );

@@ -343,15 +343,29 @@ export default function StudentPromotion() {
                         </p>
                       )}
                     </div>
-                    <Button 
-                      size="lg" 
-                      onClick={() => setConfirmOpen(true)} 
-                      disabled={promoting}
-                      className="shrink-0"
-                    >
-                      {promoting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ArrowUpCircle className="h-4 w-4 mr-2" />}
-                      Promote Students
-                    </Button>
+                    <div className="flex gap-2 shrink-0">
+                      {selectedIds.size < students.length && (
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedIds(new Set(students.map(s => s.id)));
+                            setConfirmOpen(true);
+                          }}
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          Promote Entire Class
+                        </Button>
+                      )}
+                      <Button 
+                        size="lg" 
+                        onClick={() => setConfirmOpen(true)} 
+                        disabled={promoting}
+                      >
+                        {promoting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ArrowUpCircle className="h-4 w-4 mr-2" />}
+                        Promote {selectedIds.size === students.length ? 'Entire Class' : 'Selected'}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
