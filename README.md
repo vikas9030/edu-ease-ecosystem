@@ -84,6 +84,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Timetable** | View personal teaching schedule ("My Schedule" tab) and browse all class timetables ("Class Timetables" tab) with class filter, CSV/PDF export |
 | **Student History** | Search students, view all class records (current & promoted), drill into attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
+| **Holidays** | View upcoming holidays, occasions, and events in a responsive calendar with card list |
 | **Notifications** | View personal notifications |
 
 ### 👨‍👩‍👧 Parent Panel
