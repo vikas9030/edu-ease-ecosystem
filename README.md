@@ -238,7 +238,8 @@ supabase/
     ├── full-reset/                # Edge function: reset demo data
     ├── seed-demo-users/           # Edge function: seed demo accounts
     ├── send-push-notification/    # Edge function: Web Push delivery via VAPID
-    └── notify-competitive-exams/  # Edge function: scheduled competitive exam reminders
+    ├── notify-competitive-exams/  # Edge function: scheduled competitive exam reminders
+    └── notify-holiday-reminders/  # Edge function: automated holiday reminder notifications (2 days before)
 
 public/
 ├── sw-push.js                 # Service worker push event handler
