@@ -15,6 +15,7 @@ import {
   Settings,
   AlertTriangle,
   History,
+  CalendarDays,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -40,6 +41,7 @@ const allParentSidebarItems: SidebarItem[] = [
   { icon: <MessageSquare className="h-5 w-5" />, label: 'Messages', path: '/parent/messages', moduleKey: 'messages' },
   { icon: <Award className="h-5 w-5" />, label: 'Certificates', path: '/parent/certificates', moduleKey: 'certificates' },
   { icon: <Image className="h-5 w-5" />, label: 'Gallery', path: '/parent/gallery', moduleKey: 'gallery' },
+  { icon: <CalendarDays className="h-5 w-5" />, label: 'Holidays', path: '/parent/holidays', moduleKey: 'holidays' },
   { icon: <CreditCard className="h-5 w-5" />, label: 'Pay Fees', path: '/parent/fees', moduleKey: 'fees' },
   { icon: <History className="h-5 w-5" />, label: 'Student History', path: '/parent/student-history', moduleKey: 'promotion' },
   { icon: <Settings className="h-5 w-5" />, label: 'Settings', path: '/parent/settings' },

@@ -536,6 +536,36 @@ export type Database = {
           },
         ]
       }
+      holidays: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          holiday_date: string
+          holiday_type: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          holiday_date: string
+          holiday_type?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          holiday_date?: string
+          holiday_type?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       homework: {
         Row: {
           attachment_url: string | null

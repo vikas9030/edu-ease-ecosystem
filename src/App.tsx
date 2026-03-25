@@ -31,13 +31,13 @@ import AdminNotifications from "./pages/admin/AdminNotifications";
 import WeeklyExamsManagement from "./pages/admin/WeeklyExamsManagement";
 import StudentPromotion from "./pages/admin/StudentPromotion";
 import StudentHistory from "./pages/admin/StudentHistory";
+import HolidaysManagement from "./pages/admin/HolidaysManagement";
 
 // Super Admin Pages
 import SuperAdminDashboard from "./pages/super-admin/SuperAdminDashboard";
 import ModuleControl from "./pages/super-admin/ModuleControl";
 import ManageAdmins from "./pages/super-admin/ManageAdmins";
 import SuperAdminSettings from "./pages/super-admin/SuperAdminSettings";
-
 
 // Teacher Pages
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
@@ -58,6 +58,7 @@ import TeacherWeeklyExams from "./pages/teacher/TeacherWeeklyExams";
 import TeacherNotifications from "./pages/teacher/TeacherNotifications";
 import TeacherSettings from "./pages/teacher/TeacherSettings";
 import TeacherStudentHistory from "./pages/teacher/TeacherStudentHistory";
+import TeacherHolidays from "./pages/teacher/TeacherHolidays";
 // Parent Pages
 import ParentDashboard from "./pages/parent/ParentDashboard";
 import ParentChild from "./pages/parent/ParentChild";
@@ -77,6 +78,7 @@ import ParentNotifications from "./pages/parent/ParentNotifications";
 import ParentSettings from "./pages/parent/ParentSettings";
 import ParentComplaints from "./pages/parent/ParentComplaints";
 import ParentStudentHistory from "./pages/parent/ParentStudentHistory";
+import ParentHolidays from "./pages/parent/ParentHolidays";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +123,7 @@ const App = () => (
             <Route path="/admin/promotion" element={<StudentPromotion />} />
             <Route path="/admin/student-history" element={<StudentHistory />} />
             <Route path="/admin/settings" element={<SettingsPage />} />
+            <Route path="/admin/holidays" element={<HolidaysManagement />} />
             
             {/* Teacher Routes */}
             <Route path="/teacher" element={<TeacherDashboard />} />
@@ -140,6 +143,7 @@ const App = () => (
             <Route path="/teacher/notifications" element={<TeacherNotifications />} />
             <Route path="/teacher/messages" element={<TeacherMessages />} />
             <Route path="/teacher/student-history" element={<TeacherStudentHistory />} />
+            <Route path="/teacher/holidays" element={<TeacherHolidays />} />
             <Route path="/teacher/settings" element={<TeacherSettings />} />
             
             {/* Parent Routes */}
@@ -160,6 +164,7 @@ const App = () => (
             <Route path="/parent/fees" element={<ParentFees />} />
             <Route path="/parent/complaints" element={<ParentComplaints />} />
             <Route path="/parent/student-history" element={<ParentStudentHistory />} />
+            <Route path="/parent/holidays" element={<ParentHolidays />} />
             <Route path="/parent/settings" element={<ParentSettings />} />
             
             {/* Catch-all */}

@@ -14,6 +14,7 @@ import {
   LibraryBig,
   Settings,
   History,
+  CalendarDays,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -38,6 +39,7 @@ const allTeacherSidebarItems: SidebarItem[] = [
   { icon: <Clock className="h-5 w-5" />, label: 'Timetable', path: '/teacher/timetable', moduleKey: 'timetable' },
   { icon: <Calendar className="h-5 w-5" />, label: 'Leave Request', path: '/teacher/leave', moduleKey: 'leave' },
   { icon: <Image className="h-5 w-5" />, label: 'Gallery', path: '/teacher/gallery', moduleKey: 'gallery' },
+  { icon: <CalendarDays className="h-5 w-5" />, label: 'Holidays', path: '/teacher/holidays', moduleKey: 'holidays' },
   { icon: <Bell className="h-5 w-5" />, label: 'Notifications', path: '/teacher/notifications', moduleKey: 'notifications' },
   { icon: <MessageSquare className="h-5 w-5" />, label: 'Messages', path: '/teacher/messages', moduleKey: 'messages' },
   { icon: <Settings className="h-5 w-5" />, label: 'Settings', path: '/teacher/settings' },
