@@ -78,6 +78,7 @@ import ParentNotifications from "./pages/parent/ParentNotifications";
 import ParentSettings from "./pages/parent/ParentSettings";
 import ParentComplaints from "./pages/parent/ParentComplaints";
 import ParentStudentHistory from "./pages/parent/ParentStudentHistory";
+import ParentHolidays from "./pages/parent/ParentHolidays";
 
 const queryClient = new QueryClient();
 
