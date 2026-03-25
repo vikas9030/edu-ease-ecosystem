@@ -63,6 +63,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Settings** | App configuration, module toggles, and lead permissions |
 | **Student Promotion** | Versioned record model — old record marked as `status = 'promoted'` (preserving original class_id & admission_number), new record created for the target class with auto-regenerated admission number & login ID (`{Name}-{Class}-{Section}`), parent links (`student_parents`) automatically copied to new record, bulk or individual selection, retained students marked separately |
 | **Student History** | Search any student by name or admission number, view all class records (current & previous) as selectable cards, drill into each class with tabbed view: Attendance (calendar by month), Marks (by exam name with grades), Fees (payment status & amounts). Shared across Admin, Teacher, and Parent panels |
+| **Holidays** | Create, edit, and delete holidays/occasions/events with date, type, and description; mobile-friendly calendar with color-coded date highlights and card-based list view; automated notifications on creation and 2-day-before reminders |
 
 ### 👩‍🏫 Teacher Panel
 | Module | Description |
@@ -83,6 +84,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Timetable** | View personal teaching schedule ("My Schedule" tab) and browse all class timetables ("Class Timetables" tab) with class filter, CSV/PDF export |
 | **Student History** | Search students, view all class records (current & promoted), drill into attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
+| **Holidays** | View upcoming holidays, occasions, and events in a responsive calendar with card list |
 | **Notifications** | View personal notifications |
 
 ### 👨‍👩‍👧 Parent Panel
@@ -104,6 +106,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Fees** | View fee details with discount & balance breakdown, pay custom partial amounts via Razorpay, view per-transaction payment history with individual receipts, download PDF receipts |
 | **Student History** | View child's complete academic history across all classes (current & promoted) with attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
+| **Holidays** | View upcoming holidays, occasions, and events in a responsive calendar with card list |
 | **Notifications** | View personal notifications (in-app + Web Push) |
 | **Settings** | Profile management |
 
@@ -197,9 +200,9 @@ src/
 │   ├── useTeacherSidebar.ts   # Dynamic teacher sidebar builder
 │   └── use-toast.ts           # Toast notification hook
 ├── pages/
-│   ├── admin/                 # 20 admin pages (Dashboard, Teachers, Students, Classes, Subjects, Timetable, Attendance, Exams, Weekly Exams, Exam Cycles, Syllabus, Question Papers, Leads, Announcements, Leave, Certificates, Complaints, Fees, Messages, Gallery, Settings)
-│   ├── teacher/               # 16 teacher pages (Dashboard, Classes, Students, Attendance, Homework, Exams, Syllabus, Weekly Exams, Reports, Announcements, Leave, Leads, Gallery, Messages, Timetable, Notifications)
-│   ├── parent/                # 15 parent pages (Dashboard, Child, Attendance, Timetable, Homework, Exams, Syllabus, Progress, Announcements, Leave, Messages, Certificates, Fees, Gallery, Notifications)
+│   ├── admin/                 # 21 admin pages (Dashboard, Teachers, Students, Classes, Subjects, Timetable, Attendance, Exams, Weekly Exams, Exam Cycles, Syllabus, Question Papers, Leads, Announcements, Leave, Certificates, Complaints, Fees, Messages, Gallery, Holidays, Settings)
+│   ├── teacher/               # 17 teacher pages (Dashboard, Classes, Students, Attendance, Homework, Exams, Syllabus, Weekly Exams, Reports, Announcements, Leave, Leads, Gallery, Holidays, Messages, Timetable, Notifications)
+│   ├── parent/                # 16 parent pages (Dashboard, Child, Attendance, Timetable, Homework, Exams, Syllabus, Progress, Announcements, Leave, Messages, Certificates, Fees, Gallery, Holidays, Notifications)
 │   ├── Auth.tsx               # Login / signup page
 │   ├── Index.tsx              # Landing page
 │   └── NotFound.tsx           # 404 page
@@ -235,7 +238,8 @@ supabase/
     ├── full-reset/                # Edge function: reset demo data
     ├── seed-demo-users/           # Edge function: seed demo accounts
     ├── send-push-notification/    # Edge function: Web Push delivery via VAPID
-    └── notify-competitive-exams/  # Edge function: scheduled competitive exam reminders
+    ├── notify-competitive-exams/  # Edge function: scheduled competitive exam reminders
+    └── notify-holiday-reminders/  # Edge function: automated holiday reminder notifications (2 days before)
 
 public/
 ├── sw-push.js                 # Service worker push event handler
@@ -890,6 +894,29 @@ Images within gallery folders.
 
 ---
 
+### Holiday Tables
+
+#### `holidays`
+School holidays, occasions, and events calendar.
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `id` | uuid | No | `gen_random_uuid()` |
+| `title` | text | No | — |
+| `description` | text | Yes | — |
+| `holiday_date` | date | No | — |
+| `holiday_type` | text | No | `'holiday'` |
+| `created_by` | uuid | Yes | — |
+| `created_at` | timestamptz | Yes | `now()` |
+
+**RLS Policies:**
+- All authenticated users can view holidays (SELECT)
+- Admins can insert, update, delete holidays (using `has_role`)
+
+**Trigger:** `on_holiday_created` — automatically creates notifications for all teachers and parents when a new holiday is added.
+
+---
+
 ## ⚡ Edge Functions
 
 | Function | Purpose |
@@ -903,6 +930,7 @@ Images within gallery folders.
 | `create-razorpay-order` | Creates Razorpay payment orders for online fee payments (reads API keys from `app_settings`) |
 | `verify-razorpay-payment` | Verifies Razorpay payment signatures (HMAC SHA256), accumulates `paid_amount`, auto-sets payment status, and logs transaction in `fee_payments` |
 | `send-fee-reminders` | Sends automated fee reminders to parents based on configurable due-date windows |
+| `notify-holiday-reminders` | Sends reminder notifications 2 days before upcoming holidays to all teachers and parents (scheduled via pg_cron at 8 AM daily) |
 
 All edge functions run on Deno runtime and use the Supabase service role key for privileged operations.
 
