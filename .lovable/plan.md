@@ -1,54 +1,65 @@
 
 
-## Bulk Import/Export for Students and Teachers
+## Holiday & Occasion Calendar with Mobile-Friendly Design
 
 ### Overview
-Add Excel bulk import and export functionality to both Students and Teachers management pages, following the existing `LeadExcelImport` pattern.
+Add a Holiday/Occasion Calendar where admins create holidays with dates and descriptions. Teachers and parents view them in a responsive calendar+list UI. All users get reminder notifications.
 
-### New Files to Create
+### Database Changes (1 migration)
 
-**1. `src/components/students/StudentExcelImport.tsx`**
-- Dialog component (same pattern as `LeadExcelImport`)
-- Template columns: Student Name, Date of Birth, Class (e.g. "5-A"), Password, Parent Name, Parent Phone, Address, Blood Group, Emergency Contact, Emergency Contact Name
-- Download template with sample data row
-- Parse uploaded Excel, validate required fields (Student Name, Class, Password)
-- For each valid row: call `create-student` edge function (which creates auth account + student + parent records)
-- Show progress bar since each row calls the edge function sequentially
-- Show success/error summary
+**New table: `holidays`**
+- `id` uuid PK, `title` text NOT NULL, `description` text, `holiday_date` date NOT NULL, `holiday_type` text DEFAULT 'holiday' (holiday/occasion/event), `created_by` uuid, `created_at` timestamptz DEFAULT now()
 
-**2. `src/components/teachers/TeacherExcelImport.tsx`**
-- Same dialog pattern
-- Template columns: Full Name, Email (optional), Phone, Qualification, Password, Subjects (comma-separated)
-- For each valid row: call `create-user` edge function with role=teacher, then insert teacher record
-- Show progress and results
+**RLS Policies:**
+- Admin: full CRUD (using `has_role` function)
+- All authenticated: SELECT
 
-**3. `src/components/students/StudentExcelExport.tsx`** (utility function, not a component)
-- Export current filtered students list to Excel with columns: Admission Number, Student Name, Class, Section, DOB, Parent Name, Parent Phone, Address, Blood Group, Status
+**Notification trigger:** On INSERT, create a notification for all teachers and parents: "New Holiday: {title} on {date}"
 
-**4. `src/components/teachers/TeacherExcelExport.tsx`** (utility function)
-- Export teachers to Excel: Teacher ID, Full Name, Email, Phone, Qualification, Subjects, Status
+### New Files
 
-### Files to Modify
+**1. `src/pages/admin/HolidaysManagement.tsx`**
+- Mobile-first responsive layout
+- Calendar view with highlighted holiday dates (colored dots by type)
+- Below calendar: scrollable card list of holidays with add/edit/delete
+- Add/Edit dialog: date picker, title, description, type selector
+- On mobile: stacked layout, full-width cards, compact calendar
 
-**5. `src/pages/admin/StudentsManagement.tsx`**
-- Add "Import" and "Export" buttons next to "Add Student"
-- Import button opens `StudentExcelImport` dialog
-- Export button calls export utility with current filtered data
+**2. `src/pages/teacher/TeacherHolidays.tsx`**
+- Read-only calendar + list view, same responsive pattern
+- Auth guard for teacher role
 
-**6. `src/pages/admin/TeachersManagement.tsx`**
-- Add "Import" and "Export" buttons next to "Add Teacher"
-- Same pattern
+**3. `src/pages/parent/ParentHolidays.tsx`**
+- Read-only calendar + list view
+- Auth guard for parent role
 
-### Technical Details
+**4. `supabase/functions/notify-holiday-reminders/index.ts`**
+- Edge function that queries holidays within next 2 days
+- Inserts reminder notifications for all teacher/parent users
+- Can be invoked via cron or manually
 
-- Uses `xlsx` library (already installed for LeadExcelImport)
-- Student bulk import calls `create-student` edge function per row (creates auth user + parent account). Shows a progress indicator since this is sequential.
-- Teacher bulk import calls `create-user` edge function per row, then inserts into `teachers` table via Supabase client
-- Class matching for students: parse "5-A" format → find matching class by name+section in the classes table
-- Export uses `XLSX.writeFile` to generate downloadable Excel
-- No database changes needed
+### Modified Files
 
-### UI
-- Button group: `[+ Add Student] [↑ Import] [↓ Export]` in a flex row
-- Import dialog: download template button, upload button, progress bar during import, results table showing successes and errors
+**5. `src/App.tsx`** - Add 3 routes: `/admin/holidays`, `/teacher/holidays`, `/parent/holidays`
+
+**6. `src/config/adminSidebar.tsx`** - Add "Holidays" with `CalendarDays` icon, moduleKey `holidays`
+
+**7. `src/config/teacherSidebar.tsx`** - Add "Holidays" item
+
+**8. `src/config/parentSidebar.tsx`** - Add "Holidays" item
+
+### Mobile-First Design Details
+- Calendar component uses full width on mobile with compact day cells
+- Holiday cards: single column stack on mobile, 2-col grid on tablet, 3-col on desktop
+- Type badges color-coded: holiday (red), occasion (blue), event (green)
+- Add button: FAB-style floating button on mobile
+- Edit/delete via swipe-friendly dropdown menus
+- Bottom nav "More" sheet already handles extra sidebar items automatically
+- Compact typography and spacing using existing mobile CSS rules
+
+### Technical Notes
+- Uses existing `Calendar` UI component with `modifiers` for highlighting dates
+- Holidays table is simple CRUD via Supabase client -- no edge function needed for CRUD
+- Notification trigger uses a PL/pgSQL function to batch-insert into `notifications` table
+- Reminder edge function uses `SUPABASE_SERVICE_ROLE_KEY` to bypass RLS
 
