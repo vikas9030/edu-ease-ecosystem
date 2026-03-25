@@ -14,6 +14,7 @@ import {
   LibraryBig,
   Settings,
   History,
+  CalendarDays,
 } from 'lucide-react';
 
 interface SidebarItem {
