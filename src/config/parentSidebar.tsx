@@ -15,6 +15,7 @@ import {
   Settings,
   AlertTriangle,
   History,
+  CalendarDays,
 } from 'lucide-react';
 
 interface SidebarItem {
