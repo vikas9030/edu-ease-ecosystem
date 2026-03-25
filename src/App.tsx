@@ -123,6 +123,7 @@ const App = () => (
             <Route path="/admin/promotion" element={<StudentPromotion />} />
             <Route path="/admin/student-history" element={<StudentHistory />} />
             <Route path="/admin/settings" element={<SettingsPage />} />
+            <Route path="/admin/holidays" element={<HolidaysManagement />} />
             
             {/* Teacher Routes */}
             <Route path="/teacher" element={<TeacherDashboard />} />
