@@ -894,6 +894,29 @@ Images within gallery folders.
 
 ---
 
+### Holiday Tables
+
+#### `holidays`
+School holidays, occasions, and events calendar.
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `id` | uuid | No | `gen_random_uuid()` |
+| `title` | text | No | — |
+| `description` | text | Yes | — |
+| `holiday_date` | date | No | — |
+| `holiday_type` | text | No | `'holiday'` |
+| `created_by` | uuid | Yes | — |
+| `created_at` | timestamptz | Yes | `now()` |
+
+**RLS Policies:**
+- All authenticated users can view holidays (SELECT)
+- Admins can insert, update, delete holidays (using `has_role`)
+
+**Trigger:** `on_holiday_created` — automatically creates notifications for all teachers and parents when a new holiday is added.
+
+---
+
 ## ⚡ Edge Functions
 
 | Function | Purpose |
