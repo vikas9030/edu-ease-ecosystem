@@ -200,9 +200,9 @@ src/
 │   ├── useTeacherSidebar.ts   # Dynamic teacher sidebar builder
 │   └── use-toast.ts           # Toast notification hook
 ├── pages/
-│   ├── admin/                 # 20 admin pages (Dashboard, Teachers, Students, Classes, Subjects, Timetable, Attendance, Exams, Weekly Exams, Exam Cycles, Syllabus, Question Papers, Leads, Announcements, Leave, Certificates, Complaints, Fees, Messages, Gallery, Settings)
-│   ├── teacher/               # 16 teacher pages (Dashboard, Classes, Students, Attendance, Homework, Exams, Syllabus, Weekly Exams, Reports, Announcements, Leave, Leads, Gallery, Messages, Timetable, Notifications)
-│   ├── parent/                # 15 parent pages (Dashboard, Child, Attendance, Timetable, Homework, Exams, Syllabus, Progress, Announcements, Leave, Messages, Certificates, Fees, Gallery, Notifications)
+│   ├── admin/                 # 21 admin pages (Dashboard, Teachers, Students, Classes, Subjects, Timetable, Attendance, Exams, Weekly Exams, Exam Cycles, Syllabus, Question Papers, Leads, Announcements, Leave, Certificates, Complaints, Fees, Messages, Gallery, Holidays, Settings)
+│   ├── teacher/               # 17 teacher pages (Dashboard, Classes, Students, Attendance, Homework, Exams, Syllabus, Weekly Exams, Reports, Announcements, Leave, Leads, Gallery, Holidays, Messages, Timetable, Notifications)
+│   ├── parent/                # 16 parent pages (Dashboard, Child, Attendance, Timetable, Homework, Exams, Syllabus, Progress, Announcements, Leave, Messages, Certificates, Fees, Gallery, Holidays, Notifications)
 │   ├── Auth.tsx               # Login / signup page
 │   ├── Index.tsx              # Landing page
 │   └── NotFound.tsx           # 404 page
