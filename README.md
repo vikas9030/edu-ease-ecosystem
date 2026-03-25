@@ -907,6 +907,7 @@ Images within gallery folders.
 | `create-razorpay-order` | Creates Razorpay payment orders for online fee payments (reads API keys from `app_settings`) |
 | `verify-razorpay-payment` | Verifies Razorpay payment signatures (HMAC SHA256), accumulates `paid_amount`, auto-sets payment status, and logs transaction in `fee_payments` |
 | `send-fee-reminders` | Sends automated fee reminders to parents based on configurable due-date windows |
+| `notify-holiday-reminders` | Sends reminder notifications 2 days before upcoming holidays to all teachers and parents (scheduled via pg_cron at 8 AM daily) |
 
 All edge functions run on Deno runtime and use the Supabase service role key for privileged operations.
 
