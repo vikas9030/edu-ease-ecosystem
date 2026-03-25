@@ -143,6 +143,7 @@ const App = () => (
             <Route path="/teacher/notifications" element={<TeacherNotifications />} />
             <Route path="/teacher/messages" element={<TeacherMessages />} />
             <Route path="/teacher/student-history" element={<TeacherStudentHistory />} />
+            <Route path="/teacher/holidays" element={<TeacherHolidays />} />
             <Route path="/teacher/settings" element={<TeacherSettings />} />
             
             {/* Parent Routes */}
