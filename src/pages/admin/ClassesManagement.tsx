@@ -205,7 +205,7 @@ export default function ClassesManagement() {
 
     const { error } = await supabase.from('classes').update({
       name: editFormData.name,
-      section: editFormData.section,
+      section: editFormData.section || '-',
       academic_year: editFormData.academicYear,
       class_teacher_id: editFormData.classTeacherId || null,
     }).eq('id', editingClass.id);
