@@ -45,7 +45,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Classes** | Create classes (Class 1–12 only, nursery/LKG/UKG excluded) with sections and assign class teachers |
 | **Subjects** | Manage subject catalog with codes and categories (academic/competitive) |
 | **Timetable** | Build and publish weekly timetables per class |
-| **Attendance Reports** | View, filter, search, and export attendance data across all classes |
+| **Attendance Reports** | View, filter, search, and export attendance data (separate CSV and PDF downloads) across all classes |
 | **Exams** | Create exams with 5-step wizard, manage schedules, enter marks, view results (5-tab layout) |
 | **Weekly Exams** | Manage weekly/competitive exam cycles with question papers and student results |
 | **Exam Cycles** | Configure exam cycles with date ranges and exam types |
