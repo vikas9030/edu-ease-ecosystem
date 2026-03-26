@@ -18,29 +18,28 @@ export function downloadAttendanceCSV(
 ) {
   if (records.length === 0) return false;
 
-  const doc = new jsPDF();
-  doc.setFontSize(14);
-  doc.text(filename.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), 14, 18);
-  doc.setFontSize(9);
-  doc.text(`Generated: ${format(new Date(), 'PPP')}`, 14, 25);
+  const headers = ['Student Name', 'Admission No', 'Class', 'Date', 'Status', 'Session', 'Reason'];
+  const csvRows = [
+    headers.join(','),
+    ...records.map(r => [
+      `"${r.studentName}"`,
+      `"${r.admissionNumber}"`,
+      `"${r.className}"`,
+      `"${r.date}"`,
+      `"${r.status.charAt(0).toUpperCase() + r.status.slice(1)}"`,
+      `"${r.session || 'Full Day'}"`,
+      `"${r.reason || '-'}"`,
+    ].join(','))
+  ];
 
-  autoTable(doc, {
-    startY: 30,
-    head: [['Student Name', 'Adm No', 'Class', 'Date', 'Status', 'Session', 'Reason']],
-    body: records.map(r => [
-      r.studentName,
-      r.admissionNumber,
-      r.className,
-      r.date,
-      r.status.charAt(0).toUpperCase() + r.status.slice(1),
-      r.session || 'Full Day',
-      r.reason || '-',
-    ]),
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [59, 130, 246] },
-  });
-
-  doc.save(`${filename}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${filename}-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
   return true;
 }
 

@@ -184,7 +184,7 @@ export default function AttendanceManagement() {
       reason: record.reason || undefined,
     }));
     downloadAttendanceCSV(records, `attendance-${selectedDateStr}`);
-    toast({ title: 'PDF downloaded', description: 'Attendance report saved.' });
+    toast({ title: 'CSV downloaded', description: 'Attendance CSV report saved.' });
   };
 
   const handleExportPDF = () => {

@@ -33,7 +33,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 - **Real-time data sync** — Live updates across all connected users
 - **Responsive design** — Works seamlessly on desktop, tablet, and mobile
 - **Dark mode support** — Full light/dark theme with semantic design tokens
-- **Export & reporting** — PDF export for attendance, fees (landscape report with summary stats, color-coded statuses, grand totals), and more
+- **Export & reporting** — Separate CSV and PDF downloads for attendance reports across all panels; PDF export for fees (landscape report with summary stats, color-coded statuses, grand totals), and more
 - **Bulk import/export** — Excel-based bulk import with downloadable templates and progress tracking for Students (with auto parent account creation) and Teachers; Excel export of current data
 
 ### 📊 Admin Panel
@@ -42,10 +42,10 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Dashboard** | Overview stats, quick actions, and system health |
 | **Teachers** | Add, edit, and manage teacher profiles and assignments; **bulk import from Excel** (with downloadable template) and **export to Excel** |
 | **Students** | Student registry with admission numbers, class assignments, and profiles; **bulk import from Excel** (with downloadable template, sequential edge function calls with progress bar) and **export to Excel** |
-| **Classes** | Create classes with sections and assign class teachers |
+| **Classes** | Create classes (Class 1–12 only, nursery/LKG/UKG excluded) with sections and assign class teachers |
 | **Subjects** | Manage subject catalog with codes and categories (academic/competitive) |
 | **Timetable** | Build and publish weekly timetables per class |
-| **Attendance Reports** | View, filter, search, and export attendance data across all classes |
+| **Attendance Reports** | View, filter, search, and export attendance data (separate CSV and PDF downloads) across all classes |
 | **Exams** | Create exams with 5-step wizard, manage schedules, enter marks, view results (5-tab layout) |
 | **Weekly Exams** | Manage weekly/competitive exam cycles with question papers and student results |
 | **Exam Cycles** | Configure exam cycles with date ranges and exam types |
