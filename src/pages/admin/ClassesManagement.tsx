@@ -145,8 +145,8 @@ export default function ClassesManagement() {
 
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.section) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Name and section are required' });
+    if (!formData.name) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Class name is required' });
       return;
     }
 
