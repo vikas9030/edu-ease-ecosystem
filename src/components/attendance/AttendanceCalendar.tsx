@@ -100,7 +100,7 @@ export default function AttendanceCalendar({ attendance, childName, className = 
       reason: a.reason || undefined,
     }));
     downloadAttendanceCSV(records, `attendance-${childName}-${format(currentMonth, 'MMM-yyyy')}`);
-    toast.success('PDF downloaded');
+    toast.success('CSV downloaded');
   };
 
   const handleDownloadPDF = () => {
