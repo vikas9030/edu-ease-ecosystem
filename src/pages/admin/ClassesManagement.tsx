@@ -196,8 +196,8 @@ export default function ClassesManagement() {
     e.preventDefault();
     if (!editingClass) return;
     
-    if (!editFormData.name || !editFormData.section) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Name and section are required' });
+    if (!editFormData.name) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Class name is required' });
       return;
     }
 
