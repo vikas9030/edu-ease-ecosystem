@@ -251,7 +251,7 @@ export default function TeacherAttendance() {
       status: attendance[student.id] || 'present',
     }));
     downloadAttendanceCSV(records, `attendance-${className}-${format(selectedDate, 'yyyy-MM-dd')}`);
-    toast.success('PDF downloaded');
+    toast.success('CSV downloaded');
   };
 
   const handleExportPDF = () => {
