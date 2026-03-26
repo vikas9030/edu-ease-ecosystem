@@ -265,7 +265,7 @@ export default function ClassesManagement() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Section *</Label>
+                    <Label>Section (Optional)</Label>
                     <Input placeholder="e.g., A" value={formData.section} onChange={(e) => setFormData({ ...formData, section: e.target.value })} />
                   </div>
 
