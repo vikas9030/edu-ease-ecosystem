@@ -33,7 +33,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 - **Real-time data sync** — Live updates across all connected users
 - **Responsive design** — Works seamlessly on desktop, tablet, and mobile
 - **Dark mode support** — Full light/dark theme with semantic design tokens
-- **Export & reporting** — PDF export for attendance, fees (landscape report with summary stats, color-coded statuses, grand totals), and more
+- **Export & reporting** — Separate CSV and PDF downloads for attendance reports across all panels; PDF export for fees (landscape report with summary stats, color-coded statuses, grand totals), and more
 - **Bulk import/export** — Excel-based bulk import with downloadable templates and progress tracking for Students (with auto parent account creation) and Teachers; Excel export of current data
 
 ### 📊 Admin Panel
