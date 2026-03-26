@@ -145,8 +145,8 @@ export default function ClassesManagement() {
 
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.section) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Name and section are required' });
+    if (!formData.name) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Class name is required' });
       return;
     }
 
@@ -154,7 +154,7 @@ export default function ClassesManagement() {
 
     const { error } = await supabase.from('classes').insert({
       name: formData.name,
-      section: formData.section,
+      section: formData.section || '-',
       academic_year: formData.academicYear,
       class_teacher_id: formData.classTeacherId || null,
     });
@@ -196,8 +196,8 @@ export default function ClassesManagement() {
     e.preventDefault();
     if (!editingClass) return;
     
-    if (!editFormData.name || !editFormData.section) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Name and section are required' });
+    if (!editFormData.name) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Class name is required' });
       return;
     }
 
@@ -205,7 +205,7 @@ export default function ClassesManagement() {
 
     const { error } = await supabase.from('classes').update({
       name: editFormData.name,
-      section: editFormData.section,
+      section: editFormData.section || '-',
       academic_year: editFormData.academicYear,
       class_teacher_id: editFormData.classTeacherId || null,
     }).eq('id', editingClass.id);
@@ -265,7 +265,7 @@ export default function ClassesManagement() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Section *</Label>
+                    <Label>Section (Optional)</Label>
                     <Input placeholder="e.g., A" value={formData.section} onChange={(e) => setFormData({ ...formData, section: e.target.value })} />
                   </div>
 
@@ -416,7 +416,7 @@ export default function ClassesManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Section *</Label>
+                  <Label>Section (Optional)</Label>
                   <Input placeholder="e.g., A" value={editFormData.section} onChange={(e) => setEditFormData({ ...editFormData, section: e.target.value })} />
                 </div>
 
