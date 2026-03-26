@@ -154,7 +154,7 @@ export default function ClassesManagement() {
 
     const { error } = await supabase.from('classes').insert({
       name: formData.name,
-      section: formData.section,
+      section: formData.section || '-',
       academic_year: formData.academicYear,
       class_teacher_id: formData.classTeacherId || null,
     });
