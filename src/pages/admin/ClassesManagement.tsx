@@ -254,14 +254,7 @@ export default function ClassesManagement() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Class Name *</Label>
-                    <Select value={formData.name} onValueChange={(v) => setFormData({ ...formData, name: v })}>
-                      <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
-                      <SelectContent>
-                        {['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'].map(c => (
-                          <SelectItem key={c} value={c}>{c}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input placeholder="e.g., Class 1" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                   </div>
 
                   <div className="space-y-2">
@@ -403,17 +396,10 @@ export default function ClassesManagement() {
             </DialogHeader>
             <form onSubmit={handleEditClass} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Class Name *</Label>
-                    <Select value={editFormData.name} onValueChange={(v) => setEditFormData({ ...editFormData, name: v })}>
-                      <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
-                      <SelectContent>
-                        {['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'].map(c => (
-                          <SelectItem key={c} value={c}>{c}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label>Class Name *</Label>
+                    <Input placeholder="e.g., Class 1" value={editFormData.name} onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} />
+                  </div>
 
                 <div className="space-y-2">
                   <Label>Section (Optional)</Label>
