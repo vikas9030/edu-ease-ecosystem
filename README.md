@@ -63,7 +63,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Settings** | App configuration, module toggles, and lead permissions |
 | **Student Promotion** | Versioned record model — old record marked as `status = 'promoted'` (preserving original class_id & admission_number), new record created for the target class with auto-regenerated admission number & login ID (`{Name}-{Class}-{Section}`), parent links (`student_parents`) automatically copied to new record, bulk or individual selection, retained students marked separately |
 | **Student History** | Search any student by name or admission number, view all class records (current & previous) as selectable cards, drill into each class with tabbed view: Attendance (calendar by month), Marks (by exam name with grades), Fees (payment status & amounts). Shared across Admin, Teacher, and Parent panels |
-| **Holidays** | Create, edit, and delete holidays/occasions/events with date, type, and description; mobile-friendly calendar with color-coded date highlights and card-based list view; automated notifications on creation and 2-day-before reminders |
+| **Holidays** | Create, edit, and delete holidays/occasions/events with date, type, and description; redesigned mobile-responsive calendar with upcoming holidays banner, summary stat cards (total/holidays/occasions/events), search & filter by type, date badge cards with "Today" indicator, month-wise breakdown in calendar sidebar, color-coded type badges using semantic tokens, loading skeletons, and scrollable list; automated notifications on creation and 2-day-before reminders |
 
 ### 👩‍🏫 Teacher Panel
 | Module | Description |
@@ -84,7 +84,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Timetable** | View personal teaching schedule ("My Schedule" tab) and browse all class timetables ("Class Timetables" tab) with class filter, CSV/PDF export |
 | **Student History** | Search students, view all class records (current & promoted), drill into attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
-| **Holidays** | View upcoming holidays, occasions, and events in a responsive calendar with card list |
+| **Holidays** | View upcoming holidays with banner, search & filter by type, date badge cards with "Today" indicator, month-wise calendar sidebar breakdown, responsive layout |
 | **Notifications** | View personal notifications |
 
 ### 👨‍👩‍👧 Parent Panel
@@ -106,7 +106,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Fees** | View fee details with discount & balance breakdown, pay custom partial amounts via Razorpay, view per-transaction payment history with individual receipts, download PDF receipts |
 | **Student History** | View child's complete academic history across all classes (current & promoted) with attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
-| **Holidays** | View upcoming holidays, occasions, and events in a responsive calendar with card list |
+| **Holidays** | View upcoming holidays with banner, search & filter by type, date badge cards with "Today" indicator, month-wise calendar sidebar breakdown, responsive layout |
 | **Notifications** | View personal notifications (in-app + Web Push) |
 | **Settings** | Profile management |
 
