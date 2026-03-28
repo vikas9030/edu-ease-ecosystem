@@ -367,9 +367,9 @@ export default function HolidaysManagement() {
         {/* FAB for mobile */}
         <Button
           onClick={() => setDialogOpen(true)}
-          className="sm:hidden fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-lg p-0 gradient-admin"
+          className="sm:hidden fixed bottom-20 right-6 z-50 h-12 w-12 rounded-full shadow-lg p-0 gradient-admin"
         >
-          <Plus className="h-6 w-6 text-white" />
+          <Plus className="h-5 w-5 text-white" />
         </Button>
 
         {/* Add/Edit Dialog */}
