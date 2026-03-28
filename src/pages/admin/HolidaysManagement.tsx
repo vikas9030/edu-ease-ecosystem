@@ -218,14 +218,14 @@ export default function HolidaysManagement() {
                 <CalendarIcon className="h-4 w-4 text-primary" /> Calendar
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-2 sm:p-4 pt-0">
+             <CardContent className="p-1 sm:p-4 pt-0">
               <Calendar
                 mode="single"
                 month={selectedMonth}
                 onMonthChange={setSelectedMonth}
                 modifiers={holidayModifiers}
                 modifiersClassNames={{ holidayDay: 'bg-primary/20 text-primary font-bold rounded-full' }}
-                className="w-full pointer-events-auto"
+                className="w-full pointer-events-auto [&_.rdp-table]:w-full [&_.rdp-head_row]:flex [&_.rdp-head_row]:justify-between [&_.rdp-row]:flex [&_.rdp-row]:justify-between [&_.rdp-cell]:flex-1 [&_.rdp-cell]:text-center [&_.rdp-head_cell]:flex-1 [&_.rdp-head_cell]:text-center [&_.rdp-day]:w-full [&_.rdp-day]:mx-auto"
               />
               {/* Legend */}
               <div className="flex flex-wrap gap-3 mt-3 px-2 text-xs">
