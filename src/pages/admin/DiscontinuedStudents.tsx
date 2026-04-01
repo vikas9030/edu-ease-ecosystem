@@ -140,9 +140,32 @@ export default function DiscontinuedStudents() {
       return;
     }
     setProcessing(true);
+
+    // Get the student's current admission number and the target class details
+    const student = discontinuedStudents.find(s => s.id === studentId);
+    const targetClass = classes.find(c => c.id === reAdmitClassId);
+
+    let newAdmissionNumber = student?.admission_number || '';
+    if (student && targetClass) {
+      // Extract base name from admission number (same logic as promotion)
+      let baseName = student.admission_number;
+      baseName = baseName.replace(/-[^-]+-[^-]+$/, '');
+      baseName = baseName.replace(/^[A-Za-z0-9]+[A-Za-z]\//, '');
+      baseName = baseName.replace(/\/\d{4}$/, '');
+      if (!baseName.trim()) baseName = student.full_name.toUpperCase().replace(/\s+/g, '');
+      newAdmissionNumber = `${baseName}-${targetClass.name}-${targetClass.section}`;
+    }
+
     const { error } = await supabase
       .from('students')
-      .update({ status: 'active', discontinuation_reason: null, class_id: reAdmitClassId, updated_at: new Date().toISOString() } as any)
+      .update({
+        status: 'active',
+        discontinuation_reason: null,
+        class_id: reAdmitClassId,
+        admission_number: newAdmissionNumber,
+        login_id: newAdmissionNumber,
+        updated_at: new Date().toISOString(),
+      } as any)
       .eq('id', studentId);
 
     if (error) {
