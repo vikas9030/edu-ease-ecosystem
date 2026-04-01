@@ -153,6 +153,7 @@ export default function LeadsManagement() {
         new_status: newStatus,
         changed_by: user.id,
         remarks: statusRemarks || null,
+        school_id: schoolId,
       } as any);
 
       await supabase
