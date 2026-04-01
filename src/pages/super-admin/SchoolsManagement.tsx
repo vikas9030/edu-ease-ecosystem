@@ -332,17 +332,17 @@ export default function SchoolsManagement() {
                       <p className="text-sm text-muted-foreground">{school.phone}</p>
                     )}
 
-                    <div className="flex gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                      <div className="flex items-center gap-1 whitespace-nowrap">
+                        <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span>{stats.admins} Admins</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                      <div className="flex items-center gap-1 whitespace-nowrap">
+                        <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span>{stats.teachers} Teachers</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <GraduationCap className="h-3.5 w-3.5 text-muted-foreground" />
+                      <div className="flex items-center gap-1 whitespace-nowrap">
+                        <GraduationCap className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span>{stats.students} Students</span>
                       </div>
                     </div>
