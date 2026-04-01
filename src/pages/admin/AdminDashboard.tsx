@@ -22,6 +22,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatClassName } from "@/lib/utils";
 
 interface DashboardStats {
   totalStudents: number;
@@ -360,7 +361,7 @@ export default function AdminDashboard() {
                        <div className="flex items-center gap-1.5 flex-wrap">
                          {exam.classes && (
                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                             {exam.classes.name}-{exam.classes.section}
+                             {formatClassName(exam.classes.name, exam.classes.section)}
                            </Badge>
                          )}
                          {exam.subjects && (
@@ -427,7 +428,7 @@ export default function AdminDashboard() {
                           )}
                           {exam.classes && (
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                              {exam.classes.name}-{exam.classes.section}
+                              {formatClassName(exam.classes.name, exam.classes.section)}
                             </Badge>
                           )}
                           {exam.subjects && (

@@ -456,7 +456,7 @@ export default function ExamResultsView() {
                               <TableCell className="text-xs sm:text-sm py-2">{r.exams?.name || '-'}</TableCell>
                               <TableCell className="capitalize text-xs sm:text-sm py-2">{r.exams?.subjects?.name || '-'}</TableCell>
                               <TableCell className="hidden md:table-cell py-2">
-                                {r.exams?.classes ? <Badge variant="outline" className="text-xs">{r.exams.classes.name}-{r.exams.classes.section.toUpperCase()}</Badge> : '-'}
+                                {r.exams?.classes ? <Badge variant="outline" className="text-xs">{formatClassName(r.exams.classes.name, r.exams.classes.section)}</Badge> : '-'}
                               </TableCell>
                               <TableCell className="text-center text-xs sm:text-sm py-2">
                                 <span className="font-semibold">{r.marks_obtained ?? '-'}</span>
@@ -661,7 +661,7 @@ export default function ExamResultsView() {
                           </TableCell>
                           <TableCell className="capitalize text-xs sm:text-sm hidden md:table-cell py-2">{r.weekly_exams?.subjects?.name || '-'}</TableCell>
                           <TableCell className="hidden md:table-cell py-2">
-                            {r.weekly_exams?.classes ? <Badge variant="outline" className="text-xs">{r.weekly_exams.classes.name}-{r.weekly_exams.classes.section.toUpperCase()}</Badge> : '-'}
+                            {r.weekly_exams?.classes ? <Badge variant="outline" className="text-xs">{formatClassName(r.weekly_exams.classes.name, r.weekly_exams.classes.section)}</Badge> : '-'}
                           </TableCell>
                           {type === 'competitive' && (
                             <TableCell className="hidden lg:table-cell py-2">

@@ -379,7 +379,7 @@ export default function AttendanceManagement() {
                             <p className="font-medium text-sm truncate">{record.students?.full_name || 'N/A'}</p>
                             <p className="text-[10px] text-muted-foreground font-mono">{record.students?.admission_number || 'N/A'}</p>
                             {record.students?.classes && (
-                              <Badge variant="outline" className="text-[10px] mt-0.5">{record.students.classes.name}-{record.students.classes.section}</Badge>
+                              <Badge variant="outline" className="text-[10px] mt-0.5">{formatClassName(record.students.classes.name, record.students.classes.section)}</Badge>
                             )}
                           </div>
                           <div className="shrink-0 flex flex-col items-end gap-1">
@@ -408,7 +408,7 @@ export default function AttendanceManagement() {
                               <TableCell className="font-mono text-sm text-muted-foreground">{record.students?.admission_number || 'N/A'}</TableCell>
                               <TableCell>
                                 {record.students?.classes ? (
-                                  <Badge variant="outline" className="font-normal">{record.students.classes.name}-{record.students.classes.section}</Badge>
+                                  <Badge variant="outline" className="font-normal">{formatClassName(record.students.classes.name, record.students.classes.section)}</Badge>
                                 ) : 'N/A'}
                               </TableCell>
                               <TableCell>{getStatusBadge(record.status)}</TableCell>

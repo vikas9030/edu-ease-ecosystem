@@ -453,7 +453,7 @@ export default function StudentsManagement() {
                     {selectedStudent.classes && (
                       <Badge className="mt-1">
                         <GraduationCap className="h-3 w-3 mr-1" />
-                        {selectedStudent.classes.name} - {selectedStudent.classes.section}
+                        {formatClassName(selectedStudent.classes.name, selectedStudent.classes.section)}
                       </Badge>
                     )}
                   </div>

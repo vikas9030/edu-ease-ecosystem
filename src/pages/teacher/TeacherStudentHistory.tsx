@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { BackButton } from '@/components/ui/back-button';
 import { Loader2, History, Search } from 'lucide-react';
 import StudentHistoryContent, { StudentRecord } from '@/components/history/StudentHistoryContent';
+import { formatClassName } from "@/lib/utils";
 
 export default function TeacherStudentHistory() {
   const teacherSidebarItems = useTeacherSidebar();
@@ -94,7 +95,7 @@ export default function TeacherStudentHistory() {
                       <p className="text-xs text-muted-foreground font-mono">{s.admission_number}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {s.classes && <Badge variant="outline" className="text-xs">{s.classes.name}-{s.classes.section}</Badge>}
+                      {s.classes && <Badge variant="outline" className="text-xs">{formatClassName(s.classes.name, s.classes.section)}</Badge>}
                       <Badge variant={s.status === 'active' ? 'default' : 'secondary'} className="text-xs">{s.status || 'active'}</Badge>
                     </div>
                   </div>
