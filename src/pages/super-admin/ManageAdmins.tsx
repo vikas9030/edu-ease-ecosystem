@@ -402,6 +402,60 @@ export default function ManageAdmins() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Admin Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Admin</DialogTitle>
+              <DialogDescription>Update details for {editTarget?.full_name}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Full Name</Label>
+                <Input value={editForm.fullName} onChange={e => setEditForm({ ...editForm, fullName: e.target.value })} placeholder="Admin Name" />
+              </div>
+              <div className="space-y-2">
+                <Label>Assigned School</Label>
+                <Select value={editForm.schoolId} onValueChange={(v) => setEditForm({ ...editForm, schoolId: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a school..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {schools.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button onClick={handleEditAdmin} disabled={editSaving}>
+                {editSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Admin Confirmation */}
+        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove Admin</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to remove <strong>{deleteTarget?.full_name}</strong> as an admin? They will lose admin access.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteAdmin} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {deleting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                Remove
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
