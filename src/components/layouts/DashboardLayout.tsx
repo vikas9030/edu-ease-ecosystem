@@ -42,6 +42,7 @@ import { cn, formatClassName } from "@/lib/utils";
 import { toast } from 'sonner';
 import NotificationBell from '@/components/NotificationBell';
 import InstallAppBanner from '@/components/InstallAppBanner';
+import { useSchoolBranding } from '@/hooks/useSchoolBranding';
 
 
 interface SidebarItem {
