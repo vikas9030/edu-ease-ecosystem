@@ -50,7 +50,7 @@ const typeConfig: Record<string, { bg: string; dot: string; icon: React.ReactNod
 
 export default function HolidaysManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
