@@ -96,7 +96,7 @@ export default function DiscontinuedStudents() {
     setLoadingDiscontinued(true);
     const { data } = await supabase
       .from('students')
-      .select('id, full_name, admission_number, photo_url, status, discontinuation_reason, updated_at, classes(name, section)')
+      .select('id, full_name, admission_number, photo_url, status, class_id, discontinuation_reason, updated_at, classes(name, section)')
       .eq('status', 'discontinued')
       .order('updated_at', { ascending: false });
     setDiscontinuedStudents((data as Student[]) || []);
