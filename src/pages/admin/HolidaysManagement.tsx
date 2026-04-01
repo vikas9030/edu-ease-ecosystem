@@ -103,6 +103,7 @@ export default function HolidaysManagement() {
         holiday_date: format(form.holiday_date, 'yyyy-MM-dd'),
         holiday_type: form.holiday_type,
         created_by: user?.id,
+        school_id: schoolId,
       };
       if (editingHoliday) {
         const { error } = await supabase.from('holidays').update(payload).eq('id', editingHoliday.id);

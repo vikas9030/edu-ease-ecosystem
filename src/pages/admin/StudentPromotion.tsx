@@ -176,6 +176,7 @@ export default function StudentPromotion() {
                 student_id: newStudent.id,
                 parent_id: link.parent_id,
                 relationship: link.relationship,
+                school_id: schoolId,
               })));
           }
         }

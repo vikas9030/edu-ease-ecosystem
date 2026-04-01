@@ -430,6 +430,7 @@ export default function LeadsManagement() {
                                       old_status: lead.status,
                                       new_status: value,
                                       changed_by: user.id,
+                                      school_id: schoolId,
                                     } as any);
                                     await supabase
                                       .from('leads')

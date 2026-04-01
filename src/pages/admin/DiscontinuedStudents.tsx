@@ -143,6 +143,7 @@ export default function DiscontinuedStudents() {
           marks_snapshot: marksRes.data || [],
           fees_snapshot: feesRes.data || [],
           timetable_snapshot: timetableRes.data || [],
+          school_id: schoolId,
         });
       }
 

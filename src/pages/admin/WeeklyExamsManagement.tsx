@@ -138,6 +138,7 @@ export default function WeeklyExamsManagement() {
       negative_marking: formData.negative_marking,
       negative_marks_value: formData.negative_marking ? parseFloat(formData.negative_marks_value) : 0,
       reminder_enabled: formData.reminder_enabled,
+      school_id: schoolId,
       status: 'scheduled',
       created_by: user?.id,
     });
