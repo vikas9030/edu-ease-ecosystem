@@ -324,7 +324,12 @@ export default function Auth() {
           <SelectContent>
             {schools.map((school) => (
               <SelectItem key={school.id} value={school.id}>
-                {school.name} ({school.code})
+                <span className="flex flex-col items-start">
+                  <span>{school.name} ({school.code})</span>
+                  {school.address && (
+                    <span className="text-xs text-muted-foreground">{school.address}</span>
+                  )}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
