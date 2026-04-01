@@ -47,6 +47,7 @@ interface Props {
 
 export default function CreateFeeDialog({ open, onOpenChange, onSuccess }: Props) {
   const { toast } = useToast();
+  const { schoolId } = useAuth();
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [students, setStudents] = useState<StudentInfo[]>([]);
   const [loading, setLoading] = useState(false);
