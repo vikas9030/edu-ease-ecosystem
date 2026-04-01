@@ -1,103 +1,78 @@
 
 
-# Enhanced Module Control: Per-School Module Management
+## Plan: Dynamic School Branding Across All Panels
 
-## Current State
-- `module_visibility` table already has a `school_id` column but it's unused
-- All modules are global (school_id = NULL) - toggling affects every school
-- The `useModuleVisibility` hook fetches all rows without filtering by school
-- Super Admin is the only role that can manage modules
+### What This Does
+When a super admin uploads a school logo and sets its name, that branding automatically appears in:
+- The login page school dropdown (already works)
+- Admin, Teacher, and Parent/Student sidebar and mobile header (replacing "SmartEduConnect")
+- The school logo replaces the generic GraduationCap icon
 
-## What We'll Build
+Super admin panel keeps "SmartEduConnect" branding since it's platform-level.
 
-### 1. Database Changes
+### No Database Changes Needed
+The `schools` table already has `name`, `logo_url`, and `code` columns. The `user_roles` table already has `school_id`. We just need to fetch and display this data.
 
-**New table: `school_module_overrides`**
-- `id`, `school_id` (NOT NULL, FK to schools), `module_key`, `is_enabled`, `updated_by`, `updated_at`
-- Unique constraint on `(school_id, module_key)`
-- RLS: Super Admins and school Admins can manage their own school's overrides; all authenticated users can read their school's overrides
+### Implementation Steps
 
-**Logic**: System-level modules (existing `module_visibility` table) act as the master switch. Per-school overrides in `school_module_overrides` can only disable modules that are globally enabled — they cannot enable a globally disabled module.
+**1. Create a `useSchoolBranding` hook** (`src/hooks/useSchoolBranding.ts`)
+- Reads `schoolId` from `useAuth()`
+- Fetches the school's `name` and `logo_url` from the `schools` table
+- Returns `{ schoolName, schoolLogo, loading }`
+- Caches the result so it doesn't re-fetch on every render
+- Super admin role returns null (keeps default branding)
 
-**New DB function: `is_module_enabled_for_school`**
-- Takes `_module_key text, _school_id uuid`
-- Returns `true` only if the system-level module is enabled AND no school override disables it
-- Security definer function for use in RLS policies
+**2. Update `DashboardLayout.tsx`**
+- Import and use `useSchoolBranding` hook
+- In the **desktop sidebar logo section** (line 222-234):
+  - If `schoolLogo` exists, show `<img>` instead of `<GraduationCap>` icon
+  - If `schoolName` exists, show it instead of "SmartEduConnect"
+- In the **mobile header** (line 294-299):
+  - Same logic: show school logo/name if available
+- Only apply for non-super_admin roles
 
-### 2. Updated Module Control UI (`ModuleControl.tsx`)
+**3. Files Changed**
+- `src/hooks/useSchoolBranding.ts` — **new file**
+- `src/components/layouts/DashboardLayout.tsx` — replace hardcoded branding with dynamic values
 
-Add two tabs/sections:
-- **System Modules** (existing) — global on/off for all schools
-- **School Overrides** — select a school from dropdown, then toggle individual modules on/off for that school only
+### Technical Details
 
-The school overrides section will:
-- Fetch all schools for the dropdown
-- When a school is selected, show all system-enabled modules with their school-specific override state
-- Greyed-out toggles for globally disabled modules (can't enable per-school what's globally off)
-- Insert/update rows in `school_module_overrides`
+```typescript
+// useSchoolBranding.ts
+export function useSchoolBranding() {
+  const { schoolId, userRole } = useAuth();
+  const [schoolName, setSchoolName] = useState<string | null>(null);
+  const [schoolLogo, setSchoolLogo] = useState<string | null>(null);
 
-### 3. Updated `useModuleVisibility` Hook
+  useEffect(() => {
+    if (!schoolId || userRole === 'super_admin') return;
+    supabase.from('schools').select('name, logo_url')
+      .eq('id', schoolId).maybeSingle()
+      .then(({ data }) => {
+        setSchoolName(data?.name || null);
+        setSchoolLogo(data?.logo_url || null);
+      });
+  }, [schoolId, userRole]);
 
-- Fetch user's `school_id` from auth context
-- Query both `module_visibility` (system) and `school_module_overrides` (for user's school)
-- `isModuleEnabled(key)` returns `true` only if system=enabled AND school override is not disabled
-- Super Admins bypass school overrides (see all modules)
-
-### 4. Sidebar Filtering (no changes needed)
-
-The existing `useAdminSidebar`, `useTeacherSidebar`, `useParentSidebar` hooks already call `isModuleEnabled()` — once the hook is updated, sidebars will automatically respect per-school settings.
-
-## Technical Details
-
-```sql
--- New table for per-school overrides
-CREATE TABLE public.school_module_overrides (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  school_id uuid NOT NULL REFERENCES public.schools(id) ON DELETE CASCADE,
-  module_key text NOT NULL,
-  is_enabled boolean NOT NULL DEFAULT true,
-  updated_by uuid,
-  updated_at timestamptz DEFAULT now(),
-  UNIQUE(school_id, module_key)
-);
-
-ALTER TABLE public.school_module_overrides ENABLE ROW LEVEL SECURITY;
-
--- View: authenticated users can see their school's overrides
-CREATE POLICY "View school overrides" ON public.school_module_overrides
-FOR SELECT TO authenticated USING (
-  has_role(auth.uid(), 'super_admin'::app_role)
-  OR school_id = get_user_school_id(auth.uid())
-);
-
--- Manage: super admins only
-CREATE POLICY "Super admins manage overrides" ON public.school_module_overrides
-FOR ALL TO authenticated USING (
-  has_role(auth.uid(), 'super_admin'::app_role)
-) WITH CHECK (
-  has_role(auth.uid(), 'super_admin'::app_role)
-);
-
--- Helper function
-CREATE OR REPLACE FUNCTION public.is_module_enabled_for_school(
-  _module_key text, _school_id uuid
-) RETURNS boolean
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT
-    COALESCE(
-      (SELECT is_enabled FROM module_visibility WHERE module_key = _module_key AND school_id IS NULL LIMIT 1),
-      true
-    )
-    AND
-    COALESCE(
-      (SELECT is_enabled FROM school_module_overrides WHERE module_key = _module_key AND school_id = _school_id LIMIT 1),
-      true
-    )
-$$;
+  return { schoolName, schoolLogo };
+}
 ```
 
-### Files to modify:
-1. **Migration** — create `school_module_overrides` table + function
-2. **`src/hooks/useModuleVisibility.ts`** — fetch school overrides, merge with system modules
-3. **`src/pages/super-admin/ModuleControl.tsx`** — add school selector + per-school toggle UI
+In `DashboardLayout.tsx`, the logo area becomes:
+```tsx
+{schoolLogo ? (
+  <img src={schoolLogo} className="h-9 w-9 rounded-lg object-cover" />
+) : (
+  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+    <GraduationCap className="h-5 w-5 text-primary" />
+  </div>
+)}
+{sidebarOpen && (
+  <h1 className="font-display font-bold text-base truncate">
+    {schoolName || 'SmartEduConnect'}
+  </h1>
+)}
+```
+
+Same pattern applied to the mobile header section.
 
