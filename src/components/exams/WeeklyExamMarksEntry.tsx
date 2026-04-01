@@ -42,6 +42,7 @@ interface ClassOption {
 }
 
 export default function WeeklyExamMarksEntry() {
+  const { schoolId } = useAuth();
   const [exams, setExams] = useState<WeeklyExam[]>([]);
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [students, setStudents] = useState<Student[]>([]);

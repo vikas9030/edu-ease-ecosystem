@@ -29,6 +29,7 @@ const TEMPLATE_COLUMNS = [
 export default function TeacherExcelImport({ open, onOpenChange, onSuccess }: TeacherExcelImportProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { schoolId } = useAuth();
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [totalRows, setTotalRows] = useState(0);

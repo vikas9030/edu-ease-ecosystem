@@ -36,6 +36,7 @@ interface Props {
 }
 
 export default function ExamMarksEntry({ exams, onMarksUpdated }: Props) {
+  const { schoolId } = useAuth();
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [selectedExamName, setSelectedExamName] = useState<string>('');
   const [students, setStudents] = useState<Student[]>([]);

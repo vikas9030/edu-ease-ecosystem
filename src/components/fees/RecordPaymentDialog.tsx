@@ -30,6 +30,7 @@ export default function RecordPaymentDialog({ open, onOpenChange, fee, onSuccess
   const { toast } = useToast();
   const [amount, setAmount] = useState('');
   const [saving, setSaving] = useState(false);
+  const { schoolId } = useAuth();
 
   if (!fee) return null;
 
