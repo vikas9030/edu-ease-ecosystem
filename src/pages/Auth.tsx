@@ -57,7 +57,7 @@ export default function Auth() {
     const fetchSchools = async () => {
       const { data, error } = await supabase
         .from('schools')
-        .select('id, name, code')
+        .select('id, name, code, address')
         .eq('is_active', true)
         .order('name');
       
