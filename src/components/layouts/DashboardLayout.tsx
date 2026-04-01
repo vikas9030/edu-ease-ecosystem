@@ -88,6 +88,7 @@ export default function DashboardLayout({ children, sidebarItems, roleColor }: D
   const { user, userRole, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { schoolName, schoolLogo } = useSchoolBranding();
 
   useEffect(() => {
     async function fetchProfile() {
