@@ -270,8 +270,8 @@ export default function StudentsManagement() {
   };
 
   const filteredStudents = students.filter((s) => {
-    // Hide promoted students — they are historical records
-    if (s.status === 'promoted') return false;
+    // Hide promoted and discontinued students — they are historical records
+    if (s.status === 'promoted' || s.status === 'discontinued') return false;
     const matchesSearch = s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.admission_number.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesClass = selectedClass === 'all' || s.class_id === selectedClass;

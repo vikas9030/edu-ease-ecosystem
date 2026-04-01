@@ -18,6 +18,7 @@ import {
   ArrowUpCircle,
   History,
   CalendarDays,
+  UserMinus,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -45,6 +46,7 @@ const allAdminSidebarItems: SidebarItem[] = [
   { icon: <CreditCard className="h-5 w-5" />, label: 'Fees', path: '/admin/fees', moduleKey: 'fees' },
   { icon: <ArrowUpCircle className="h-5 w-5" />, label: 'Promotion', path: '/admin/promotion', moduleKey: 'promotion' },
   { icon: <History className="h-5 w-5" />, label: 'Student History', path: '/admin/student-history', moduleKey: 'promotion' },
+  { icon: <UserMinus className="h-5 w-5" />, label: 'Discontinued', path: '/admin/discontinued', moduleKey: 'promotion' },
   { icon: <Image className="h-5 w-5" />, label: 'Gallery', path: '/admin/gallery', moduleKey: 'gallery' },
   { icon: <CalendarDays className="h-5 w-5" />, label: 'Holidays', path: '/admin/holidays', moduleKey: 'holidays' },
   { icon: <Bell className="h-5 w-5" />, label: 'Notifications', path: '/admin/notifications', moduleKey: 'notifications' },

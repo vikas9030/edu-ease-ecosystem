@@ -1399,6 +1399,7 @@ export type Database = {
           class_id: string | null
           created_at: string | null
           date_of_birth: string | null
+          discontinuation_reason: string | null
           emergency_contact: string | null
           emergency_contact_name: string | null
           full_name: string
@@ -1419,6 +1420,7 @@ export type Database = {
           class_id?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          discontinuation_reason?: string | null
           emergency_contact?: string | null
           emergency_contact_name?: string | null
           full_name: string
@@ -1439,6 +1441,7 @@ export type Database = {
           class_id?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          discontinuation_reason?: string | null
           emergency_contact?: string | null
           emergency_contact_name?: string | null
           full_name?: string
