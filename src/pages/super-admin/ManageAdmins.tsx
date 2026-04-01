@@ -180,6 +180,79 @@ export default function ManageAdmins() {
     setResetting(false);
   };
 
+  const openEditDialog = (admin: AdminUser) => {
+    setEditTarget(admin);
+    setEditForm({ fullName: admin.full_name, schoolId: admin.school_id || '' });
+    setEditOpen(true);
+  };
+
+  const handleEditAdmin = async () => {
+    if (!editTarget || !editForm.fullName.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+    setEditSaving(true);
+    try {
+      // Update profile name
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ full_name: editForm.fullName.trim() })
+        .eq('user_id', editTarget.user_id);
+      if (profileError) throw profileError;
+
+      // Update school assignment if changed
+      if (editForm.schoolId && editForm.schoolId !== editTarget.school_id) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .update({ school_id: editForm.schoolId })
+          .eq('user_id', editTarget.user_id)
+          .eq('role', 'admin');
+        if (roleError) throw roleError;
+
+        // Also update profile school_id
+        await supabase.from('profiles').update({ school_id: editForm.schoolId }).eq('user_id', editTarget.user_id);
+      }
+
+      toast.success('Admin updated successfully');
+      setEditOpen(false);
+      setEditTarget(null);
+      fetchAdmins();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update admin');
+    }
+    setEditSaving(false);
+  };
+
+  const handleDeleteAdmin = async () => {
+    if (!deleteTarget) return;
+    if (deleteTarget.user_id === user?.id) {
+      toast.error('You cannot delete your own account');
+      setDeleteTarget(null);
+      return;
+    }
+    if (deleteTarget.role === 'super_admin') {
+      toast.error('Cannot delete a super admin');
+      setDeleteTarget(null);
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      // Use the reset-user-password function pattern but we need a delete endpoint
+      // For now, deactivate by removing the role
+      const { error } = await supabase.from('user_roles').delete().eq('user_id', deleteTarget.user_id).eq('role', 'admin');
+      if (error) throw error;
+
+      toast.success(`Admin ${deleteTarget.full_name} removed`);
+      fetchAdmins();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to remove admin');
+    }
+    setDeleting(false);
+    setDeleteTarget(null);
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
