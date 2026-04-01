@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,11 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Loader2, Plus, School, Edit, Power, Users, GraduationCap, Trash2 } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
+import { Loader2, Plus, School, Edit, Power, Users, GraduationCap, Trash2, Upload, X } from 'lucide-react';
 
 interface SchoolRecord {
   id: string;
@@ -40,6 +39,10 @@ export default function SchoolsManagement() {
   const [schoolStats, setSchoolStats] = useState<Record<string, { admins: number; teachers: number; students: number }>>({});
   const [deletingSchool, setDeletingSchool] = useState<SchoolRecord | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -63,7 +66,6 @@ export default function SchoolsManagement() {
 
     if (!error && data) {
       setSchools(data as SchoolRecord[]);
-      // Fetch stats for each school
       for (const school of data) {
         const [admins, teachers, students] = await Promise.all([
           supabase.from('user_roles').select('id', { count: 'exact', head: true }).eq('school_id', school.id).eq('role', 'admin'),
@@ -90,6 +92,8 @@ export default function SchoolsManagement() {
   const resetForm = () => {
     setForm({ name: '', code: '', email: '', phone: '', address: '' });
     setEditingSchool(null);
+    setLogoFile(null);
+    setLogoPreview(null);
   };
 
   const openCreateDialog = () => {
@@ -106,7 +110,39 @@ export default function SchoolsManagement() {
       phone: school.phone || '',
       address: school.address || '',
     });
+    setLogoFile(null);
+    setLogoPreview(school.logo_url || null);
     setDialogOpen(true);
+  };
+
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'File too large', description: 'Logo must be under 2MB' });
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
+  const uploadLogo = async (schoolId: string): Promise<string | null> => {
+    if (!logoFile) return editingSchool?.logo_url || null;
+
+    const ext = logoFile.name.split('.').pop();
+    const filePath = `logos/${schoolId}/logo.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('photos')
+      .upload(filePath, logoFile, { upsert: true });
+
+    if (uploadError) {
+      console.error('Logo upload error:', uploadError);
+      return editingSchool?.logo_url || null;
+    }
+
+    const { data: urlData } = supabase.storage.from('photos').getPublicUrl(filePath);
+    return urlData.publicUrl + '?t=' + Date.now();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,6 +155,18 @@ export default function SchoolsManagement() {
     setSaving(true);
 
     if (editingSchool) {
+      // Upload logo if changed
+      let logoUrl = editingSchool.logo_url;
+      if (logoFile) {
+        setUploadingLogo(true);
+        logoUrl = await uploadLogo(editingSchool.id);
+        setUploadingLogo(false);
+      }
+      // If logo was removed
+      if (!logoPreview && !logoFile) {
+        logoUrl = null;
+      }
+
       const { error } = await supabase
         .from('schools')
         .update({
@@ -127,19 +175,20 @@ export default function SchoolsManagement() {
           email: form.email.trim() || null,
           phone: form.phone.trim() || null,
           address: form.address.trim() || null,
+          logo_url: logoUrl,
           updated_at: new Date().toISOString(),
         })
         .eq('id', editingSchool.id);
 
       if (error) {
-        toast({ variant: 'destructive', title: 'Error', description: error.message });
+        toast({ variant: 'destructive', title: 'Error', description: error.message.includes('duplicate') ? 'School code already exists' : error.message });
       } else {
         toast({ title: 'School updated successfully' });
         setDialogOpen(false);
         fetchSchools();
       }
     } else {
-      const { error } = await supabase
+      const { data: newSchool, error } = await supabase
         .from('schools')
         .insert({
           name: form.name.trim(),
@@ -148,11 +197,22 @@ export default function SchoolsManagement() {
           phone: form.phone.trim() || null,
           address: form.address.trim() || null,
           created_by: user?.id,
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         toast({ variant: 'destructive', title: 'Error', description: error.message.includes('duplicate') ? 'School code already exists' : error.message });
-      } else {
+      } else if (newSchool) {
+        // Upload logo for newly created school
+        if (logoFile) {
+          setUploadingLogo(true);
+          const logoUrl = await uploadLogo(newSchool.id);
+          setUploadingLogo(false);
+          if (logoUrl) {
+            await supabase.from('schools').update({ logo_url: logoUrl }).eq('id', newSchool.id);
+          }
+        }
         toast({ title: 'School created successfully' });
         setDialogOpen(false);
         resetForm();
@@ -243,9 +303,17 @@ export default function SchoolsManagement() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <School className="h-5 w-5 text-primary" />
-                        </div>
+                        {school.logo_url ? (
+                          <img 
+                            src={school.logo_url} 
+                            alt={school.name} 
+                            className="h-10 w-10 rounded-lg object-cover border"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <School className="h-5 w-5 text-primary" />
+                          </div>
+                        )}
                         <div>
                           <CardTitle className="text-base">{school.name}</CardTitle>
                           <Badge variant="outline" className="mt-1">{school.code}</Badge>
@@ -312,11 +380,59 @@ export default function SchoolsManagement() {
 
         {/* Create/Edit Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingSchool ? 'Edit School' : 'Create New School'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Logo Upload */}
+              <div className="space-y-2">
+                <Label>School Logo</Label>
+                <div className="flex items-center gap-4">
+                  {logoPreview ? (
+                    <div className="relative">
+                      <img 
+                        src={logoPreview} 
+                        alt="Logo preview" 
+                        className="h-16 w-16 rounded-lg object-cover border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => { setLogoFile(null); setLogoPreview(null); }}
+                        className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      className="h-16 w-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-1">Max 2MB. JPG, PNG or SVG.</p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/svg+xml,image/webp"
+                    className="hidden"
+                    onChange={handleLogoSelect}
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="school-name">School Name *</Label>
                 <Input
@@ -337,11 +453,12 @@ export default function SchoolsManagement() {
                   onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
                   required
                   maxLength={10}
-                  disabled={!!editingSchool}
                 />
-                {!editingSchool && (
-                  <p className="text-xs text-muted-foreground">Used to identify the school. Cannot be changed later.</p>
-                )}
+                <p className="text-xs text-muted-foreground">
+                  {editingSchool 
+                    ? 'Changing the code will update it across the system.'
+                    : 'Used to identify the school. Must be unique.'}
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -378,8 +495,8 @@ export default function SchoolsManagement() {
 
               <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={saving} className="gradient-primary">
-                  {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                <Button type="submit" disabled={saving || uploadingLogo} className="gradient-primary">
+                  {(saving || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                   {editingSchool ? 'Update School' : 'Create School'}
                 </Button>
               </div>
