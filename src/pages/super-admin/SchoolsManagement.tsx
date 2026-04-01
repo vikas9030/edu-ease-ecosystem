@@ -38,6 +38,8 @@ export default function SchoolsManagement() {
   const [editingSchool, setEditingSchool] = useState<SchoolRecord | null>(null);
   const [saving, setSaving] = useState(false);
   const [schoolStats, setSchoolStats] = useState<Record<string, { admins: number; teachers: number; students: number }>>({});
+  const [deletingSchool, setDeletingSchool] = useState<SchoolRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
