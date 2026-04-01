@@ -34,7 +34,7 @@ export default function LeadCallLogDialog({
   studentName,
   onSuccess,
 }: LeadCallLogDialogProps) {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [outcome, setOutcome] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
