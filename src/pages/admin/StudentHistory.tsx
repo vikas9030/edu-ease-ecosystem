@@ -96,7 +96,7 @@ export default function StudentHistory() {
                     </div>
                     <div className="flex items-center gap-2">
                       {s.classes && <Badge variant="outline" className="text-xs">{s.classes.name}-{s.classes.section}</Badge>}
-                      <Badge variant={s.status === 'active' ? 'default' : 'secondary'} className="text-xs">{s.status || 'active'}</Badge>
+                      <Badge variant={s.status === 'active' ? 'default' : s.status === 'discontinued' ? 'destructive' : 'secondary'} className="text-xs">{s.status || 'active'}</Badge>
                     </div>
                   </div>
                 ))}

@@ -1201,6 +1201,59 @@ export type Database = {
         }
         Relationships: []
       }
+      student_discontinuation_archives: {
+        Row: {
+          admission_number: string
+          attendance_snapshot: Json | null
+          class_name: string | null
+          created_at: string
+          discontinuation_reason: string | null
+          discontinued_at: string
+          fees_snapshot: Json | null
+          id: string
+          marks_snapshot: Json | null
+          student_id: string
+          student_name: string
+          timetable_snapshot: Json | null
+        }
+        Insert: {
+          admission_number: string
+          attendance_snapshot?: Json | null
+          class_name?: string | null
+          created_at?: string
+          discontinuation_reason?: string | null
+          discontinued_at?: string
+          fees_snapshot?: Json | null
+          id?: string
+          marks_snapshot?: Json | null
+          student_id: string
+          student_name: string
+          timetable_snapshot?: Json | null
+        }
+        Update: {
+          admission_number?: string
+          attendance_snapshot?: Json | null
+          class_name?: string | null
+          created_at?: string
+          discontinuation_reason?: string | null
+          discontinued_at?: string
+          fees_snapshot?: Json | null
+          id?: string
+          marks_snapshot?: Json | null
+          student_id?: string
+          student_name?: string
+          timetable_snapshot?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_discontinuation_archives_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_exam_answers: {
         Row: {
           answered_at: string | null
