@@ -157,6 +157,7 @@ export default function ClassesManagement() {
       section: formData.section || '-',
       academic_year: formData.academicYear,
       class_teacher_id: formData.classTeacherId || null,
+      school_id: schoolId,
     });
 
     if (error) {

@@ -158,7 +158,7 @@ export default function TimetableManagement() {
     } else {
       await supabase
         .from('app_settings')
-        .insert({ setting_key: 'timetable_schedule', setting_value: newSchedule as any, updated_by: user?.id } as any);
+        .insert({ setting_key: 'timetable_schedule', setting_value: newSchedule as any, updated_by: user?.id, school_id: schoolId } as any);
     }
   };
 

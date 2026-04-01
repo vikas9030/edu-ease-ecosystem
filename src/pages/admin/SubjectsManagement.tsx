@@ -105,6 +105,7 @@ export default function SubjectsManagement() {
       name: formData.name.trim(),
       code: formData.code.trim() || null,
       category: formData.category,
+      school_id: schoolId,
     });
 
     if (error) {

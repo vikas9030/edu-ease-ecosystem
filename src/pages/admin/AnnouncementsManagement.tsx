@@ -99,6 +99,7 @@ export default function AnnouncementsManagement() {
       content: formData.content,
       target_audience: [formData.targetAudience],
       created_by: user?.id,
+      school_id: schoolId,
     });
 
     if (error) {

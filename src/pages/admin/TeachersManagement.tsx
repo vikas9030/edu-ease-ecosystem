@@ -281,6 +281,7 @@ export default function TeachersManagement() {
         qualification: formData.qualification,
         subjects,
         status: 'active',
+        school_id: schoolId,
       }).select().single();
 
       if (teacherError) {

@@ -106,6 +106,7 @@ export default function GalleryManagement() {
         image_url: urlData.publicUrl,
         caption: file.name.replace(/\.[^/.]+$/, ''),
         created_by: user?.id,
+        school_id: schoolId,
       });
     }
     setUploading(false);
