@@ -393,17 +393,32 @@ export default function DiscontinuedStudents() {
       </AlertDialog>
 
       {/* Confirm Re-admit */}
-      <AlertDialog open={reAdmitConfirmOpen} onOpenChange={setReAdmitConfirmOpen}>
+      <AlertDialog open={reAdmitConfirmOpen} onOpenChange={(open) => { setReAdmitConfirmOpen(open); if (!open) { setReAdmitClassId(''); setReAdmitStudentId(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Re-admit Student</AlertDialogTitle>
-            <AlertDialogDescription>
-              This student will be set back to active status and will appear in active student lists again.
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>Select the class to re-admit this student into.</p>
+                <div>
+                  <Label htmlFor="readmit-class" className="text-sm font-medium">Class</Label>
+                  <Select value={reAdmitClassId} onValueChange={setReAdmitClassId}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select a class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={processing}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => reAdmitStudentId && handleReAdmit(reAdmitStudentId)} disabled={processing}>
+            <AlertDialogAction onClick={() => reAdmitStudentId && handleReAdmit(reAdmitStudentId)} disabled={processing || !reAdmitClassId}>
               {processing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Re-admit
             </AlertDialogAction>
