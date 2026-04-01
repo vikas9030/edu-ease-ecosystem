@@ -1,88 +1,70 @@
 
 
-# How Multi-School Login Works Without Data Collision
+# Fix: School Data Isolation (Admin Sees Other Schools' Data)
 
-## Current Login System (Single School)
+## Problem
+The multi-tenant migration added `school_id` columns to all tables and created the `get_user_school_id()` helper function, but:
+1. **No RLS policy uses `school_id`** — admins/teachers see ALL schools' data
+2. **No frontend query filters by `school_id`** — even if RLS were fixed, inserts don't set `school_id`
 
-Today, the app has three login paths:
+## Solution
 
-```text
-Staff Login:
-  Admin  → enters email + password → direct auth
-  Teacher → enters Teacher ID (e.g., JOHN-MATH) → lookup teacher table → get email → auth
+### Phase 1: Database — Update RLS Policies (1 migration)
 
-Parent/Student Login:
-  Parent → enters Student ID (e.g., RAHUL-10-A) → RPC finds parent email → auth
+Update RLS policies on all major tables to enforce school isolation for non-super-admin roles. The pattern for each table:
+
+```sql
+-- Example for students table
+DROP POLICY "Admins and teachers can manage students" ON students;
+CREATE POLICY "School-scoped admin/teacher manage students" ON students
+FOR ALL USING (
+  has_role(auth.uid(), 'super_admin'::app_role)
+  OR school_id = get_user_school_id(auth.uid())
+);
 ```
 
-## The Collision Problem
+Tables to update (~25): `students`, `teachers`, `classes`, `subjects`, `attendance`, `exams`, `exam_marks`, `fees`, `fee_payments`, `homework`, `leave_requests`, `complaints`, `certificate_requests`, `announcements`, `timetable`, `syllabus`, `messages`, `notifications`, `leads`, `lead_call_logs`, `lead_status_history`, `gallery_folders`, `gallery_images`, `holidays`, `app_settings`, `student_reports`, `question_papers`, `questions`, `exam_cycles`, `student_discontinuation_archives`, `student_exam_answers`, `student_exam_results`, `student_parents`, `parents`, `module_visibility`.
 
-Without `school_id`, if two schools both have a teacher with ID `JOHN-MATH` or a student with ID `RAHUL-10-A`, the system cannot tell them apart. The wrong account could be returned.
+Super admins bypass the school filter. All other roles only see rows matching their `school_id`.
 
-## How Multi-School Login Will Prevent Collision
+### Phase 2: Frontend — Set `school_id` on All Inserts
 
-### Option 1: School Selection Before Login
+Update all admin pages that create records to include `school_id` from the auth context (`useAuth().schoolId`). Key files:
 
-```text
-Login Screen
-  ┌─────────────────────────┐
-  │  Select Your School ▼   │  ← User picks school first
-  │  [ABC Public School  ]  │
-  ├─────────────────────────┤
-  │  Staff | Parent tabs    │
-  │  Teacher ID: JOHN-MATH  │
-  │  Password: ****         │
-  │  [Sign In]              │
-  └─────────────────────────┘
-```
+- `AdminDashboard.tsx` — no changes needed (read-only, RLS handles it)
+- `StudentsManagement.tsx` — add `school_id` to student creation
+- `TeachersManagement.tsx` — add `school_id` to teacher creation (already done in edge function, verify)
+- `ClassesManagement.tsx` — add `school_id` when creating classes
+- `SubjectsManagement.tsx` — add `school_id` when creating subjects
+- `ExamsManagement.tsx` — add `school_id` when creating exams
+- `FeesManagement.tsx` — add `school_id` when creating fees
+- `AttendanceManagement.tsx` — add `school_id` when marking attendance
+- `HolidaysManagement.tsx` — add `school_id` when creating holidays
+- `AnnouncementsManagement.tsx` — add `school_id` when creating announcements
+- `TimetableManagement.tsx` — add `school_id` to timetable entries
+- `SyllabusManagement.tsx` — add `school_id`
+- `LeadsManagement.tsx` — add `school_id`
+- `ComplaintsManagement.tsx` — add `school_id`
+- `LeaveManagement.tsx` — add `school_id`
+- `GalleryManagement.tsx` — add `school_id`
+- `CertificatesManagement.tsx` — add `school_id`
+- `ExamCyclesManagement.tsx` — add `school_id`
+- `WeeklyExamsManagement.tsx` — add `school_id`
+- `QuestionPaperBuilder.tsx` — add `school_id`
 
-- The selected `school_id` is sent along with the Teacher ID or Student ID
-- Database lookup filters by **both** the ID and the school: `WHERE teacher_id = 'JOHN-MATH' AND school_id = 'school-xyz'`
-- Two schools can have `JOHN-MATH` — no collision because the school filter narrows it down
+### Phase 3: Edge Functions
 
-### Option 2: School Code Prefix in IDs
+Verify `create-user` and `create-student` edge functions propagate `school_id` correctly (already partially done, will verify and fix gaps).
 
-Each school gets a short code (e.g., `ABC`, `XYZ`). Teacher and Student IDs automatically include it:
+### Phase 4: Notification Triggers
 
-```text
-School ABC: Teacher ID = ABC-JOHN-MATH, Student ID = ABC-RAHUL-10-A
-School XYZ: Teacher ID = XYZ-JOHN-MATH, Student ID = XYZ-RAHUL-10-A
-```
+Update database trigger functions (`notify_complaint`, `notify_holiday_created`, `notify_announcement`, etc.) to scope notifications to the same `school_id` so admins/teachers from one school don't get notifications from another school.
 
-No school selection needed — the ID itself is globally unique.
+## Implementation Order
+1. Single large migration updating all RLS policies
+2. Update all admin page inserts to include `schoolId`
+3. Verify edge functions
+4. Update notification triggers
 
-### Admin Login (Email)
-
-Admins log in with email, which is already globally unique. After auth, the system looks up their `school_id` from `user_roles` and scopes all data to that school.
-
-### Super Admin Login
-
-Super Admin has no `school_id` — they see everything across all schools.
-
-## Data Isolation After Login
-
-Once logged in, every database query is automatically filtered:
-
-```text
-Teacher from School A logs in
-  → Auth context sets schoolId = "school-a"
-  → RLS policy: WHERE school_id = get_user_school_id(auth.uid())
-  → Teacher can ONLY see School A's students, classes, exams, fees
-  → School B's data is completely invisible
-```
-
-This happens at the **database level** (RLS), so even if frontend code has a bug, data cannot leak between schools.
-
-## Summary
-
-| Role | Login With | How Collision Is Prevented |
-|------|-----------|--------------------------|
-| Super Admin | Email | Global — no school scope |
-| Admin | Email | Email is unique; school_id assigned |
-| Teacher | Teacher ID | School selector OR school-prefixed ID |
-| Parent | Student ID | School selector OR school-prefixed ID |
-
-## Recommended Approach
-
-**School selection dropdown on login page** is simpler and cleaner — IDs stay short and readable, and the school list is fetched from the `schools` table.
+This is a large but systematic change — every table gets the same pattern applied.
 
