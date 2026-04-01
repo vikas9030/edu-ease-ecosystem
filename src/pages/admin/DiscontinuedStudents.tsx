@@ -56,6 +56,7 @@ export default function DiscontinuedStudents() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [reAdmitConfirmOpen, setReAdmitConfirmOpen] = useState(false);
   const [reAdmitStudentId, setReAdmitStudentId] = useState<string | null>(null);
+  const [reAdmitClassId, setReAdmitClassId] = useState('');
 
   const [discontinuedStudents, setDiscontinuedStudents] = useState<Student[]>([]);
   const [loadingDiscontinued, setLoadingDiscontinued] = useState(false);
