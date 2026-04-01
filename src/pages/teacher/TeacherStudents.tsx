@@ -229,14 +229,10 @@ export default function TeacherStudents() {
 
   // Generate student ID based on name, class, and section
   const generateStudentId = (name: string, className: string, section: string): string => {
-    // Get first name (uppercase, cleaned)
     const namePart = name.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '');
-    // Get class name
     const classPart = className.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    // Get section letter
-    const sectionPart = section.toUpperCase().replace(/[^A-Z]/g, '');
-    
-    return `${namePart}-${classPart}-${sectionPart}`;
+    const sectionPart = section && section !== '-' ? section.toUpperCase().replace(/[^A-Z]/g, '') : '';
+    return sectionPart ? `${namePart}-${classPart}-${sectionPart}` : `${namePart}-${classPart}`;
   };
 
   // Update preview ID when name or class changes

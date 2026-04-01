@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
       // Send at 3 days and 1 day (or today)
       if (daysLeft > 3) continue
       const daysText = daysLeft === 0 ? 'today' : daysLeft === 1 ? 'tomorrow' : `in ${daysLeft} days`
-      const className = exam.classes ? `${exam.classes.name}-${exam.classes.section}` : ''
+      const className = exam.classes ? (exam.classes.section && exam.classes.section !== '-' ? `${exam.classes.name}-${exam.classes.section}` : exam.classes.name) : ''
       const subjectName = exam.subjects?.name || ''
       const title = '🏆 Competitive Exam Reminder'
       const message = `${exam.exam_title} (${subjectName}, Class ${className}) is ${daysText} at ${exam.exam_time} [comp_${exam.id}_${daysLeft}d]`
@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
 
       if (daysLeft > 3) continue
       const daysText = daysLeft === 0 ? 'today' : daysLeft === 1 ? 'tomorrow' : `in ${daysLeft} days`
-      const className = exam.classes ? `${exam.classes.name}-${exam.classes.section}` : ''
+      const className = exam.classes ? (exam.classes.section && exam.classes.section !== '-' ? `${exam.classes.name}-${exam.classes.section}` : exam.classes.name) : ''
       const subjectName = exam.subjects?.name || ''
       const title = '📝 Exam Reminder'
       const message = `${exam.name} (${subjectName}, Class ${className}) is ${daysText}${exam.exam_time ? ` at ${exam.exam_time}` : ''} [exam_${exam.id}_${daysLeft}d]`
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
 
     for (const exam of finishedRegular || []) {
       if (!exam.class_id) continue
-      const className = exam.classes ? `${exam.classes.name}-${exam.classes.section}` : ''
+      const className = exam.classes ? (exam.classes.section && exam.classes.section !== '-' ? `${exam.classes.name}-${exam.classes.section}` : exam.classes.name) : ''
       const subjectName = exam.subjects?.name || ''
       const title = '✅ Exam Completed'
       const message = `${exam.name} (${subjectName}, Class ${className}) has been completed [examdone_${exam.id}]`
@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
       .eq('exam_date', yesterdayStr)
 
     for (const exam of finishedComp || []) {
-      const className = exam.classes ? `${exam.classes.name}-${exam.classes.section}` : ''
+      const className = exam.classes ? (exam.classes.section && exam.classes.section !== '-' ? `${exam.classes.name}-${exam.classes.section}` : exam.classes.name) : ''
       const subjectName = exam.subjects?.name || ''
       const title = '✅ Competitive Exam Completed'
       const message = `${exam.exam_title} (${subjectName}, Class ${className}) has been completed [compdone_${exam.id}]`
