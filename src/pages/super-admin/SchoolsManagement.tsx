@@ -293,6 +293,15 @@ export default function SchoolsManagement() {
                         <Power className="h-3.5 w-3.5 mr-1" />
                         {school.is_active ? 'Deactivate' : 'Activate'}
                       </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setDeletingSchool(school)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-1" />
+                        Delete
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
