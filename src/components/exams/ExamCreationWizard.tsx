@@ -94,6 +94,7 @@ export default function ExamCreationWizard({ open, onOpenChange, classes, subjec
           max_marks: parseInt(formData.maxMarks) || 100,
           class_id: entry.classId,
           subject_id: entry.subjectId,
+          school_id: schoolId,
         };
       });
 

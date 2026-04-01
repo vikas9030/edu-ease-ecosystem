@@ -117,6 +117,7 @@ export default function ExamCyclesTab() {
       end_date: formData.end_date,
       is_active: false,
       created_by: user?.id,
+      school_id: schoolId,
     });
     if (error) { toast.error(error.message); return; }
     toast.success('Exam cycle created');

@@ -229,6 +229,7 @@ export default function SyllabusManagement() {
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         created_by: user?.id,
+        school_id: schoolId,
       }).select('id').single();
 
       if (error) { toast.error(error.message); setSaving(false); return; }

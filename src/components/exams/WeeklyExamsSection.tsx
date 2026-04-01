@@ -141,6 +141,7 @@ export default function WeeklyExamsSection() {
     const { error } = await supabase.from('weekly_exams').insert({
       class_id: formData.class_id,
       subject_id: formData.subject_id || null,
+      school_id: schoolId,
       syllabus_type: syllabusType,
       cycle_id: syllabusType === 'competitive' && formData.cycle_id ? formData.cycle_id : null,
       week_number: formData.week_number ? parseInt(formData.week_number) : null,
