@@ -5,14 +5,14 @@ import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { superAdminSidebarItems } from '@/config/superAdminSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Users, GraduationCap, Shield, ToggleLeft } from 'lucide-react';
+import { Loader2, Users, GraduationCap, Shield, ToggleLeft, School } from 'lucide-react';
 import { useModuleVisibility } from '@/hooks/useModuleVisibility';
 
 export default function SuperAdminDashboard() {
   const { user, userRole, loading } = useAuth();
   const navigate = useNavigate();
   const { modules } = useModuleVisibility();
-  const [stats, setStats] = useState({ admins: 0, teachers: 0, students: 0 });
+  const [stats, setStats] = useState({ admins: 0, teachers: 0, students: 0, schools: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -23,15 +23,17 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     async function fetchStats() {
-      const [admins, teachers, students] = await Promise.all([
+      const [admins, teachers, students, schools] = await Promise.all([
         supabase.from('user_roles').select('id', { count: 'exact', head: true }).in('role', ['admin', 'super_admin']),
         supabase.from('teachers').select('id', { count: 'exact', head: true }),
         supabase.from('students').select('id', { count: 'exact', head: true }),
+        supabase.from('schools').select('id', { count: 'exact', head: true }),
       ]);
       setStats({
         admins: admins.count || 0,
         teachers: teachers.count || 0,
         students: students.count || 0,
+        schools: schools.count || 0,
       });
       setLoadingStats(false);
     }
@@ -52,8 +54,9 @@ export default function SuperAdminDashboard() {
           <p className="text-muted-foreground">System overview and control center</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[
+            { label: 'Schools', value: stats.schools, icon: School, color: 'text-violet-600' },
             { label: 'Admins', value: stats.admins, icon: Shield, color: 'text-primary' },
             { label: 'Teachers', value: stats.teachers, icon: Users, color: 'text-emerald-600' },
             { label: 'Students', value: stats.students, icon: GraduationCap, color: 'text-blue-600' },
