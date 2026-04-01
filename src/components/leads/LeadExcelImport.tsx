@@ -58,7 +58,7 @@ const COLUMN_MAP: Record<string, string> = {
 };
 
 export default function LeadExcelImport({ open, onOpenChange, onSuccess }: LeadExcelImportProps) {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [errors, setErrors] = useState<ImportError[]>([]);
