@@ -56,6 +56,7 @@ export default function DiscontinuedStudents() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [reAdmitConfirmOpen, setReAdmitConfirmOpen] = useState(false);
   const [reAdmitStudentId, setReAdmitStudentId] = useState<string | null>(null);
+  const [reAdmitClassId, setReAdmitClassId] = useState('');
 
   const [discontinuedStudents, setDiscontinuedStudents] = useState<Student[]>([]);
   const [loadingDiscontinued, setLoadingDiscontinued] = useState(false);
@@ -134,10 +135,14 @@ export default function DiscontinuedStudents() {
   }
 
   async function handleReAdmit(studentId: string) {
+    if (!reAdmitClassId) {
+      toast.error('Please select a class to re-admit the student into');
+      return;
+    }
     setProcessing(true);
     const { error } = await supabase
       .from('students')
-      .update({ status: 'active', discontinuation_reason: null, updated_at: new Date().toISOString() } as any)
+      .update({ status: 'active', discontinuation_reason: null, class_id: reAdmitClassId, updated_at: new Date().toISOString() } as any)
       .eq('id', studentId);
 
     if (error) {
@@ -145,7 +150,6 @@ export default function DiscontinuedStudents() {
     } else {
       toast.success('Student re-admitted successfully');
       fetchDiscontinued();
-      // refresh active list if same class is selected
       if (selectedClass) {
         const { data } = await supabase
           .from('students')
@@ -159,6 +163,7 @@ export default function DiscontinuedStudents() {
     setProcessing(false);
     setReAdmitConfirmOpen(false);
     setReAdmitStudentId(null);
+    setReAdmitClassId('');
   }
 
   const filteredDiscontinued = discontinuedStudents.filter(s =>
@@ -388,17 +393,32 @@ export default function DiscontinuedStudents() {
       </AlertDialog>
 
       {/* Confirm Re-admit */}
-      <AlertDialog open={reAdmitConfirmOpen} onOpenChange={setReAdmitConfirmOpen}>
+      <AlertDialog open={reAdmitConfirmOpen} onOpenChange={(open) => { setReAdmitConfirmOpen(open); if (!open) { setReAdmitClassId(''); setReAdmitStudentId(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Re-admit Student</AlertDialogTitle>
-            <AlertDialogDescription>
-              This student will be set back to active status and will appear in active student lists again.
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>Select the class to re-admit this student into.</p>
+                <div>
+                  <Label htmlFor="readmit-class" className="text-sm font-medium">Class</Label>
+                  <Select value={reAdmitClassId} onValueChange={setReAdmitClassId}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select a class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={processing}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => reAdmitStudentId && handleReAdmit(reAdmitStudentId)} disabled={processing}>
+            <AlertDialogAction onClick={() => reAdmitStudentId && handleReAdmit(reAdmitStudentId)} disabled={processing || !reAdmitClassId}>
               {processing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Re-admit
             </AlertDialogAction>
