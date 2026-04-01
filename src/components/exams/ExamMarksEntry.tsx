@@ -166,6 +166,7 @@ export default function ExamMarksEntry({ exams, onMarksUpdated }: Props) {
           marks_obtained: parseFloat(marks[student.id].marks) || null,
           grade: marks[student.id].grade || null,
           remarks: marks[student.id].remarks || null,
+          school_id: schoolId,
         }));
 
       if (records.length > 0) {

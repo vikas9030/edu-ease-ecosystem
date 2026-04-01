@@ -160,6 +160,7 @@ export default function WeeklyExamMarksEntry() {
           obtained_marks: parseFloat(marks[student.id].obtained) || 0,
           total_marks: selectedExam.total_marks,
           percentage: parseFloat(marks[student.id].percentage) || 0,
+          school_id: schoolId,
         }));
 
       if (records.length > 0) {

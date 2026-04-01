@@ -282,6 +282,7 @@ export default function CreateFeeDialog({ open, onOpenChange, onSuccess }: Props
             due_date: dueDateStr,
             reminder_days_before: reminderDaysBefore,
             class_id: studentClassId,
+            school_id: schoolId,
           };
         });
       });

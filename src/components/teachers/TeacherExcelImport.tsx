@@ -139,6 +139,7 @@ export default function TeacherExcelImport({ open, onOpenChange, onSuccess }: Te
             qualification,
             subjects: subjectsArray,
             status: 'active',
+            school_id: schoolId,
           } as any);
 
           if (teacherError) {

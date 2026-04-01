@@ -89,6 +89,7 @@ export default function RecordPaymentDialog({ open, onOpenChange, fee, onSuccess
       receipt_number: receiptNumber,
       paid_at: paidAt,
       recorded_by: (await supabase.auth.getUser()).data.user?.id,
+      school_id: schoolId,
     });
 
     setSaving(false);
