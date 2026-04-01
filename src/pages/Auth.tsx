@@ -306,8 +306,9 @@ export default function Auth() {
     setIsLoading(false);
   };
 
-  // School selector component
-  const SchoolSelector = () => {
+  const selectedSchool = schools.find(s => s.id === selectedSchoolId);
+
+  const renderSchoolSelector = () => {
     if (loadingSchools || schools.length === 0) return null;
     
     return (
@@ -320,22 +321,18 @@ export default function Auth() {
         </Label>
         <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
           <SelectTrigger id="school-select">
-            <SelectValue placeholder="Choose your school...">
-              {selectedSchoolId && (() => {
-                const selected = schools.find(s => s.id === selectedSchoolId);
-                if (!selected) return null;
-                return (
-                  <span className="flex items-center gap-2">
-                    {selected.logo_url ? (
-                      <img src={selected.logo_url} alt="" className="h-5 w-5 rounded object-cover shrink-0" />
-                    ) : (
-                      <School className="h-4 w-4 text-muted-foreground shrink-0" />
-                    )}
-                    <span className="truncate">{selected.name} ({selected.code})</span>
-                  </span>
-                );
-              })()}
-            </SelectValue>
+            {selectedSchool ? (
+              <span className="flex items-center gap-2">
+                {selectedSchool.logo_url ? (
+                  <img src={selectedSchool.logo_url} alt="" className="h-5 w-5 rounded object-cover shrink-0" />
+                ) : (
+                  <School className="h-4 w-4 text-muted-foreground shrink-0" />
+                )}
+                <span className="truncate">{selectedSchool.name} ({selectedSchool.code})</span>
+              </span>
+            ) : (
+              <span className="text-muted-foreground">Choose your school...</span>
+            )}
           </SelectTrigger>
           <SelectContent>
             {schools.map((school) => (
@@ -493,7 +490,7 @@ export default function Auth() {
                 {loginMode === 'staff' ? (
                   <form onSubmit={handleStaffLogin} className="space-y-4">
                     {/* School Selector - shown for teacher ID login when schools exist */}
-                    <SchoolSelector />
+                    {renderSchoolSelector()}
 
                     <div className="space-y-2">
                       <Label htmlFor="staff-id">Email or Teacher ID</Label>
@@ -542,7 +539,7 @@ export default function Auth() {
                 ) : (
                   <form onSubmit={handleParentLogin} className="space-y-4">
                     {/* School Selector */}
-                    <SchoolSelector />
+                    {renderSchoolSelector()}
 
                     <div className="space-y-2">
                       <Label htmlFor="student-id">Student ID / Admission Number</Label>
