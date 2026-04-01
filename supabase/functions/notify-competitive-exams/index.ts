@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
 
       if (daysLeft > 3) continue
       const daysText = daysLeft === 0 ? 'today' : daysLeft === 1 ? 'tomorrow' : `in ${daysLeft} days`
-      const className = exam.classes ? `${exam.classes.name}-${exam.classes.section}` : ''
+      const className = exam.classes ? (exam.classes.section && exam.classes.section !== '-' ? `${exam.classes.name}-${exam.classes.section}` : exam.classes.name) : ''
       const subjectName = exam.subjects?.name || ''
       const title = '📝 Exam Reminder'
       const message = `${exam.name} (${subjectName}, Class ${className}) is ${daysText}${exam.exam_time ? ` at ${exam.exam_time}` : ''} [exam_${exam.id}_${daysLeft}d]`
