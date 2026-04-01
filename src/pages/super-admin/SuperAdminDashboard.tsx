@@ -54,7 +54,7 @@ export default function SuperAdminDashboard() {
           <p className="text-muted-foreground">System overview and control center</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {[
             { label: 'Schools', value: stats.schools, icon: School, color: 'text-violet-600' },
             { label: 'Admins', value: stats.admins, icon: Shield, color: 'text-primary' },

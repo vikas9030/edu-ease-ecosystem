@@ -320,24 +320,39 @@ export default function Auth() {
         </Label>
         <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
           <SelectTrigger id="school-select">
-            <SelectValue placeholder="Choose your school..." />
+            <SelectValue placeholder="Choose your school...">
+              {selectedSchoolId && (() => {
+                const selected = schools.find(s => s.id === selectedSchoolId);
+                if (!selected) return null;
+                return (
+                  <span className="flex items-center gap-2">
+                    {selected.logo_url ? (
+                      <img src={selected.logo_url} alt="" className="h-5 w-5 rounded object-cover shrink-0" />
+                    ) : (
+                      <School className="h-4 w-4 text-muted-foreground shrink-0" />
+                    )}
+                    <span className="truncate">{selected.name} ({selected.code})</span>
+                  </span>
+                );
+              })()}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {schools.map((school) => (
               <SelectItem key={school.id} value={school.id}>
-                <span className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   {school.logo_url ? (
                     <img src={school.logo_url} alt="" className="h-5 w-5 rounded object-cover shrink-0" />
                   ) : (
                     <School className="h-4 w-4 text-muted-foreground shrink-0" />
                   )}
-                  <span className="flex flex-col items-start">
+                  <div className="flex flex-col items-start">
                     <span>{school.name} ({school.code})</span>
                     {school.address && (
                       <span className="text-xs text-muted-foreground">{school.address}</span>
                     )}
-                  </span>
-                </span>
+                  </div>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
