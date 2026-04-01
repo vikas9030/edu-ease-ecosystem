@@ -18,6 +18,7 @@ import {
   ArrowUpCircle,
   History,
   CalendarDays,
+  UserMinus,
 } from 'lucide-react';
 
 interface SidebarItem {
