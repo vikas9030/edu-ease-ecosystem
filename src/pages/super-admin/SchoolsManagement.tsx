@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Plus, School, Edit, Power, Users, GraduationCap } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Loader2, Plus, School, Edit, Power, Users, GraduationCap, Trash2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 interface SchoolRecord {
@@ -37,6 +38,8 @@ export default function SchoolsManagement() {
   const [editingSchool, setEditingSchool] = useState<SchoolRecord | null>(null);
   const [saving, setSaving] = useState(false);
   const [schoolStats, setSchoolStats] = useState<Record<string, { admins: number; teachers: number; students: number }>>({});
+  const [deletingSchool, setDeletingSchool] = useState<SchoolRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -174,6 +177,27 @@ export default function SchoolsManagement() {
     }
   };
 
+  const handleDeleteSchool = async () => {
+    if (!deletingSchool) return;
+    const stats = schoolStats[deletingSchool.id] || { admins: 0, teachers: 0, students: 0 };
+    if (stats.admins > 0 || stats.teachers > 0 || stats.students > 0) {
+      toast({ variant: 'destructive', title: 'Cannot delete', description: 'Remove all admins, teachers, and students before deleting this school.' });
+      setDeletingSchool(null);
+      return;
+    }
+
+    setDeleting(true);
+    const { error } = await supabase.from('schools').delete().eq('id', deletingSchool.id);
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } else {
+      toast({ title: 'School deleted successfully' });
+      fetchSchools();
+    }
+    setDeleting(false);
+    setDeletingSchool(null);
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
@@ -269,6 +293,15 @@ export default function SchoolsManagement() {
                         <Power className="h-3.5 w-3.5 mr-1" />
                         {school.is_active ? 'Deactivate' : 'Activate'}
                       </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setDeletingSchool(school)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-1" />
+                        Delete
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -353,6 +386,25 @@ export default function SchoolsManagement() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deletingSchool} onOpenChange={(open) => !open && setDeletingSchool(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete School</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to permanently delete <strong>{deletingSchool?.name}</strong> ({deletingSchool?.code})? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteSchool} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {deleting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
