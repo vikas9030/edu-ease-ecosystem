@@ -49,6 +49,7 @@ import { BackButton } from '@/components/ui/back-button';
 import { toast } from 'sonner';
 import StudentExcelImport from '@/components/students/StudentExcelImport';
 import { exportStudentsToExcel } from '@/components/students/StudentExcelExport';
+import { formatClassName } from "@/lib/utils";
 
 interface Student {
   id: string;
@@ -321,7 +322,7 @@ export default function StudentsManagement() {
                 <SelectContent>
                   <SelectItem value="all">All Classes</SelectItem>
                   {classes.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -368,7 +369,7 @@ export default function StudentsManagement() {
                       <div className="space-y-1 text-xs">
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <GraduationCap className="h-3 w-3 shrink-0" />
-                          <span>{student.classes ? `${student.classes.name} - ${student.classes.section}` : 'N/A'}</span>
+                          <span>{student.classes ? `${formatClassName(student.classes.name, student.classes.section)}` : 'N/A'}</span>
                         </div>
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <User className="h-3 w-3 shrink-0" />
@@ -405,7 +406,7 @@ export default function StudentsManagement() {
                             </div>
                           </TableCell>
                           <TableCell className="font-mono text-sm">{student.admission_number}</TableCell>
-                          <TableCell>{student.classes ? `${student.classes.name} - ${student.classes.section}` : 'N/A'}</TableCell>
+                          <TableCell>{student.classes ? `${formatClassName(student.classes.name, student.classes.section)}` : 'N/A'}</TableCell>
                           <TableCell>{student.parent_name || 'N/A'}</TableCell>
                           <TableCell><Badge className={student.status === 'active' ? 'status-active' : 'status-inactive'}>{student.status}</Badge></TableCell>
                           <TableCell>
@@ -579,7 +580,7 @@ export default function StudentsManagement() {
                   <Select value={formData.class_id} onValueChange={(v) => { setFormData({ ...formData, class_id: v }); updatePreviewId(formData.full_name, v); }}>
                     <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
                     <SelectContent>
-                      {classes.map(c => (<SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>))}
+                      {classes.map(c => (<SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>

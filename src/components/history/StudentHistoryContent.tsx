@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Calendar, FileText, CreditCard, GraduationCap, History } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatClassName } from "@/lib/utils";
 
 export interface StudentRecord {
   id: string;
@@ -137,7 +138,7 @@ export default function StudentHistoryContent({ studentRecords, studentName, adm
                     <History className="h-4 w-4 text-muted-foreground" />
                   )}
                   <span className="font-medium text-sm">
-                    {r.classes ? `${r.classes.name}-${r.classes.section}` : 'N/A'}
+                    {r.classes ? `${formatClassName(r.classes.name, r.classes.section)}` : 'N/A'}
                   </span>
                 </div>
                 <Badge variant={r.status === 'active' ? 'default' : 'secondary'} className="text-xs">
@@ -302,7 +303,7 @@ export default function StudentHistoryContent({ studentRecords, studentName, adm
                           <TableBody>
                             {fees.map(f => {
                               const feeClass = (f as any).fee_class;
-                              const className = feeClass ? `${feeClass.name}-${feeClass.section}` : (selectedRecord?.classes ? `${selectedRecord.classes.name}-${selectedRecord.classes.section}` : '-');
+                              const className = feeClass ? `${formatClassName(feeClass.name, feeClass.section)}` : (selectedRecord?.classes ? `${formatClassName(selectedRecord.classes.name, selectedRecord.classes.section)}` : '-');
                               return (
                                 <TableRow key={f.id}>
                                   <TableCell className="font-medium text-sm">{f.fee_type}</TableCell>

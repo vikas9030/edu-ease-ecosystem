@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Bell, Calendar } from 'lucide-react';
 import { useParentSidebar } from '@/hooks/useParentSidebar';
+import { formatClassName } from "@/lib/utils";
 
 interface Announcement {
   id: string;
@@ -71,7 +72,7 @@ export default function ParentAnnouncements() {
                   .in('id', classIds);
 
                 if (classes) {
-                  childClassIdentifiers = classes.map(c => `class:${c.name}-${c.section}`);
+                  childClassIdentifiers = classes.map(c => `class:${formatClassName(c.name, c.section)}`);
                 }
               }
             }

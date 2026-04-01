@@ -21,6 +21,7 @@ import WeeklyExamMarksEntry from '@/components/exams/WeeklyExamMarksEntry';
 import { Exam, ClassItem, SubjectItem } from '@/components/exams/types';
 import { BackButton } from '@/components/ui/back-button';
 import EditExamDialog from '@/components/exams/EditExamDialog';
+import { formatClassName } from "@/lib/utils";
 
 export default function ExamsManagement() {
   const adminSidebarItems = useAdminSidebar();
@@ -207,7 +208,7 @@ export default function ExamsManagement() {
                             <div className="space-y-1">
                               <div className="flex flex-wrap items-center gap-1.5">
                                 <Badge variant="outline" className="text-[10px]">
-                                  {exam.classes ? `${exam.classes.name}-${exam.classes.section.toUpperCase()}` : 'All'}
+                                  {exam.classes ? `${formatClassName(exam.classes.name, exam.classes.section)}` : 'All'}
                                 </Badge>
                                 <Badge variant="secondary" className="text-[10px] capitalize">{exam.subjects?.name || 'All'}</Badge>
                               </div>
@@ -268,7 +269,7 @@ export default function ExamsManagement() {
                             <TableRow key={exam.id}>
                               <TableCell>
                                 <Badge variant="outline">
-                                  {exam.classes ? `${exam.classes.name}-${exam.classes.section.toUpperCase()}` : 'All'}
+                                  {exam.classes ? `${formatClassName(exam.classes.name, exam.classes.section)}` : 'All'}
                                 </Badge>
                               </TableCell>
                               <TableCell className="capitalize">{exam.subjects?.name || 'All'}</TableCell>

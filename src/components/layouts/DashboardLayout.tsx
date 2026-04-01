@@ -38,7 +38,7 @@ import {
   Save,
   Loader2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatClassName } from "@/lib/utils";
 import { toast } from 'sonner';
 import NotificationBell from '@/components/NotificationBell';
 import InstallAppBanner from '@/components/InstallAppBanner';
@@ -152,7 +152,7 @@ export default function DashboardLayout({ children, sidebarItems, roleColor }: D
             .eq('teacher_id', (await supabase.from('teachers').select('id').eq('user_id', user.id).maybeSingle()).data?.id || '');
 
           if (tc) {
-            details.assignedClasses = tc.map((t: any) => `${t.classes?.name} - ${t.classes?.section}`);
+            details.assignedClasses = tc.map((t: any) => `${formatClassName(t.classes?.name, t.classes?.section)}`);
           }
         }
       }

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, User, GraduationCap, Phone, MapPin, Calendar, Droplet, AlertCircle } from 'lucide-react';
 import AttendanceSummary from '@/components/AttendanceSummary';
 import { useParentSidebar } from '@/hooks/useParentSidebar';
+import { formatClassName } from "@/lib/utils";
 
 interface ChildData {
   id: string;
@@ -103,7 +104,7 @@ export default function ParentChild() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Class</p>
-                  <p className="font-medium">{child.classes ? `${child.classes.name} - ${child.classes.section}` : 'Not assigned'}</p>
+                  <p className="font-medium">{child.classes ? `${formatClassName(child.classes.name, child.classes.section)}` : 'Not assigned'}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Date of Birth</p>

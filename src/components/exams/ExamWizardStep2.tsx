@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users, X, CheckCircle2 } from 'lucide-react';
 import { ExamFormData, ClassItem } from './types';
+import { formatClassName } from "@/lib/utils";
 
 interface Props {
   formData: ExamFormData;
@@ -97,7 +98,7 @@ export default function ExamWizardStep2({ formData, setFormData, classes }: Prop
                     }`}
                   >
                     <Checkbox checked={formData.selectedClasses.includes(cls.id)} />
-                    <span className="font-medium text-sm">{cls.name}-{cls.section.toUpperCase()}</span>
+                    <span className="font-medium text-sm">{formatClassName(cls.name, cls.section)}</span>
                   </div>
                 ))}
               </div>
@@ -114,7 +115,7 @@ export default function ExamWizardStep2({ formData, setFormData, classes }: Prop
               const cls = classes.find(c => c.id === id);
               return cls && (
                 <Badge key={id} variant="default" className="gap-1">
-                  {cls.name}-{cls.section.toUpperCase()}
+                  {formatClassName(cls.name, cls.section)}
                   <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={(e) => {
                     e.stopPropagation();
                     toggleClass(id);

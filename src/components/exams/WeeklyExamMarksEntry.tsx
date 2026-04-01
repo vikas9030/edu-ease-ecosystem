@@ -12,6 +12,7 @@ import { Loader2, Save, CheckCircle2, FlaskConical, BookOpen, Users, Calendar, C
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { formatClassName } from "@/lib/utils";
 
 interface WeeklyExam {
   id: string;
@@ -203,7 +204,7 @@ export default function WeeklyExamMarksEntry() {
               <SelectContent>
                 <SelectItem value="all">All Classes</SelectItem>
                 {classes.map(c => (
-                  <SelectItem key={c.id} value={c.id}>{c.name} - {c.section.toUpperCase()}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

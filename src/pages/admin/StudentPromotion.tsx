@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { BackButton } from '@/components/ui/back-button';
 import { ArrowUpCircle, ArrowRight, Loader2, Users, CheckCircle2, AlertTriangle, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { formatClassName } from "@/lib/utils";
 
 interface Student {
   id: string;
@@ -267,7 +268,7 @@ export default function StudentPromotion() {
                       </SelectTrigger>
                       <SelectContent>
                         {classes.map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                          <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -281,7 +282,7 @@ export default function StudentPromotion() {
                       </SelectTrigger>
                       <SelectContent>
                         {classes.filter(c => c.id !== fromClass).map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                          <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

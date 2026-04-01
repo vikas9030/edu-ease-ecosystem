@@ -24,6 +24,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { useTeacherSidebar } from '@/hooks/useTeacherSidebar';
+import { formatClassName } from "@/lib/utils";
 
 interface Report {
   id: string;
@@ -287,7 +288,7 @@ export default function TeacherReports() {
                           <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
                           <SelectContent>
                             {classes.map((cls) => (
-                              <SelectItem key={cls.id} value={cls.id}>{cls.name} - {cls.section}</SelectItem>
+                              <SelectItem key={cls.id} value={cls.id}>{formatClassName(cls.name, cls.section)}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Search, BookOpen, FlaskConical, Calendar, Clock, ChevronDown, CheckCircle2, GraduationCap } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
+import { formatClassName } from "@/lib/utils";
 
 interface SyllabusEntry {
   id: string;
@@ -162,7 +163,7 @@ export default function TeacherSyllabus() {
   const classOptions = useMemo(() => {
     const map = new Map<string, string>();
     assignedSyllabus.filter(s => s.syllabus_type === typeTab).forEach(s => {
-      if (s.classes) map.set(s.class_id, `${s.classes.name}-${s.classes.section}`);
+      if (s.classes) map.set(s.class_id, `${formatClassName(s.classes.name, s.classes.section)}`);
     });
     return Array.from(map.entries());
   }, [assignedSyllabus, typeTab]);
@@ -232,7 +233,7 @@ export default function TeacherSyllabus() {
                         <p className="text-[11px] sm:text-xs text-muted-foreground">{s.topic_name}</p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           <Badge variant="outline" className="text-[9px] sm:text-[10px] px-1 py-0">
-                            {s.classes ? `${s.classes.name}-${s.classes.section}` : '—'}
+                            {s.classes ? `${formatClassName(s.classes.name, s.classes.section)}` : '—'}
                           </Badge>
                           {s.exam_type && <Badge variant="outline" className="text-[9px] sm:text-[10px] px-1 py-0">{s.exam_type}</Badge>}
                           {s.week_number && <Badge variant="outline" className="text-[9px] sm:text-[10px] px-1 py-0">W{s.week_number}</Badge>}

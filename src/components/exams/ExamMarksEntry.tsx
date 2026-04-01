@@ -11,6 +11,7 @@ import { Loader2, Save, CheckCircle2, BookOpen, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { formatClassName } from "@/lib/utils";
 
 interface Exam {
   id: string;
@@ -223,7 +224,7 @@ export default function ExamMarksEntry({ exams, onMarksUpdated }: Props) {
               <SelectContent>
                 <SelectItem value="all">All Classes</SelectItem>
                 {classOptions.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}-{c.section.toUpperCase()}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

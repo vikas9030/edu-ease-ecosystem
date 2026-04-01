@@ -21,6 +21,7 @@ import { downloadTimetableAsCSV, downloadTimetableAsPDF } from '@/utils/timetabl
 
 // Sidebar items from shared config with permission check
 import { useTeacherSidebar } from '@/hooks/useTeacherSidebar';
+import { formatClassName } from "@/lib/utils";
 
 interface TimetableEntry {
   id: string;
@@ -196,13 +197,13 @@ export default function TeacherTimetable() {
 
   const handleDownloadClassCSV = () => {
     if (selectedClassName) {
-      downloadTimetableAsCSV(timetable, `Class_${selectedClassName.name}-${selectedClassName.section}`, true);
+      downloadTimetableAsCSV(timetable, `Class_${formatClassName(selectedClassName.name, selectedClassName.section)}`, true);
     }
   };
 
   const handleDownloadClassPDF = () => {
     if (selectedClassName) {
-      downloadTimetableAsPDF(timetable, `Class ${selectedClassName.name}-${selectedClassName.section}`, true);
+      downloadTimetableAsPDF(timetable, `Class ${formatClassName(selectedClassName.name, selectedClassName.section)}`, true);
     }
   };
 
@@ -298,7 +299,7 @@ export default function TeacherTimetable() {
                   <SelectContent>
                     {classes.map(c => (
                       <SelectItem key={c.id} value={c.id}>
-                        {c.name} - {c.section}
+                        {formatClassName(c.name, c.section)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -319,7 +320,7 @@ export default function TeacherTimetable() {
               </div>
               {selectedClassName && (
                 <span className="text-xs sm:text-sm text-muted-foreground">
-                  Viewing: {selectedClassName.name} - {selectedClassName.section}
+                  Viewing: {formatClassName(selectedClassName.name, selectedClassName.section)}
                 </span>
               )}
             </div>

@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAdminSidebar } from '@/hooks/useAdminSidebar';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { formatClassName } from "@/lib/utils";
 
 interface CertificateRequest {
   id: string;
@@ -204,7 +205,7 @@ export default function CertificatesManagement() {
                                 <h3 className="font-semibold">{request.certificate_type}</h3>
                                 <p className="text-sm text-muted-foreground">
                                   Student: {request.student?.full_name || 'Unknown'} 
-                                  {request.student?.classes && ` (${request.student.classes.name}-${request.student.classes.section})`}
+                                  {request.student?.classes && ` (${formatClassName(request.student.classes.name, request.student.classes.section)})`}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   Admission: {request.student?.admission_number || 'N/A'}

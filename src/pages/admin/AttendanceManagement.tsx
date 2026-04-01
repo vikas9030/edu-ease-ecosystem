@@ -35,7 +35,7 @@ import { downloadAttendanceCSV, downloadAttendancePDF } from '@/utils/attendance
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isToday } from 'date-fns';
 import { BackButton } from '@/components/ui/back-button';
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import { cn, formatClassName } from "@/lib/utils";
 
 interface AttendanceRecord {
   id: string;
@@ -177,7 +177,7 @@ export default function AttendanceManagement() {
     const records = dayRecords.map(record => ({
       studentName: record.students?.full_name || 'N/A',
       admissionNumber: record.students?.admission_number || 'N/A',
-      className: record.students?.classes ? `${record.students.classes.name} - ${record.students.classes.section}` : 'N/A',
+      className: record.students?.classes ? `${formatClassName(record.students.classes.name, record.students.classes.section)}` : 'N/A',
       date: format(new Date(record.date), 'MMM d, yyyy'),
       status: record.status,
       session: record.session || undefined,
@@ -191,7 +191,7 @@ export default function AttendanceManagement() {
     const records = dayRecords.map(record => ({
       studentName: record.students?.full_name || 'N/A',
       admissionNumber: record.students?.admission_number || 'N/A',
-      className: record.students?.classes ? `${record.students.classes.name} - ${record.students.classes.section}` : 'N/A',
+      className: record.students?.classes ? `${formatClassName(record.students.classes.name, record.students.classes.section)}` : 'N/A',
       date: format(new Date(record.date), 'MMM d, yyyy'),
       status: record.status,
       session: record.session || undefined,
@@ -233,7 +233,7 @@ export default function AttendanceManagement() {
             <SelectContent>
               <SelectItem value="all">All Classes</SelectItem>
               {classes.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
               ))}
             </SelectContent>
           </Select>

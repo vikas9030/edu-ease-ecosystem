@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, Search, FileText, Pencil, Trash2, ChevronLeft, CheckCircle2, HelpCircle, AlignLeft, ChevronDown, ChevronUp, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatClassName } from "@/lib/utils";
 
 interface WeeklyExam {
   id: string;
@@ -134,7 +135,7 @@ export default function QuestionPaperBuilder() {
   const getExamForPaper = (examId: string) => exams.find(e => e.id === examId);
   const getClassLabel = (classId: string) => {
     const c = classes.find(cl => cl.id === classId);
-    return c ? `${c.name}-${c.section}` : '—';
+    return c ? `${formatClassName(c.name, c.section)}` : '—';
   };
   const getQuestionsForPaper = useCallback((paperId: string) => questions.filter(q => q.question_paper_id === paperId), [questions]);
 
@@ -595,7 +596,7 @@ export default function QuestionPaperBuilder() {
                       ) : (
                         availableExams.map(e => (
                           <SelectItem key={e.id} value={e.id}>
-                            {e.exam_title} ({e.classes ? `${e.classes.name}-${e.classes.section}` : '—'})
+                            {e.exam_title} ({e.classes ? `${formatClassName(e.classes.name, e.classes.section)}` : '—'})
                           </SelectItem>
                         ))
                       )}

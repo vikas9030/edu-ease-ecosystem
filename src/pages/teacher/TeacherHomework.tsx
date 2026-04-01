@@ -32,6 +32,7 @@ import { BackButton } from '@/components/ui/back-button';
 
 // Sidebar items from shared config with permission check
 import { useTeacherSidebar } from '@/hooks/useTeacherSidebar';
+import { formatClassName } from "@/lib/utils";
 
 interface Homework {
   id: string;
@@ -269,7 +270,7 @@ export default function TeacherHomework() {
                       <SelectContent>
                         {classes.map((cls) => (
                           <SelectItem key={cls.id} value={cls.id}>
-                            {cls.name} - {cls.section}
+                            {formatClassName(cls.name, cls.section)}
                           </SelectItem>
                         ))}
                       </SelectContent>

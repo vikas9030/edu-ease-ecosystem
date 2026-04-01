@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Exam } from './types';
+import { formatClassName } from "@/lib/utils";
 
 interface EditExamDialogProps {
   exam: Exam | null;
@@ -118,7 +119,7 @@ export default function EditExamDialog({ exam, open, onOpenChange, onSuccess }: 
         <DialogHeader>
           <DialogTitle>Edit Exam Schedule</DialogTitle>
           <DialogDescription>
-            {exam?.name} — {exam?.classes ? `${exam.classes.name}-${exam.classes.section}` : ''} {exam?.subjects?.name ? `(${exam.subjects.name})` : ''}
+            {exam?.name} — {exam?.classes ? `${formatClassName(exam.classes.name, exam.classes.section)}` : ''} {exam?.subjects?.name ? `(${exam.subjects.name})` : ''}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
