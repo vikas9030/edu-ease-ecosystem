@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
 
     for (const exam of finishedRegular || []) {
       if (!exam.class_id) continue
-      const className = exam.classes ? `${exam.classes.name}-${exam.classes.section}` : ''
+      const className = exam.classes ? (exam.classes.section && exam.classes.section !== '-' ? `${exam.classes.name}-${exam.classes.section}` : exam.classes.name) : ''
       const subjectName = exam.subjects?.name || ''
       const title = '✅ Exam Completed'
       const message = `${exam.name} (${subjectName}, Class ${className}) has been completed [examdone_${exam.id}]`
