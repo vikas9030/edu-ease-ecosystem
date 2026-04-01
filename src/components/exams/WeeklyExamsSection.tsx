@@ -70,7 +70,7 @@ interface SubjectOption { id: string; name: string; category: string | null; }
 interface CycleOption { id: string; exam_type: string; cycle_number: number; is_active: boolean; }
 
 export default function WeeklyExamsSection() {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [exams, setExams] = useState<WeeklyExam[]>([]);
   const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);
   const [examSyllabusLinks, setExamSyllabusLinks] = useState<ExamSyllabusLink[]>([]);
