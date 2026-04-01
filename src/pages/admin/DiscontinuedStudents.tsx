@@ -30,6 +30,7 @@ interface Student {
   admission_number: string;
   photo_url: string | null;
   status: string | null;
+  class_id: string | null;
   discontinuation_reason: string | null;
   updated_at: string | null;
   classes: { name: string; section: string } | null;
