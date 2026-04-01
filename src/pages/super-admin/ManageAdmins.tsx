@@ -347,13 +347,34 @@ export default function ManageAdmins() {
                         {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                       </Badge>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => { setResetTarget(admin); setResetOpen(true); setNewPassword(''); }}
-                    >
-                      <Key className="h-4 w-4 mr-1" />Reset Password
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {admin.role !== 'super_admin' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditDialog(admin)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />Edit
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => { setResetTarget(admin); setResetOpen(true); setNewPassword(''); }}
+                      >
+                        <Key className="h-4 w-4 mr-1" />Reset Password
+                      </Button>
+                      {admin.role !== 'super_admin' && admin.user_id !== user?.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive"
+                          onClick={() => setDeleteTarget(admin)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />Remove
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
