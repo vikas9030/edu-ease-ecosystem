@@ -155,6 +155,7 @@ export default function StudentPromotion() {
             emergency_contact: student.emergency_contact,
             emergency_contact_name: student.emergency_contact_name,
             user_id: student.user_id,
+            school_id: schoolId,
           })
           .select('id')
           .single();
