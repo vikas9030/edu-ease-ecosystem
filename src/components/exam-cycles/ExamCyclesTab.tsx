@@ -50,7 +50,7 @@ function getCycleProgress(startDate: string, endDate: string): number {
 }
 
 export default function ExamCyclesTab() {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [cycles, setCycles] = useState<ExamCycle[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
