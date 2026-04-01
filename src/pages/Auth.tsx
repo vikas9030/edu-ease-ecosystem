@@ -490,7 +490,7 @@ export default function Auth() {
                 {loginMode === 'staff' ? (
                   <form onSubmit={handleStaffLogin} className="space-y-4">
                     {/* School Selector - shown for teacher ID login when schools exist */}
-                    <SchoolSelector />
+                    {renderSchoolSelector()}
 
                     <div className="space-y-2">
                       <Label htmlFor="staff-id">Email or Teacher ID</Label>
