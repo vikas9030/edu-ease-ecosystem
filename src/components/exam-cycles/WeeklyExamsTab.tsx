@@ -49,7 +49,7 @@ interface ClassOption { id: string; name: string; section: string; }
 interface CycleOption { id: string; exam_type: string; cycle_number: number; is_active: boolean; }
 
 export default function WeeklyExamsTab() {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [exams, setExams] = useState<WeeklyExam[]>([]);
   const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);
   const [examSyllabusLinks, setExamSyllabusLinks] = useState<ExamSyllabusLink[]>([]);
