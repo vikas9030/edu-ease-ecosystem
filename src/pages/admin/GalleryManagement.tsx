@@ -72,7 +72,7 @@ export default function GalleryManagement() {
       if (error) { toast.error('Failed to update folder'); return; }
       toast.success('Folder updated');
     } else {
-      const { error } = await supabase.from('gallery_folders').insert({ title: folderTitle, created_by: user?.id });
+      const { error } = await supabase.from('gallery_folders').insert({ title: folderTitle, created_by: user?.id, school_id: schoolId });
       if (error) { toast.error('Failed to create folder'); return; }
       toast.success('Folder created');
     }
