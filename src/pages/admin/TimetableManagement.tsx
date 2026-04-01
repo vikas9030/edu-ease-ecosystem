@@ -119,22 +119,47 @@ export default function TimetableManagement() {
     endTime: '08:45',
   });
 
-  // Load schedule from localStorage
+  // Load schedule from database (app_settings)
   useEffect(() => {
-    const savedSchedule = localStorage.getItem('timetable_schedule');
-    if (savedSchedule) {
-      try {
-        setSchedule(JSON.parse(savedSchedule));
-      } catch (e) {
-        console.error('Failed to parse saved schedule');
+    async function loadSchedule() {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'timetable_schedule')
+        .maybeSingle();
+      if (data?.setting_value) {
+        try {
+          const parsed = typeof data.setting_value === 'string'
+            ? JSON.parse(data.setting_value)
+            : data.setting_value;
+          if (Array.isArray(parsed)) setSchedule(parsed);
+        } catch (e) {
+          console.error('Failed to parse saved schedule');
+        }
       }
     }
+    loadSchedule();
   }, []);
 
-  // Save schedule to localStorage
-  const saveSchedule = (newSchedule: PeriodConfig[]) => {
+  // Save schedule to database
+  const saveSchedule = async (newSchedule: PeriodConfig[]) => {
     setSchedule(newSchedule);
-    localStorage.setItem('timetable_schedule', JSON.stringify(newSchedule));
+    const { data: existing } = await supabase
+      .from('app_settings')
+      .select('id')
+      .eq('setting_key', 'timetable_schedule')
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from('app_settings')
+        .update({ setting_value: newSchedule as any, updated_at: new Date().toISOString(), updated_by: user?.id } as any)
+        .eq('setting_key', 'timetable_schedule');
+    } else {
+      await supabase
+        .from('app_settings')
+        .insert({ setting_key: 'timetable_schedule', setting_value: newSchedule as any, updated_by: user?.id } as any);
+    }
   };
 
   useEffect(() => {
