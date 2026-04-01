@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   userRole: UserRole;
+  schoolId: string | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
@@ -20,19 +21,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<UserRole>(null);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchUserRole = async (userId: string) => {
     const { data, error } = await supabase
       .from('user_roles')
-      .select('role')
+      .select('role, school_id')
       .eq('user_id', userId)
       .single();
     
     if (!error && data) {
       setUserRole(data.role as UserRole);
+      setSchoolId(data.school_id || null);
     } else {
       setUserRole(null);
+      setSchoolId(null);
     }
   };
 
@@ -50,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setUserRole(null);
+          setSchoolId(null);
         }
         setLoading(false);
       }
@@ -95,10 +100,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setUserRole(null);
+    setSchoolId(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, userRole, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, userRole, schoolId, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
