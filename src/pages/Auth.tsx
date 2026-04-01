@@ -325,11 +325,18 @@ export default function Auth() {
           <SelectContent>
             {schools.map((school) => (
               <SelectItem key={school.id} value={school.id}>
-                <span className="flex flex-col items-start">
-                  <span>{school.name} ({school.code})</span>
-                  {school.address && (
-                    <span className="text-xs text-muted-foreground">{school.address}</span>
+                <span className="flex items-center gap-2">
+                  {school.logo_url ? (
+                    <img src={school.logo_url} alt="" className="h-5 w-5 rounded object-cover shrink-0" />
+                  ) : (
+                    <School className="h-4 w-4 text-muted-foreground shrink-0" />
                   )}
+                  <span className="flex flex-col items-start">
+                    <span>{school.name} ({school.code})</span>
+                    {school.address && (
+                      <span className="text-xs text-muted-foreground">{school.address}</span>
+                    )}
+                  </span>
                 </span>
               </SelectItem>
             ))}
