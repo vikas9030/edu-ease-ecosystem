@@ -39,6 +39,7 @@ import SuperAdminDashboard from "./pages/super-admin/SuperAdminDashboard";
 import ModuleControl from "./pages/super-admin/ModuleControl";
 import ManageAdmins from "./pages/super-admin/ManageAdmins";
 import SuperAdminSettings from "./pages/super-admin/SuperAdminSettings";
+import SchoolsManagement from "./pages/super-admin/SchoolsManagement";
 
 // Teacher Pages
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
