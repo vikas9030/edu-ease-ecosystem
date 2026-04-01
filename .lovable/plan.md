@@ -1,61 +1,88 @@
 
 
-# Discontinued Students Feature
+# How Multi-School Login Works Without Data Collision
 
-## Overview
-Add a "Discontinued Students" management page similar to the existing Student Promotion flow. Admins can mark students as "discontinued" (e.g., students who left mid-year), which updates their status and removes them from active lists while preserving their historical data.
+## Current Login System (Single School)
 
-## How It Works
+Today, the app has three login paths:
 
-### Database
-- No new tables needed. The existing `students` table already has a `status` column (`active`, `promoted`, `retained`). We add `discontinued` as a new status value.
-- Discontinued students will be filtered out of active student lists (same pattern as `promoted` students).
-
-### New Page: `src/pages/admin/DiscontinuedStudents.tsx`
-- **Select a class** → loads active students from that class
-- **Select students** (checkbox, select all) to mark as discontinued
-- **Add optional reason** via a text input (stored in a new `discontinuation_reason` column or notes field)
-- **Confirm dialog** before marking
-- On confirm: update student status to `discontinued`
-- **View discontinued list**: A tab/section showing all discontinued students with class, date, and option to **re-admit** (set back to `active`)
-
-### UI Flow
 ```text
-┌─────────────────────────────────────────┐
-│  Discontinued Students                  │
-│  ─────────────────────────────────────  │
-│  [Select Class ▼]                       │
-│                                         │
-│  ☐ Select All                           │
-│  ☑ Student A  - Adm#123                 │
-│  ☑ Student B  - Adm#456                 │
-│  ☐ Student C  - Adm#789                 │
-│                                         │
-│  Reason: [________________]             │
-│  [Mark as Discontinued]                 │
-│                                         │
-│  ── Discontinued Students ──            │
-│  Student X | Class 5-A | 2025-03-15     │
-│        [Re-admit]                       │
-└─────────────────────────────────────────┘
+Staff Login:
+  Admin  → enters email + password → direct auth
+  Teacher → enters Teacher ID (e.g., JOHN-MATH) → lookup teacher table → get email → auth
+
+Parent/Student Login:
+  Parent → enters Student ID (e.g., RAHUL-10-A) → RPC finds parent email → auth
 ```
 
-### Changes Summary
+## The Collision Problem
 
-| File | Change |
-|------|--------|
-| **Migration** | Add `discontinuation_reason` text column to `students` table (nullable) |
-| `src/pages/admin/DiscontinuedStudents.tsx` | New page: class selector, student checkboxes, discontinue action, discontinued list with re-admit |
-| `src/App.tsx` | Add route `/admin/discontinued` |
-| `src/config/adminSidebar.tsx` | Add sidebar entry with `UserMinus` icon, moduleKey `promotion` |
-| `src/pages/admin/StudentsManagement.tsx` | Filter out `discontinued` students from active list (alongside `promoted`) |
-| `src/components/parent/ChildSelector.tsx` | Handle `discontinued` status in display |
-| `src/pages/parent/ParentChild.tsx` | Show discontinued badge |
-| `README.md` | Document the new feature |
+Without `school_id`, if two schools both have a teacher with ID `JOHN-MATH` or a student with ID `RAHUL-10-A`, the system cannot tell them apart. The wrong account could be returned.
 
-### Key Behaviors
-- Discontinued students are hidden from active student lists, attendance, and exam entry
-- Their historical data (attendance, marks, fees) remains intact and viewable in Student History
-- Re-admit option sets status back to `active` for the same class record
-- Parent login for discontinued students is blocked (same pattern as promoted students — only `active` status allowed)
+## How Multi-School Login Will Prevent Collision
+
+### Option 1: School Selection Before Login
+
+```text
+Login Screen
+  ┌─────────────────────────┐
+  │  Select Your School ▼   │  ← User picks school first
+  │  [ABC Public School  ]  │
+  ├─────────────────────────┤
+  │  Staff | Parent tabs    │
+  │  Teacher ID: JOHN-MATH  │
+  │  Password: ****         │
+  │  [Sign In]              │
+  └─────────────────────────┘
+```
+
+- The selected `school_id` is sent along with the Teacher ID or Student ID
+- Database lookup filters by **both** the ID and the school: `WHERE teacher_id = 'JOHN-MATH' AND school_id = 'school-xyz'`
+- Two schools can have `JOHN-MATH` — no collision because the school filter narrows it down
+
+### Option 2: School Code Prefix in IDs
+
+Each school gets a short code (e.g., `ABC`, `XYZ`). Teacher and Student IDs automatically include it:
+
+```text
+School ABC: Teacher ID = ABC-JOHN-MATH, Student ID = ABC-RAHUL-10-A
+School XYZ: Teacher ID = XYZ-JOHN-MATH, Student ID = XYZ-RAHUL-10-A
+```
+
+No school selection needed — the ID itself is globally unique.
+
+### Admin Login (Email)
+
+Admins log in with email, which is already globally unique. After auth, the system looks up their `school_id` from `user_roles` and scopes all data to that school.
+
+### Super Admin Login
+
+Super Admin has no `school_id` — they see everything across all schools.
+
+## Data Isolation After Login
+
+Once logged in, every database query is automatically filtered:
+
+```text
+Teacher from School A logs in
+  → Auth context sets schoolId = "school-a"
+  → RLS policy: WHERE school_id = get_user_school_id(auth.uid())
+  → Teacher can ONLY see School A's students, classes, exams, fees
+  → School B's data is completely invisible
+```
+
+This happens at the **database level** (RLS), so even if frontend code has a bug, data cannot leak between schools.
+
+## Summary
+
+| Role | Login With | How Collision Is Prevented |
+|------|-----------|--------------------------|
+| Super Admin | Email | Global — no school scope |
+| Admin | Email | Email is unique; school_id assigned |
+| Teacher | Teacher ID | School selector OR school-prefixed ID |
+| Parent | Student ID | School selector OR school-prefixed ID |
+
+## Recommended Approach
+
+**School selection dropdown on login page** is simpler and cleaner — IDs stay short and readable, and the school list is fetched from the `schools` table.
 
