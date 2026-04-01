@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { z } from 'zod';
 import { BackButton } from '@/components/ui/back-button';
-import { cn } from '@/lib/utils';
+import { cn, formatClassName } from "@/lib/utils";
 import TeacherExcelImport from '@/components/teachers/TeacherExcelImport';
 import { exportTeachersToExcel } from '@/components/teachers/TeacherExcelExport';
 
@@ -560,7 +560,7 @@ export default function TeachersManagement() {
                           <Badge key={i} variant="outline" className="text-[10px]">{sub}</Badge>
                         ))}
                         {teacher.assigned_classes && teacher.assigned_classes.length > 0 && teacher.assigned_classes.map((c, i) => (
-                          <Badge key={`class-${i}`} className="text-[10px] bg-primary/10 text-primary">{c.name}-{c.section}</Badge>
+                          <Badge key={`class-${i}`} className="text-[10px] bg-primary/10 text-primary">{formatClassName(c.name, c.section)}</Badge>
                         ))}
                       </div>
                     </div>
@@ -617,7 +617,7 @@ export default function TeachersManagement() {
                             {teacher.assigned_classes && teacher.assigned_classes.length > 0 ? (
                               <div className="flex flex-wrap gap-1">
                                 {teacher.assigned_classes.slice(0, 2).map((c, i) => (
-                                  <Badge key={i} className="text-xs bg-primary/10 text-primary">{c.name}-{c.section}</Badge>
+                                  <Badge key={i} className="text-xs bg-primary/10 text-primary">{formatClassName(c.name, c.section)}</Badge>
                                 ))}
                               </div>
                             ) : (
@@ -719,7 +719,7 @@ export default function TeachersManagement() {
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
                       {classes.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                        <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

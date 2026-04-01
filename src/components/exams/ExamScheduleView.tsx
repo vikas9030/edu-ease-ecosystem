@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, FileText, Loader2, CheckCircle2, Play, ArrowRight } from 'lucide-react';
+import { formatClassName } from "@/lib/utils";
 
 const getExamStatus = (examDate: string | null): { label: string; color: string; icon: React.ReactNode } => {
   if (!examDate) return { label: 'No Date', color: 'bg-muted text-muted-foreground', icon: null };
@@ -157,7 +158,7 @@ export default function ExamScheduleView({ filterClassIds }: ExamScheduleViewPro
                 <div key={exam.id} className="px-3 sm:px-4 py-2.5 sm:py-3 space-y-1.5">
                   <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                     <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0">
-                      {exam.classes ? `${exam.classes.name}-${exam.classes.section.toUpperCase()}` : 'All'}
+                      {exam.classes ? `${formatClassName(exam.classes.name, exam.classes.section)}` : 'All'}
                     </Badge>
                     <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 py-0 capitalize">
                       {exam.subjects?.name || 'All Subjects'}

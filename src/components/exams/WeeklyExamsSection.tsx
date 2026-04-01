@@ -30,6 +30,7 @@ const getExamDateStatus = (examDate: string): { status: 'upcoming' | 'running' |
   return { status: 'completed', label: 'Completed', color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' };
 };
 import { toast } from 'sonner';
+import { formatClassName } from "@/lib/utils";
 
 interface WeeklyExam {
   id: string;
@@ -297,7 +298,7 @@ export default function WeeklyExamsSection() {
           <Label className="text-xs font-medium">Class *</Label>
           <Select value={formData.class_id} onValueChange={v => setFormData(f => ({ ...f, class_id: v }))}>
             <SelectTrigger className="h-9"><SelectValue placeholder="Select class" /></SelectTrigger>
-            <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>)}</SelectContent>
+            <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}</SelectContent>
           </Select>
         </div>
         <div className="space-y-1.5">
@@ -434,7 +435,7 @@ export default function WeeklyExamsSection() {
           <SelectTrigger className="w-full sm:w-[140px] h-9"><SelectValue placeholder="All Classes" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Classes</SelectItem>
-            {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section}</SelectItem>)}
+            {classes.map(c => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -483,7 +484,7 @@ export default function WeeklyExamsSection() {
                             </Badge>
                           )}
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            {exam.classes ? `${exam.classes.name}-${exam.classes.section}` : '—'}
+                            {exam.classes ? `${formatClassName(exam.classes.name, exam.classes.section)}` : '—'}
                           </Badge>
                           {exam.subjects && (
                             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">

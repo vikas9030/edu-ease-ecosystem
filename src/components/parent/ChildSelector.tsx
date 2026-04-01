@@ -1,6 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { GraduationCap, History } from 'lucide-react';
+import { formatClassName } from "@/lib/utils";
 
 interface ChildOption {
   id: string;
@@ -32,7 +33,7 @@ export default function ChildSelector({ children, selectedId, onSelect }: ChildS
             {selected && (
               <span className="flex items-center gap-1.5">
                 {selected.status === 'promoted' && <History className="h-3 w-3 text-muted-foreground" />}
-                {selected.full_name} — {selected.classes ? `${selected.classes.name}-${selected.classes.section}` : 'N/A'}
+                {selected.full_name} — {selected.classes ? `${formatClassName(selected.classes.name, selected.classes.section)}` : 'N/A'}
                 {selected.status === 'promoted' && ' (Past)'}
               </span>
             )}
@@ -46,7 +47,7 @@ export default function ChildSelector({ children, selectedId, onSelect }: ChildS
                 <SelectItem key={c.id} value={c.id}>
                   <span className="flex items-center gap-1.5">
                     <GraduationCap className="h-3 w-3 text-primary" />
-                    {c.full_name} — {c.classes ? `${c.classes.name}-${c.classes.section}` : 'N/A'}
+                    {c.full_name} — {c.classes ? `${formatClassName(c.classes.name, c.classes.section)}` : 'N/A'}
                   </span>
                 </SelectItem>
               ))}
@@ -59,7 +60,7 @@ export default function ChildSelector({ children, selectedId, onSelect }: ChildS
                 <SelectItem key={c.id} value={c.id}>
                   <span className="flex items-center gap-1.5 text-muted-foreground">
                     <History className="h-3 w-3" />
-                    {c.full_name} — {c.classes ? `${c.classes.name}-${c.classes.section}` : 'N/A'}
+                    {c.full_name} — {c.classes ? `${formatClassName(c.classes.name, c.classes.section)}` : 'N/A'}
                   </span>
                 </SelectItem>
               ))}

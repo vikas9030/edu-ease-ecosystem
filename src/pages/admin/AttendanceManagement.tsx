@@ -35,7 +35,7 @@ import { downloadAttendanceCSV, downloadAttendancePDF } from '@/utils/attendance
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isToday } from 'date-fns';
 import { BackButton } from '@/components/ui/back-button';
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import { cn, formatClassName } from "@/lib/utils";
 
 interface AttendanceRecord {
   id: string;
@@ -177,7 +177,7 @@ export default function AttendanceManagement() {
     const records = dayRecords.map(record => ({
       studentName: record.students?.full_name || 'N/A',
       admissionNumber: record.students?.admission_number || 'N/A',
-      className: record.students?.classes ? `${record.students.classes.name} - ${record.students.classes.section}` : 'N/A',
+      className: record.students?.classes ? `${formatClassName(record.students.classes.name, record.students.classes.section)}` : 'N/A',
       date: format(new Date(record.date), 'MMM d, yyyy'),
       status: record.status,
       session: record.session || undefined,
@@ -191,7 +191,7 @@ export default function AttendanceManagement() {
     const records = dayRecords.map(record => ({
       studentName: record.students?.full_name || 'N/A',
       admissionNumber: record.students?.admission_number || 'N/A',
-      className: record.students?.classes ? `${record.students.classes.name} - ${record.students.classes.section}` : 'N/A',
+      className: record.students?.classes ? `${formatClassName(record.students.classes.name, record.students.classes.section)}` : 'N/A',
       date: format(new Date(record.date), 'MMM d, yyyy'),
       status: record.status,
       session: record.session || undefined,
@@ -233,7 +233,7 @@ export default function AttendanceManagement() {
             <SelectContent>
               <SelectItem value="all">All Classes</SelectItem>
               {classes.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -379,7 +379,7 @@ export default function AttendanceManagement() {
                             <p className="font-medium text-sm truncate">{record.students?.full_name || 'N/A'}</p>
                             <p className="text-[10px] text-muted-foreground font-mono">{record.students?.admission_number || 'N/A'}</p>
                             {record.students?.classes && (
-                              <Badge variant="outline" className="text-[10px] mt-0.5">{record.students.classes.name}-{record.students.classes.section}</Badge>
+                              <Badge variant="outline" className="text-[10px] mt-0.5">{formatClassName(record.students.classes.name, record.students.classes.section)}</Badge>
                             )}
                           </div>
                           <div className="shrink-0 flex flex-col items-end gap-1">
@@ -408,7 +408,7 @@ export default function AttendanceManagement() {
                               <TableCell className="font-mono text-sm text-muted-foreground">{record.students?.admission_number || 'N/A'}</TableCell>
                               <TableCell>
                                 {record.students?.classes ? (
-                                  <Badge variant="outline" className="font-normal">{record.students.classes.name}-{record.students.classes.section}</Badge>
+                                  <Badge variant="outline" className="font-normal">{formatClassName(record.students.classes.name, record.students.classes.section)}</Badge>
                                 ) : 'N/A'}
                               </TableCell>
                               <TableCell>{getStatusBadge(record.status)}</TableCell>

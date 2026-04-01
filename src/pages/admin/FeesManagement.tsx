@@ -30,6 +30,7 @@ import RecordPaymentDialog from '@/components/fees/RecordPaymentDialog';
 import ReceiptTemplateSettings, { loadReceiptTemplate, type ReceiptTemplate } from '@/components/fees/ReceiptTemplateSettings';
 import EditFeeDialog from '@/components/fees/EditFeeDialog';
 import DeleteFeeDialog from '@/components/fees/DeleteFeeDialog';
+import { formatClassName } from "@/lib/utils";
 
 interface FeeRecord {
   id: string;
@@ -58,9 +59,9 @@ export default function FeesManagement() {
   const getClassName = (fee: FeeRecord) => {
     if (fee.class_id) {
       const cls = classes.find(c => c.id === fee.class_id);
-      if (cls) return `${cls.name} - ${cls.section}`;
+      if (cls) return `${formatClassName(cls.name, cls.section)}`;
     }
-    return fee.students?.classes ? `${fee.students.classes.name} - ${fee.students.classes.section}` : 'N/A';
+    return fee.students?.classes ? `${formatClassName(fee.students.classes.name, fee.students.classes.section)}` : 'N/A';
   };
   const [loadingData, setLoadingData] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -401,7 +402,7 @@ export default function FeesManagement() {
                   <Select value={classFilter} onValueChange={setClassFilter}>
                     <SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger>
                     <SelectContent>
-                      {classes.map((c) => <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>)}
+                      {classes.map((c) => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Select value={studentFilter} onValueChange={setStudentFilter} disabled={!classFilter}>

@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { formatClassName } from "@/lib/utils";
 
 interface ExamResult {
   id: string;
@@ -185,7 +186,7 @@ export default function ExamResultsView() {
       filename = 'Exam_Results';
       sheetData = filteredResults.map(r => {
         const pct = r.marks_obtained && r.exams?.max_marks ? ((r.marks_obtained / r.exams.max_marks) * 100).toFixed(1) : '0';
-        const cls = r.exams?.classes ? `${r.exams.classes.name}-${r.exams.classes.section.toUpperCase()}` : '-';
+        const cls = r.exams?.classes ? `${formatClassName(r.exams.classes.name, r.exams.classes.section)}` : '-';
         return {
           'Student': r.students?.full_name || '-',
           'Adm No': r.students?.admission_number || '-',
@@ -203,7 +204,7 @@ export default function ExamResultsView() {
       filename = 'Weekly_Exam_Results';
       sheetData = data.map(r => {
         const pct = r.percentage?.toFixed(1) || '0';
-        const cls = r.weekly_exams?.classes ? `${r.weekly_exams.classes.name}-${r.weekly_exams.classes.section.toUpperCase()}` : '-';
+        const cls = r.weekly_exams?.classes ? `${formatClassName(r.weekly_exams.classes.name, r.weekly_exams.classes.section)}` : '-';
         return {
           'Student': r.students?.full_name || '-',
           'Adm No': r.students?.admission_number || '-',
@@ -280,7 +281,7 @@ export default function ExamResultsView() {
                     <SelectTrigger className="w-full sm:w-[130px] h-9 text-sm"><SelectValue placeholder="Class" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Classes</SelectItem>
-                      {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section.toUpperCase()}</SelectItem>)}
+                      {classes.map(c => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Select value={selectedStudent} onValueChange={setSelectedStudent}>
@@ -455,7 +456,7 @@ export default function ExamResultsView() {
                               <TableCell className="text-xs sm:text-sm py-2">{r.exams?.name || '-'}</TableCell>
                               <TableCell className="capitalize text-xs sm:text-sm py-2">{r.exams?.subjects?.name || '-'}</TableCell>
                               <TableCell className="hidden md:table-cell py-2">
-                                {r.exams?.classes ? <Badge variant="outline" className="text-xs">{r.exams.classes.name}-{r.exams.classes.section.toUpperCase()}</Badge> : '-'}
+                                {r.exams?.classes ? <Badge variant="outline" className="text-xs">{formatClassName(r.exams.classes.name, r.exams.classes.section)}</Badge> : '-'}
                               </TableCell>
                               <TableCell className="text-center text-xs sm:text-sm py-2">
                                 <span className="font-semibold">{r.marks_obtained ?? '-'}</span>
@@ -534,7 +535,7 @@ export default function ExamResultsView() {
                 <SelectTrigger className="w-full sm:w-[150px] h-9 text-sm"><SelectValue placeholder="Class" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Classes</SelectItem>
-                  {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}-{c.section.toUpperCase()}</SelectItem>)}
+                  {classes.map(c => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={weeklyExamTypeLabelFilter} onValueChange={setWeeklyExamTypeLabelFilter}>
@@ -660,7 +661,7 @@ export default function ExamResultsView() {
                           </TableCell>
                           <TableCell className="capitalize text-xs sm:text-sm hidden md:table-cell py-2">{r.weekly_exams?.subjects?.name || '-'}</TableCell>
                           <TableCell className="hidden md:table-cell py-2">
-                            {r.weekly_exams?.classes ? <Badge variant="outline" className="text-xs">{r.weekly_exams.classes.name}-{r.weekly_exams.classes.section.toUpperCase()}</Badge> : '-'}
+                            {r.weekly_exams?.classes ? <Badge variant="outline" className="text-xs">{formatClassName(r.weekly_exams.classes.name, r.weekly_exams.classes.section)}</Badge> : '-'}
                           </TableCell>
                           {type === 'competitive' && (
                             <TableCell className="hidden lg:table-cell py-2">

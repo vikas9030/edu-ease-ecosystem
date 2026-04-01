@@ -11,6 +11,7 @@ import { Loader2, Save, CheckCircle2, BookOpen, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { formatClassName } from "@/lib/utils";
 
 interface Exam {
   id: string;
@@ -223,7 +224,7 @@ export default function ExamMarksEntry({ exams, onMarksUpdated }: Props) {
               <SelectContent>
                 <SelectItem value="all">All Classes</SelectItem>
                 {classOptions.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}-{c.section.toUpperCase()}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -260,7 +261,7 @@ export default function ExamMarksEntry({ exams, onMarksUpdated }: Props) {
                   onClick={() => loadStudentsAndMarks(exam)}
                 >
                   <span className="font-medium text-xs truncate w-full">
-                    {exam.classes?.name}-{exam.classes?.section.toUpperCase()}
+                    {formatClassName(exam.classes?.name, exam.classes?.section)}
                   </span>
                   <span className="text-xs opacity-80 truncate w-full capitalize">
                     {exam.subjects?.name || 'All Subjects'}
@@ -288,7 +289,7 @@ export default function ExamMarksEntry({ exams, onMarksUpdated }: Props) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <CardTitle className="text-sm sm:text-base flex flex-wrap items-center gap-1.5">
                 <Users className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="truncate">{selectedExam.name} - {selectedExam.classes?.name}-{selectedExam.classes?.section.toUpperCase()}</span>
+                <span className="truncate">{selectedExam.name} - {formatClassName(selectedExam.classes?.name, selectedExam.classes?.section)}</span>
                 {selectedExam.subjects && (
                   <Badge variant="secondary" className="capitalize text-xs">
                     {selectedExam.subjects.name}

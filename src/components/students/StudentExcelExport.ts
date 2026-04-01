@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { formatClassName } from "@/lib/utils";
 
 interface StudentExportData {
   admission_number: string;
@@ -16,7 +17,7 @@ export function exportStudentsToExcel(students: StudentExportData[]) {
   const rows = students.map(s => ({
     'Admission Number': s.admission_number,
     'Student Name': s.full_name,
-    'Class': s.classes ? `${s.classes.name}-${s.classes.section}` : 'N/A',
+    'Class': s.classes ? `${formatClassName(s.classes.name, s.classes.section)}` : 'N/A',
     'Date of Birth': s.date_of_birth || '',
     'Parent Name': s.parent_name || '',
     'Parent Phone': s.parent_phone || '',

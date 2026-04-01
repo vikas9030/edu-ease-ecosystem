@@ -25,6 +25,7 @@ import {
 
 import { useTeacherSidebar } from '@/hooks/useTeacherSidebar';
 import { useModuleVisibility } from '@/hooks/useModuleVisibility';
+import { formatClassName } from "@/lib/utils";
 
 interface DashboardStats {
   myClasses: number;
@@ -312,7 +313,7 @@ export default function TeacherDashboard() {
                       <div className="flex-1">
                         <p className="font-medium">{schedule.subjects?.name || 'Subject'}</p>
                         <p className="text-sm text-muted-foreground">
-                          {schedule.classes ? `Class ${schedule.classes.name} - ${schedule.classes.section}` : 'Class'}
+                          {schedule.classes ? `Class ${formatClassName(schedule.classes.name, schedule.classes.section)}` : 'Class'}
                         </p>
                       </div>
                       <div className="w-2 h-2 rounded-full bg-primary" />
@@ -376,7 +377,7 @@ export default function TeacherDashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{exam.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {exam.classes ? `Class ${exam.classes.name}-${exam.classes.section}` : ''} • {exam.subjects?.name || ''}
+                          {exam.classes ? `Class ${formatClassName(exam.classes.name, exam.classes.section)}` : ''} • {exam.subjects?.name || ''}
                         </p>
                       </div>
                       <div className="text-right ml-2 shrink-0">
@@ -413,7 +414,7 @@ export default function TeacherDashboard() {
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">{exam.exam_title}</p>
                           <p className="text-xs text-muted-foreground">
-                            {exam.exam_type_label?.toUpperCase()} • {exam.subjects?.name || ''} • {exam.classes ? `Class ${exam.classes.name}-${exam.classes.section}` : ''}
+                            {exam.exam_type_label?.toUpperCase()} • {exam.subjects?.name || ''} • {exam.classes ? `Class ${formatClassName(exam.classes.name, exam.classes.section)}` : ''}
                           </p>
                         </div>
                         <Badge variant={daysLeft <= 3 ? 'destructive' : daysLeft <= 7 ? 'default' : 'secondary'} className="ml-2 shrink-0">

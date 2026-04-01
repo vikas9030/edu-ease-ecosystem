@@ -18,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Plus, BookOpen, FlaskConical, Search, MoreVertical, Pencil, Trash2, Calendar, Clock, Users, ChevronDown, ChevronUp, UserPlus, X, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { formatClassName } from "@/lib/utils";
 
 interface SyllabusItem {
   id: string;
@@ -403,7 +404,7 @@ export default function SyllabusManagement() {
                         <Select value={formData.class_id} onValueChange={v => setFormData(f => ({ ...f, class_id: v }))}>
                           <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
                           <SelectContent>
-                            {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>)}
+                            {classes.map(c => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
@@ -621,7 +622,7 @@ export default function SyllabusManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Classes</SelectItem>
-                  {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>)}
+                  {classes.map(c => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}
                 </SelectContent>
               </Select>
               {/* Step 2: Subject (filtered by class) */}
@@ -705,7 +706,7 @@ export default function SyllabusManagement() {
                     <Select value={formData.class_id} onValueChange={v => setFormData(f => ({ ...f, class_id: v }))}>
                       <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
                       <SelectContent>
-                        {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>)}
+                        {classes.map(c => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

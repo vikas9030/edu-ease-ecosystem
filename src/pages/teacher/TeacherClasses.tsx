@@ -22,6 +22,7 @@ import { BackButton } from '@/components/ui/back-button';
 
 // Sidebar items from shared config with permission check
 import { useTeacherSidebar } from '@/hooks/useTeacherSidebar';
+import { formatClassName } from "@/lib/utils";
 
 interface ClassData {
   id: string;
@@ -141,7 +142,7 @@ export default function TeacherClasses() {
                 onClick={() => navigate(`/teacher/students?class=${cls.id}`)}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <span>{cls.name} - {cls.section}</span>
+                    <span>{formatClassName(cls.name, cls.section)}</span>
                     <Badge variant="secondary">{cls.academic_year}</Badge>
                   </CardTitle>
                 </CardHeader>

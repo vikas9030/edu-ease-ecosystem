@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { BackButton } from '@/components/ui/back-button';
 import { UserMinus, Loader2, Users, RotateCcw, Search } from 'lucide-react';
+import { formatClassName } from "@/lib/utils";
 
 interface Student {
   id: string;
@@ -121,7 +122,7 @@ export default function DiscontinuedStudents() {
     try {
       // 1. Create archive snapshots for each student
       for (const student of selectedStudents) {
-        const className = student.classes ? `${student.classes.name}-${student.classes.section}` : 'N/A';
+        const className = student.classes ? `${formatClassName(student.classes.name, student.classes.section)}` : 'N/A';
 
         // Fetch attendance, marks, fees, timetable in parallel
         const [attendanceRes, marksRes, feesRes, timetableRes] = await Promise.all([
@@ -187,7 +188,7 @@ export default function DiscontinuedStudents() {
       baseName = baseName.replace(/^[A-Za-z0-9]+[A-Za-z]\//, '');
       baseName = baseName.replace(/\/\d{4}$/, '');
       if (!baseName.trim()) baseName = student.full_name.toUpperCase().replace(/\s+/g, '');
-      newAdmissionNumber = `${baseName}-${targetClass.name}-${targetClass.section}`;
+      newAdmissionNumber = `${baseName}-${formatClassName(targetClass.name, targetClass.section)}`;
     }
 
     const { error } = await supabase
@@ -267,7 +268,7 @@ export default function DiscontinuedStudents() {
                   </SelectTrigger>
                   <SelectContent>
                     {classes.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -391,13 +392,13 @@ export default function DiscontinuedStudents() {
                                   <p className="text-sm font-medium">{s.full_name}</p>
                                   <p className="text-xs text-muted-foreground">Adm# {s.admission_number}</p>
                                   <p className="text-xs text-muted-foreground sm:hidden">
-                                    {s.classes ? `${s.classes.name}-${s.classes.section}` : 'N/A'}
+                                    {s.classes ? `${formatClassName(s.classes.name, s.classes.section)}` : 'N/A'}
                                   </p>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell className="hidden sm:table-cell">
-                              {s.classes ? `${s.classes.name} - ${s.classes.section}` : 'N/A'}
+                              {s.classes ? `${formatClassName(s.classes.name, s.classes.section)}` : 'N/A'}
                             </TableCell>
                             <TableCell className="hidden sm:table-cell text-sm text-muted-foreground max-w-[200px] truncate">
                               {s.discontinuation_reason || '-'}
@@ -465,7 +466,7 @@ export default function DiscontinuedStudents() {
                     </SelectTrigger>
                     <SelectContent>
                       {classes.map(c => (
-                        <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                        <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

@@ -12,6 +12,7 @@ import { Loader2, Save, CheckCircle2, FlaskConical, BookOpen, Users, Calendar, C
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { formatClassName } from "@/lib/utils";
 
 interface WeeklyExam {
   id: string;
@@ -203,7 +204,7 @@ export default function WeeklyExamMarksEntry() {
               <SelectContent>
                 <SelectItem value="all">All Classes</SelectItem>
                 {classes.map(c => (
-                  <SelectItem key={c.id} value={c.id}>{c.name} - {c.section.toUpperCase()}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -254,7 +255,7 @@ export default function WeeklyExamMarksEntry() {
                   <span className="font-medium text-xs truncate w-full">{exam.exam_title}</span>
                   <div className="flex items-center gap-1.5 w-full">
                     <Badge variant="secondary" className="text-[10px]">
-                      {exam.classes?.name}-{exam.classes?.section.toUpperCase()}
+                      {formatClassName(exam.classes?.name, exam.classes?.section)}
                     </Badge>
                     {exam.exam_type_label && (
                       <Badge variant="outline" className="text-[10px]">{exam.exam_type_label}</Badge>
@@ -287,7 +288,7 @@ export default function WeeklyExamMarksEntry() {
                 <Users className="h-4 w-4 text-primary flex-shrink-0" />
                 <span className="truncate">{selectedExam.exam_title}</span>
                 <Badge variant="secondary" className="text-xs">
-                  {selectedExam.classes?.name}-{selectedExam.classes?.section.toUpperCase()}
+                  {formatClassName(selectedExam.classes?.name, selectedExam.classes?.section)}
                 </Badge>
                 {selectedExam.subjects && (
                   <Badge variant="outline" className="capitalize text-xs">{selectedExam.subjects.name}</Badge>

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Search, Calendar, Clock, FileText, BookOpen, CheckCircle2, HelpCircle, AlignLeft, Tag, Play, ArrowRight } from 'lucide-react';
+import { formatClassName } from "@/lib/utils";
 
 const getExamDateStatus = (examDate: string): { status: 'upcoming' | 'running' | 'completed'; label: string; color: string; icon: React.ReactNode } => {
   const today = new Date();
@@ -190,7 +191,7 @@ export default function TeacherWeeklyExams() {
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  {exam.classes ? `${exam.classes.name}-${exam.classes.section}` : '—'}
+                  {exam.classes ? `${formatClassName(exam.classes.name, exam.classes.section)}` : '—'}
                 </Badge>
                 {exam.subjects && (
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{exam.subjects.name}</Badge>

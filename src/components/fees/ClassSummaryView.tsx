@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, IndianRupee, AlertCircle, User } from 'lucide-react';
+import { formatClassName } from "@/lib/utils";
 
 interface FeeRecord {
   id: string;
@@ -113,7 +114,7 @@ export default function ClassSummaryView({ fees, classes, onClassSelect }: Props
             <Select value={selectedClass} onValueChange={(v) => { setSelectedClass(v); setSelectedStudent(''); }}>
               <SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger>
               <SelectContent>
-                {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>)}
+                {classes.map(c => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={selectedStudent} onValueChange={setSelectedStudent} disabled={!selectedClass}>
@@ -142,7 +143,7 @@ export default function ClassSummaryView({ fees, classes, onClassSelect }: Props
                 >
                   <CardHeader className="pb-2 p-4 sm:p-6 sm:pb-2">
                     <CardTitle className="font-display text-base sm:text-lg flex items-center justify-between">
-                      {cls.name} - {cls.section}
+                      {formatClassName(cls.name, cls.section)}
                       <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                         <Users className="h-3 w-3" /> {uniqueStudents}
                       </Badge>
@@ -182,7 +183,7 @@ export default function ClassSummaryView({ fees, classes, onClassSelect }: Props
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-display font-semibold text-sm sm:text-base">
-                  {classes.find(c => c.id === selectedClass)?.name} - {classes.find(c => c.id === selectedClass)?.section}
+                  {formatClassName(classes.find(c => c.id === selectedClass)?.name || '', classes.find(c => c.id === selectedClass)?.section)}
                   {selectedStudent && selectedStudent !== 'all' && (
                     <span className="text-muted-foreground font-normal ml-2">
                       · {studentOptions.find(s => s.id === selectedStudent)?.name}

@@ -7,6 +7,7 @@ import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lu
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { formatClassName } from "@/lib/utils";
 
 interface StudentExcelImportProps {
   open: boolean;
@@ -84,9 +85,9 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
     const trimmed = classStr.trim();
     // Try "5-A" or "5 - A" or "5A" formats
     for (const cls of classes) {
-      const full = `${cls.name}-${cls.section}`;
+      const full = `${formatClassName(cls.name, cls.section)}`;
       if (full.toLowerCase() === trimmed.toLowerCase()) return cls.id;
-      if (`${cls.name} - ${cls.section}`.toLowerCase() === trimmed.toLowerCase()) return cls.id;
+      if (`${formatClassName(cls.name, cls.section)}`.toLowerCase() === trimmed.toLowerCase()) return cls.id;
       if (`${cls.name}${cls.section}`.toLowerCase() === trimmed.toLowerCase()) return cls.id;
     }
     return null;

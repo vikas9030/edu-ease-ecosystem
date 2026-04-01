@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { formatClassName } from "@/lib/utils";
 
 declare global {
   interface Window {
@@ -382,7 +383,7 @@ export default function ParentFees() {
                         return (
                           <TableRow key={fee.id}>
                             <TableCell className="font-medium">{fee.fee_type}</TableCell>
-                            <TableCell className="text-sm">{(fee as any).fee_class ? `${(fee as any).fee_class.name}-${(fee as any).fee_class.section}` : '-'}</TableCell>
+                            <TableCell className="text-sm">{(fee as any).fee_class ? `${formatClassName((fee as any).fee_class.name, (fee as any).fee_class.section)}` : '-'}</TableCell>
                             <TableCell><span className="flex items-center"><IndianRupee className="h-3 w-3" />{fee.amount.toLocaleString()}</span></TableCell>
                             <TableCell>
                               {(fee.discount || 0) > 0 ? (

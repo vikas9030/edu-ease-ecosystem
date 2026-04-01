@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Calendar, Clock, Eye, EyeOff, Trash2, Plus, Settings, Coffee, User, FileText, Table } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn, formatClassName } from "@/lib/utils";
 import { Switch } from '@/components/ui/switch';
 import { downloadTimetableAsCSV, downloadTimetableAsPDF } from '@/utils/timetableDownload';
 
@@ -253,7 +253,7 @@ export default function TimetableManagement() {
     if (data) {
       setTeacherSchedule(data.map(entry => ({
         ...entry,
-        className: `${(entry.classes as any)?.name}-${(entry.classes as any)?.section}`,
+        className: formatClassName((entry.classes as any)?.name || '', (entry.classes as any)?.section),
       })) as TimetableEntry[]);
     }
 
@@ -511,7 +511,7 @@ export default function TimetableManagement() {
                   <SelectTrigger className="w-48"><SelectValue placeholder="Select class" /></SelectTrigger>
                   <SelectContent>
                     {classes.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

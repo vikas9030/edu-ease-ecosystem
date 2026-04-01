@@ -34,7 +34,7 @@ import {
   TrendingUp,
   Search,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatClassName } from "@/lib/utils";
 import { downloadAttendanceCSV, downloadAttendancePDF } from '@/utils/attendanceDownload';
 import { BackButton } from '@/components/ui/back-button';
 import { Input } from '@/components/ui/input';
@@ -242,7 +242,7 @@ export default function TeacherAttendance() {
 
   const handleExportCSV = () => {
     const currentClass = classes.find(c => c.id === selectedClass);
-    const className = currentClass ? `${currentClass.name}-${currentClass.section}` : 'Class';
+    const className = currentClass ? `${formatClassName(currentClass.name, currentClass.section)}` : 'Class';
     const records = students.map(student => ({
       studentName: student.full_name,
       admissionNumber: student.admission_number,
@@ -256,7 +256,7 @@ export default function TeacherAttendance() {
 
   const handleExportPDF = () => {
     const currentClass = classes.find(c => c.id === selectedClass);
-    const className = currentClass ? `${currentClass.name}-${currentClass.section}` : 'Class';
+    const className = currentClass ? `${formatClassName(currentClass.name, currentClass.section)}` : 'Class';
     const records = students.map(student => ({
       studentName: student.full_name,
       admissionNumber: student.admission_number,
@@ -290,7 +290,7 @@ export default function TeacherAttendance() {
                 <SelectContent>
                   {classes.map((cls) => (
                     <SelectItem key={cls.id} value={cls.id}>
-                      {cls.name} - {cls.section}
+                      {formatClassName(cls.name, cls.section)}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BookOpen, Copy, CheckCircle2 } from 'lucide-react';
 import { ExamFormData, ClassItem, SubjectItem } from './types';
+import { formatClassName } from "@/lib/utils";
 
 interface Props {
   formData: ExamFormData;
@@ -83,7 +84,7 @@ export default function ExamWizardStep5({ formData, setFormData, classes, subjec
               <CardHeader className="py-3 px-4">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Badge variant="default">Class {cls.name}-{cls.section.toUpperCase()}</Badge>
+                    <Badge variant="default">Class {formatClassName(cls.name, cls.section)}</Badge>
                     <span className="text-xs text-muted-foreground">
                       ({(formData.classSubjects[cls.id] || []).length} subjects)
                     </span>
@@ -97,7 +98,7 @@ export default function ExamWizardStep5({ formData, setFormData, classes, subjec
                         onClick={() => copySubjectsFrom(selectedClassData[index - 1].id, cls.id)}
                       >
                         <Copy className="h-3 w-3 mr-1" />
-                        Copy from {selectedClassData[index - 1].name}-{selectedClassData[index - 1].section.toUpperCase()}
+                        Copy from {formatClassName(selectedClassData[index - 1].name, selectedClassData[index - 1].section)}
                       </Button>
                     )}
                     <Button

@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Loader2, Plus, Search, Calendar, Clock, BookOpen, MoreVertical, Pencil, Trash2, Bell, FileText, FlaskConical } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatClassName } from "@/lib/utils";
 
 interface WeeklyExam {
   id: string;
@@ -213,7 +214,7 @@ export default function WeeklyExamsTab() {
           <Label>Class *</Label>
           <Select value={formData.class_id} onValueChange={v => setFormData(f => ({ ...f, class_id: v }))}>
             <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
-            <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>)}</SelectContent>
+            <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>)}</SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
@@ -308,7 +309,7 @@ export default function WeeklyExamsTab() {
                         <Badge className={`text-xs ${statusColors[exam.status] || ''}`}>{exam.status}</Badge>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline" className="text-xs">{exam.classes ? `${exam.classes.name}-${exam.classes.section}` : '—'}</Badge>
+                        <Badge variant="outline" className="text-xs">{exam.classes ? `${formatClassName(exam.classes.name, exam.classes.section)}` : '—'}</Badge>
                         {exam.week_number && <Badge variant="secondary" className="text-xs">Week {exam.week_number}</Badge>}
                         {exam.reminder_enabled && <Bell className="h-3 w-3 text-primary" />}
                       </div>

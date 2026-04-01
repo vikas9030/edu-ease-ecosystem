@@ -7,7 +7,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Calendar as CalendarIcon, Clock, BookOpen, Tag, AlignLeft, ChevronLeft, ChevronRight, CheckCircle2, Play, ArrowRight } from 'lucide-react';
 import { format, isSameDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, formatClassName } from "@/lib/utils";
 
 const getExamDateStatus = (examDate: string): { label: string; color: string } => {
   const today = new Date();
@@ -150,7 +150,7 @@ export default function WeeklyExamCalendarView({ filterClassIds }: WeeklyExamCal
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  {exam.classes ? `${exam.classes.name}-${exam.classes.section}` : '—'}
+                  {exam.classes ? `${formatClassName(exam.classes.name, exam.classes.section)}` : '—'}
                 </Badge>
                 {exam.subjects && (
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{exam.subjects.name}</Badge>
@@ -269,7 +269,7 @@ export default function WeeklyExamCalendarView({ filterClassIds }: WeeklyExamCal
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-xs">
-                  {detailExam.classes ? `${detailExam.classes.name}-${detailExam.classes.section}` : '—'}
+                  {detailExam.classes ? `${formatClassName(detailExam.classes.name, detailExam.classes.section)}` : '—'}
                 </Badge>
                 {detailExam.subjects && (
                   <Badge variant="secondary" className="text-xs">{detailExam.subjects.name}</Badge>

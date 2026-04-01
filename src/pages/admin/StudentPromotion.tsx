@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { BackButton } from '@/components/ui/back-button';
 import { ArrowUpCircle, ArrowRight, Loader2, Users, CheckCircle2, AlertTriangle, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { formatClassName } from "@/lib/utils";
 
 interface Student {
   id: string;
@@ -267,7 +268,7 @@ export default function StudentPromotion() {
                       </SelectTrigger>
                       <SelectContent>
                         {classes.map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                          <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -281,7 +282,7 @@ export default function StudentPromotion() {
                       </SelectTrigger>
                       <SelectContent>
                         {classes.filter(c => c.id !== fromClass).map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.name} - {c.section}</SelectItem>
+                          <SelectItem key={c.id} value={c.id}>{formatClassName(c.name, c.section)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -296,7 +297,7 @@ export default function StudentPromotion() {
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle className="text-lg">
-                        Students in {fromClassData?.name} - {fromClassData?.section}
+                        Students in {formatClassName(fromClassData?.name, fromClassData?.section)}
                       </CardTitle>
                       <CardDescription>
                         {selectedIds.size} of {students.length} selected for promotion
@@ -367,7 +368,7 @@ export default function StudentPromotion() {
                         Ready to promote {selectedIds.size} student{selectedIds.size !== 1 ? 's' : ''}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        From <strong>{fromClassData?.name} - {fromClassData?.section}</strong> → <strong>{toClassData?.name} - {toClassData?.section}</strong>
+                        From <strong>{formatClassName(fromClassData?.name, fromClassData?.section)}</strong> → <strong>{formatClassName(toClassData?.name, toClassData?.section)}</strong>
                       </p>
                        <p className="text-xs text-muted-foreground mt-1">
                         Student records will be updated in-place with new class, admission number & login ID.
@@ -415,8 +416,8 @@ export default function StudentPromotion() {
               <AlertDialogTitle>Confirm Student Promotion</AlertDialogTitle>
               <AlertDialogDescription>
                 You are about to promote <strong>{selectedIds.size}</strong> student{selectedIds.size !== 1 ? 's' : ''} from{' '}
-                <strong>{fromClassData?.name} - {fromClassData?.section}</strong> to{' '}
-                <strong>{toClassData?.name} - {toClassData?.section}</strong>.
+                <strong>{formatClassName(fromClassData?.name, fromClassData?.section)}</strong> to{' '}
+                <strong>{formatClassName(toClassData?.name, toClassData?.section)}</strong>.
                 <br /><br />
                 Student records will be updated in-place. Admission numbers and login IDs will reflect the new class.
                 {students.length - selectedIds.size > 0 && (

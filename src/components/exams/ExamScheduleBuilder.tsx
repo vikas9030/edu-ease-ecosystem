@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Clock, BookOpen, CheckCircle2, Sparkles } from 'lucide-react';
 import { ExamFormData, ClassItem, SubjectItem } from './types';
 import { format, eachDayOfInterval, parseISO } from 'date-fns';
+import { formatClassName } from "@/lib/utils";
 
 interface Props {
   formData: ExamFormData;
@@ -49,7 +50,7 @@ export default function ExamScheduleBuilder({ formData, setFormData, classes, su
           classSubjectPairs.push({
             classId,
             subjectId,
-            className: `${cls.name}-${cls.section}`,
+            className: `${formatClassName(cls.name, cls.section)}`,
             subjectName: sub.name
           });
         }
@@ -80,7 +81,7 @@ export default function ExamScheduleBuilder({ formData, setFormData, classes, su
               slotId: slot.id,
               classId,
               subjectId,
-              className: `${cls.name}-${cls.section}`,
+              className: `${formatClassName(cls.name, cls.section)}`,
               subjectName: sub.name
             });
           }
@@ -114,7 +115,7 @@ export default function ExamScheduleBuilder({ formData, setFormData, classes, su
           slotId,
           classId,
           subjectId,
-          className: `${cls.name}-${cls.section}`,
+          className: `${formatClassName(cls.name, cls.section)}`,
           subjectName: sub.name
         }]
       };
@@ -178,7 +179,7 @@ export default function ExamScheduleBuilder({ formData, setFormData, classes, su
                         return (
                           <div key={cls.id} className="border rounded-lg p-2">
                             <div className="text-xs font-medium text-muted-foreground mb-1">
-                              {cls.name}-{cls.section.toUpperCase()}
+                              {formatClassName(cls.name, cls.section)}
                             </div>
                             <Select
                               value={assigned?.subjectId || ''}

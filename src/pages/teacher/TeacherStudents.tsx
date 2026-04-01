@@ -45,6 +45,7 @@ import { BackButton } from '@/components/ui/back-button';
 
 // Sidebar items from shared config with permission check
 import { useTeacherSidebar } from '@/hooks/useTeacherSidebar';
+import { formatClassName } from "@/lib/utils";
 
 interface Student {
   id: string;
@@ -482,7 +483,7 @@ export default function TeacherStudents() {
               <SelectContent>
                 {classes.map((cls) => (
                   <SelectItem key={cls.id} value={cls.id}>
-                    {cls.name} - {cls.section}
+                    {formatClassName(cls.name, cls.section)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -628,7 +629,7 @@ export default function TeacherStudents() {
                     <SelectContent>
                       {classes.map((cls) => (
                         <SelectItem key={cls.id} value={cls.id}>
-                          {cls.name} - {cls.section}
+                          {formatClassName(cls.name, cls.section)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -848,7 +849,7 @@ export default function TeacherStudents() {
                       <GraduationCap className="h-3 w-3" /> Class & Section
                     </Label>
                     <p className="font-medium">
-                      {selectedStudent.classes ? `${selectedStudent.classes.name} - ${selectedStudent.classes.section}` : 'N/A'}
+                      {selectedStudent.classes ? `${formatClassName(selectedStudent.classes.name, selectedStudent.classes.section)}` : 'N/A'}
                     </p>
                   </div>
                   <div className="space-y-1">

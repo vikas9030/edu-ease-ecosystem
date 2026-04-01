@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Calendar, Clock, FileText, Table } from 'lucide-react';
 import { useParentSidebar } from '@/hooks/useParentSidebar';
 import { downloadTimetableAsCSV, downloadTimetableAsPDF } from '@/utils/timetableDownload';
+import { formatClassName } from "@/lib/utils";
 
 interface TimetableEntry {
   id: string;
@@ -55,7 +56,7 @@ export default function ParentTimetable() {
         if (links && links.length > 0) {
           const student = (links[0] as any).students;
           if (student?.class_id) {
-            setChildClass(`${student.classes?.name} - ${student.classes?.section}`);
+            setChildClass(`${formatClassName(student.classes?.name, student.classes?.section)}`);
             
             // Fetch timetable with teacher info
             const { data: timetableData } = await supabase

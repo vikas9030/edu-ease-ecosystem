@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Send, Loader2, MessageCircle, Check, CheckCheck, Plus, Crown, UserCheck, Paperclip, Image, Download, FileText, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { formatClassName } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -879,7 +880,7 @@ export default function MessagingInterface({ currentUserId, currentUserRole, stu
                     <SelectContent>
                       {classes.map(c => (
                         <SelectItem key={c.id} value={c.id}>
-                          {c.name} - {c.section}
+                          {formatClassName(c.name, c.section)}
                         </SelectItem>
                       ))}
                     </SelectContent>

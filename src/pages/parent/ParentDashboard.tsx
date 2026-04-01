@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useParentSidebar } from '@/hooks/useParentSidebar';
+import { formatClassName } from "@/lib/utils";
 
 interface ChildData {
   id: string;
@@ -225,7 +226,7 @@ export default function ParentDashboard() {
                     <div className="min-w-0">
                       <h2 className="font-display text-base sm:text-xl font-bold truncate">{child.full_name}</h2>
                       <p className="text-xs sm:text-sm text-muted-foreground">
-                        {child.classes ? `Class ${child.classes.name} - ${child.classes.section}` : 'No class assigned'}
+                        {child.classes ? `Class ${formatClassName(child.classes.name, child.classes.section)}` : 'No class assigned'}
                       </p>
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         <Badge className={`text-[10px] sm:text-xs ${child.status === 'active' ? 'status-active' : 'status-inactive'}`}>
@@ -301,7 +302,7 @@ export default function ParentDashboard() {
                        <div className="flex items-center gap-1.5 flex-wrap">
                          {exam.classes && (
                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                             {exam.classes.name}-{exam.classes.section}
+                             {formatClassName(exam.classes.name, exam.classes.section)}
                            </Badge>
                          )}
                          {exam.subjects && (

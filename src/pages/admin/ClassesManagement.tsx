@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { BackButton } from '@/components/ui/back-button';
+import { formatClassName } from "@/lib/utils";
 
 interface ClassItem {
   id: string;
@@ -316,7 +317,7 @@ export default function ClassesManagement() {
                     <div key={cls.id} className="p-3 rounded-xl border bg-muted/10 space-y-2.5">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="font-medium text-sm">{cls.name} - {cls.section}</p>
+                          <p className="font-medium text-sm">{formatClassName(cls.name, cls.section)}</p>
                           <Badge variant="secondary" className="text-[10px] mt-0.5">{cls.academic_year}</Badge>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">

@@ -8,6 +8,7 @@ import { useParentSidebar } from '@/hooks/useParentSidebar';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { BackButton } from '@/components/ui/back-button';
 import AttendanceCalendar from '@/components/attendance/AttendanceCalendar';
+import { formatClassName } from "@/lib/utils";
 
 interface AttendanceRecord {
   id: string;
@@ -64,7 +65,7 @@ export default function ParentAttendance() {
             setSelectedStudentId(child.id);
             setChildName(child.full_name);
             setAdmissionNo(child.admission_number);
-            setChildClass(child.classes ? `${child.classes.name}-${child.classes.section}` : '');
+            setChildClass(child.classes ? `${formatClassName(child.classes.name, child.classes.section)}` : '');
           }
         }
       }

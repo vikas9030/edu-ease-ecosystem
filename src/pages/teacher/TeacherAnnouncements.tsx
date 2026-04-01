@@ -32,6 +32,7 @@ import { BackButton } from '@/components/ui/back-button';
 
 // Sidebar items from shared config with permission check
 import { useTeacherSidebar } from '@/hooks/useTeacherSidebar';
+import { formatClassName } from "@/lib/utils";
 
 interface Announcement {
   id: string;
@@ -122,7 +123,7 @@ export default function TeacherAnnouncements() {
 
         if (data) {
           // Get class identifiers for filtering
-          const classIdentifiers = classData.map(c => `class:${c.name}-${c.section}`);
+          const classIdentifiers = classData.map(c => `class:${formatClassName(c.name, c.section)}`);
           
           // Filter announcements teacher can see:
           // - 'all' audience
@@ -169,7 +170,7 @@ export default function TeacherAnnouncements() {
       const targetAudience = formData.selectedClasses.length > 0
         ? formData.selectedClasses.map(classId => {
             const cls = classes.find(c => c.id === classId);
-            return cls ? `class:${cls.name}-${cls.section}` : '';
+            return cls ? `class:${formatClassName(cls.name, cls.section)}` : '';
           }).filter(Boolean)
         : ['all'];
 
@@ -256,7 +257,7 @@ export default function TeacherAnnouncements() {
                             htmlFor={cls.id}
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                           >
-                            {cls.name} - {cls.section}
+                            {formatClassName(cls.name, cls.section)}
                           </label>
                         </div>
                       ))
