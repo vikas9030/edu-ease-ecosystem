@@ -198,6 +198,7 @@ export default function SyllabusManagement() {
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         created_by: user?.id,
+        school_id: schoolId,
       }));
 
       const { data: inserted, error } = await supabase.from('syllabus').insert(rows).select('id');
