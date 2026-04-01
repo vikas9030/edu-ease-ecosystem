@@ -32,6 +32,7 @@ interface SchoolOption {
   name: string;
   code: string;
   address: string | null;
+  logo_url: string | null;
 }
 
 export default function Auth() {
