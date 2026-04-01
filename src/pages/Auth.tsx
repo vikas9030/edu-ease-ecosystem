@@ -343,12 +343,9 @@ export default function Auth() {
                   ) : (
                     <School className="h-4 w-4 text-muted-foreground shrink-0" />
                   )}
-                  <div className="flex flex-col items-start">
-                    <span>{school.name} ({school.code})</span>
-                    {school.address && (
-                      <span className="text-xs text-muted-foreground">{school.address}</span>
-                    )}
-                  </div>
+                  <span className="truncate">
+                    {school.name} ({school.code}){school.address ? ` — ${school.address}` : ''}
+                  </span>
                 </div>
               </SelectItem>
             ))}

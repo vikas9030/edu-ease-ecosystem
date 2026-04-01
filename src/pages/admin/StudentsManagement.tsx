@@ -146,8 +146,8 @@ export default function StudentsManagement() {
   const generateStudentId = (name: string, className: string, section: string): string => {
     const namePart = name.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '');
     const classPart = className.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const sectionPart = section.toUpperCase().replace(/[^A-Z]/g, '');
-    return `${namePart}-${classPart}-${sectionPart}`;
+    const sectionPart = section && section !== '-' ? section.toUpperCase().replace(/[^A-Z]/g, '') : '';
+    return sectionPart ? `${namePart}-${classPart}-${sectionPart}` : `${namePart}-${classPart}`;
   };
 
   const updatePreviewId = (name: string, classId: string) => {
