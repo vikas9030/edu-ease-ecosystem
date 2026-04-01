@@ -135,10 +135,14 @@ export default function DiscontinuedStudents() {
   }
 
   async function handleReAdmit(studentId: string) {
+    if (!reAdmitClassId) {
+      toast.error('Please select a class to re-admit the student into');
+      return;
+    }
     setProcessing(true);
     const { error } = await supabase
       .from('students')
-      .update({ status: 'active', discontinuation_reason: null, updated_at: new Date().toISOString() } as any)
+      .update({ status: 'active', discontinuation_reason: null, class_id: reAdmitClassId, updated_at: new Date().toISOString() } as any)
       .eq('id', studentId);
 
     if (error) {
@@ -146,7 +150,6 @@ export default function DiscontinuedStudents() {
     } else {
       toast.success('Student re-admitted successfully');
       fetchDiscontinued();
-      // refresh active list if same class is selected
       if (selectedClass) {
         const { data } = await supabase
           .from('students')
@@ -160,6 +163,7 @@ export default function DiscontinuedStudents() {
     setProcessing(false);
     setReAdmitConfirmOpen(false);
     setReAdmitStudentId(null);
+    setReAdmitClassId('');
   }
 
   const filteredDiscontinued = discontinuedStudents.filter(s =>
