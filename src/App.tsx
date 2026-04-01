@@ -125,6 +125,7 @@ const App = () => (
             <Route path="/admin/student-history" element={<StudentHistory />} />
             <Route path="/admin/settings" element={<SettingsPage />} />
             <Route path="/admin/holidays" element={<HolidaysManagement />} />
+            <Route path="/admin/discontinued" element={<DiscontinuedStudents />} />
             
             {/* Teacher Routes */}
             <Route path="/teacher" element={<TeacherDashboard />} />

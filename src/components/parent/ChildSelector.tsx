@@ -18,7 +18,7 @@ interface ChildSelectorProps {
 
 export default function ChildSelector({ children, selectedId, onSelect }: ChildSelectorProps) {
   const activeChildren = children.filter(c => c.status === 'active');
-  const historicalChildren = children.filter(c => c.status === 'promoted');
+  const historicalChildren = children.filter(c => c.status === 'promoted' || c.status === 'discontinued');
 
   if (activeChildren.length <= 1 && historicalChildren.length === 0) return null;
 

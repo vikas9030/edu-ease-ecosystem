@@ -86,8 +86,8 @@ export default function ParentChild() {
                   {child.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </AvatarFallback>
               </Avatar>
-              <Badge className="mt-3" variant={child.status === 'active' ? 'default' : 'secondary'}>
-                {child.status === 'promoted' ? '📁 Promoted' : child.status || 'Active'}
+              <Badge className="mt-3" variant={child.status === 'active' ? 'default' : child.status === 'discontinued' ? 'destructive' : 'secondary'}>
+                {child.status === 'promoted' ? '📁 Promoted' : child.status === 'discontinued' ? '⛔ Discontinued' : child.status || 'Active'}
               </Badge>
             </div>
 
