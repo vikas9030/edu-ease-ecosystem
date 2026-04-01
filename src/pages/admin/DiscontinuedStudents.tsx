@@ -128,8 +128,8 @@ export default function DiscontinuedStudents() {
           supabase.from('attendance').select('*').eq('student_id', student.id),
           supabase.from('exam_marks').select('*, exams(name, exam_date, max_marks, subjects(name))').eq('student_id', student.id),
           supabase.from('fees').select('*').eq('student_id', student.id),
-          student.classes
-            ? supabase.from('timetable').select('*, subjects(name), teachers(id, user_id)').eq('class_id', student.classes ? (classes.find(c => `${c.name}-${c.section}` === `${student.classes!.name}-${student.classes!.section}`)?.id || '') : '')
+          student.class_id
+            ? supabase.from('timetable').select('*, subjects(name)').eq('class_id', student.class_id)
             : Promise.resolve({ data: [] }),
         ]);
 
