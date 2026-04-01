@@ -177,6 +177,27 @@ export default function SchoolsManagement() {
     }
   };
 
+  const handleDeleteSchool = async () => {
+    if (!deletingSchool) return;
+    const stats = schoolStats[deletingSchool.id] || { admins: 0, teachers: 0, students: 0 };
+    if (stats.admins > 0 || stats.teachers > 0 || stats.students > 0) {
+      toast({ variant: 'destructive', title: 'Cannot delete', description: 'Remove all admins, teachers, and students before deleting this school.' });
+      setDeletingSchool(null);
+      return;
+    }
+
+    setDeleting(true);
+    const { error } = await supabase.from('schools').delete().eq('id', deletingSchool.id);
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    } else {
+      toast({ title: 'School deleted successfully' });
+      fetchSchools();
+    }
+    setDeleting(false);
+    setDeletingSchool(null);
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
