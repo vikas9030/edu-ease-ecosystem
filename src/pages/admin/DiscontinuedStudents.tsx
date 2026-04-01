@@ -115,20 +115,52 @@ export default function DiscontinuedStudents() {
   async function handleDiscontinue() {
     setProcessing(true);
     const ids = Array.from(selectedIds);
-    const { error } = await supabase
-      .from('students')
-      .update({ status: 'discontinued', discontinuation_reason: reason || null, updated_at: new Date().toISOString() } as any)
-      .in('id', ids);
+    const selectedStudents = students.filter(s => ids.includes(s.id));
 
-    if (error) {
-      toast.error('Failed to discontinue students');
-    } else {
-      toast.success(`${ids.length} student(s) marked as discontinued`);
+    try {
+      // 1. Create archive snapshots for each student
+      for (const student of selectedStudents) {
+        const className = student.classes ? `${student.classes.name}-${student.classes.section}` : 'N/A';
+
+        // Fetch attendance, marks, fees, timetable in parallel
+        const [attendanceRes, marksRes, feesRes, timetableRes] = await Promise.all([
+          supabase.from('attendance').select('*').eq('student_id', student.id),
+          supabase.from('exam_marks').select('*, exams(name, exam_date, max_marks, subjects(name))').eq('student_id', student.id),
+          supabase.from('fees').select('*').eq('student_id', student.id),
+          student.classes
+            ? supabase.from('timetable').select('*, subjects(name), teachers(id, user_id)').eq('class_id', student.classes ? (classes.find(c => `${c.name}-${c.section}` === `${student.classes!.name}-${student.classes!.section}`)?.id || '') : '')
+            : Promise.resolve({ data: [] }),
+        ]);
+
+        await supabase.from('student_discontinuation_archives' as any).insert({
+          student_id: student.id,
+          student_name: student.full_name,
+          admission_number: student.admission_number,
+          class_name: className,
+          discontinuation_reason: reason || null,
+          attendance_snapshot: attendanceRes.data || [],
+          marks_snapshot: marksRes.data || [],
+          fees_snapshot: feesRes.data || [],
+          timetable_snapshot: timetableRes.data || [],
+        });
+      }
+
+      // 2. Update student status
+      const { error } = await supabase
+        .from('students')
+        .update({ status: 'discontinued', discontinuation_reason: reason || null, updated_at: new Date().toISOString() } as any)
+        .in('id', ids);
+
+      if (error) throw error;
+
+      toast.success(`${ids.length} student(s) marked as discontinued with data archived`);
       setSelectedIds(new Set());
       setReason('');
-      // refresh both lists
       setStudents(prev => prev.filter(s => !ids.includes(s.id)));
       fetchDiscontinued();
+    } catch (err) {
+      console.error('Discontinue error:', err);
+      toast.error('Failed to discontinue students');
     }
     setProcessing(false);
     setConfirmOpen(false);
