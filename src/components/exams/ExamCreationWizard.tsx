@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import { ExamFormData, ClassItem, SubjectItem, ExamSlot } from './types';
 import ExamWizardStep1 from './ExamWizardStep1';
 import ExamWizardStep2 from './ExamWizardStep2';
