@@ -109,7 +109,7 @@ export default function TeacherTimetable() {
       if (myTimetable) {
         setMySchedule(myTimetable.map(t => ({
           ...t,
-          className: `${(t.classes as any)?.name}-${(t.classes as any)?.section}`
+          className: formatClassName((t.classes as any)?.name || '', (t.classes as any)?.section)
         })) as any);
       }
     }

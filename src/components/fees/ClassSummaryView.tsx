@@ -183,7 +183,7 @@ export default function ClassSummaryView({ fees, classes, onClassSelect }: Props
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-display font-semibold text-sm sm:text-base">
-                  {classes.find(c => c.id === selectedClass)?.name} - {classes.find(c => c.id === selectedClass)?.section}
+                  {formatClassName(classes.find(c => c.id === selectedClass)?.name || '', classes.find(c => c.id === selectedClass)?.section)}
                   {selectedStudent && selectedStudent !== 'all' && (
                     <span className="text-muted-foreground font-normal ml-2">
                       · {studentOptions.find(s => s.id === selectedStudent)?.name}

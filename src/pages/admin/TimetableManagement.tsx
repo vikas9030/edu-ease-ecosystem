@@ -253,7 +253,7 @@ export default function TimetableManagement() {
     if (data) {
       setTeacherSchedule(data.map(entry => ({
         ...entry,
-        className: `${(entry.classes as any)?.name}-${(entry.classes as any)?.section}`,
+        className: formatClassName((entry.classes as any)?.name || '', (entry.classes as any)?.section),
       })) as TimetableEntry[]);
     }
 

@@ -98,7 +98,7 @@ export default function ExamWizardStep5({ formData, setFormData, classes, subjec
                         onClick={() => copySubjectsFrom(selectedClassData[index - 1].id, cls.id)}
                       >
                         <Copy className="h-3 w-3 mr-1" />
-                        Copy from {selectedClassData[index - 1].name}-{selectedClassData[index - 1].section.toUpperCase()}
+                        Copy from {formatClassName(selectedClassData[index - 1].name, selectedClassData[index - 1].section)}
                       </Button>
                     )}
                     <Button
