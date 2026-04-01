@@ -31,6 +31,7 @@ interface SchoolOption {
   id: string;
   name: string;
   code: string;
+  address: string | null;
 }
 
 export default function Auth() {
@@ -56,7 +57,7 @@ export default function Auth() {
     const fetchSchools = async () => {
       const { data, error } = await supabase
         .from('schools')
-        .select('id, name, code')
+        .select('id, name, code, address')
         .eq('is_active', true)
         .order('name');
       
@@ -323,7 +324,12 @@ export default function Auth() {
           <SelectContent>
             {schools.map((school) => (
               <SelectItem key={school.id} value={school.id}>
-                {school.name} ({school.code})
+                <span className="flex flex-col items-start">
+                  <span>{school.name} ({school.code})</span>
+                  {school.address && (
+                    <span className="text-xs text-muted-foreground">{school.address}</span>
+                  )}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
