@@ -19,7 +19,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Loader2, Plus, Key, Shield, Users, School } from 'lucide-react';
+import { Loader2, Plus, Key, Shield, Users, School, Edit, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
 interface AdminUser {
@@ -50,6 +51,12 @@ export default function ManageAdmins() {
   const [resetTarget, setResetTarget] = useState<AdminUser | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [resetting, setResetting] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<AdminUser | null>(null);
+  const [editForm, setEditForm] = useState({ fullName: '', schoolId: '' });
+  const [editSaving, setEditSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || userRole !== 'super_admin')) {
@@ -173,6 +180,79 @@ export default function ManageAdmins() {
     setResetting(false);
   };
 
+  const openEditDialog = (admin: AdminUser) => {
+    setEditTarget(admin);
+    setEditForm({ fullName: admin.full_name, schoolId: admin.school_id || '' });
+    setEditOpen(true);
+  };
+
+  const handleEditAdmin = async () => {
+    if (!editTarget || !editForm.fullName.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+    setEditSaving(true);
+    try {
+      // Update profile name
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ full_name: editForm.fullName.trim() })
+        .eq('user_id', editTarget.user_id);
+      if (profileError) throw profileError;
+
+      // Update school assignment if changed
+      if (editForm.schoolId && editForm.schoolId !== editTarget.school_id) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .update({ school_id: editForm.schoolId })
+          .eq('user_id', editTarget.user_id)
+          .eq('role', 'admin');
+        if (roleError) throw roleError;
+
+        // Also update profile school_id
+        await supabase.from('profiles').update({ school_id: editForm.schoolId }).eq('user_id', editTarget.user_id);
+      }
+
+      toast.success('Admin updated successfully');
+      setEditOpen(false);
+      setEditTarget(null);
+      fetchAdmins();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update admin');
+    }
+    setEditSaving(false);
+  };
+
+  const handleDeleteAdmin = async () => {
+    if (!deleteTarget) return;
+    if (deleteTarget.user_id === user?.id) {
+      toast.error('You cannot delete your own account');
+      setDeleteTarget(null);
+      return;
+    }
+    if (deleteTarget.role === 'super_admin') {
+      toast.error('Cannot delete a super admin');
+      setDeleteTarget(null);
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      // Use the reset-user-password function pattern but we need a delete endpoint
+      // For now, deactivate by removing the role
+      const { error } = await supabase.from('user_roles').delete().eq('user_id', deleteTarget.user_id).eq('role', 'admin');
+      if (error) throw error;
+
+      toast.success(`Admin ${deleteTarget.full_name} removed`);
+      fetchAdmins();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to remove admin');
+    }
+    setDeleting(false);
+    setDeleteTarget(null);
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
@@ -267,13 +347,34 @@ export default function ManageAdmins() {
                         {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                       </Badge>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => { setResetTarget(admin); setResetOpen(true); setNewPassword(''); }}
-                    >
-                      <Key className="h-4 w-4 mr-1" />Reset Password
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {admin.role !== 'super_admin' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditDialog(admin)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />Edit
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => { setResetTarget(admin); setResetOpen(true); setNewPassword(''); }}
+                      >
+                        <Key className="h-4 w-4 mr-1" />Reset Password
+                      </Button>
+                      {admin.role !== 'super_admin' && admin.user_id !== user?.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive"
+                          onClick={() => setDeleteTarget(admin)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />Remove
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -301,6 +402,60 @@ export default function ManageAdmins() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Admin Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Admin</DialogTitle>
+              <DialogDescription>Update details for {editTarget?.full_name}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Full Name</Label>
+                <Input value={editForm.fullName} onChange={e => setEditForm({ ...editForm, fullName: e.target.value })} placeholder="Admin Name" />
+              </div>
+              <div className="space-y-2">
+                <Label>Assigned School</Label>
+                <Select value={editForm.schoolId} onValueChange={(v) => setEditForm({ ...editForm, schoolId: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a school..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {schools.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button onClick={handleEditAdmin} disabled={editSaving}>
+                {editSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Admin Confirmation */}
+        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove Admin</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to remove <strong>{deleteTarget?.full_name}</strong> as an admin? They will lose admin access.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteAdmin} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {deleting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                Remove
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
