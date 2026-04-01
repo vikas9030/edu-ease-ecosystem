@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { IndianRupee } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FeeRecord {
   id: string;
