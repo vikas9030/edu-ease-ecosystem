@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 
 interface ModuleVisibility {
   module_key: string;
@@ -49,8 +48,7 @@ supabase.auth.onAuthStateChange((event) => {
   }
 });
 
-export function useModuleVisibility() {
-  const { schoolId, userRole } = useAuth();
+export function useModuleVisibility(schoolId?: string | null, userRole?: string | null) {
   const [modules, setModules] = useState<ModuleVisibility[]>(cachedModules || []);
   const [overrides, setOverrides] = useState<SchoolOverride[]>([]);
   const [loading, setLoading] = useState(!cachedModules);
