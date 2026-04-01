@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock, User, Loader2, Users, IdCard, Briefcase, ShieldCheck, GraduationCap } from 'lucide-react';
+import { Mail, Lock, User, Loader2, Users, IdCard, Briefcase, ShieldCheck, GraduationCap, School } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const staffLoginSchema = z.object({
@@ -26,11 +27,20 @@ const adminSignupSchema = z.object({
   fullName: z.string().min(2, 'Please enter your full name'),
 });
 
+interface SchoolOption {
+  id: string;
+  name: string;
+  code: string;
+}
+
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginMode, setLoginMode] = useState<'staff' | 'parent'>('staff');
   const [checkingAdmins, setCheckingAdmins] = useState(true);
   const [hasAdmins, setHasAdmins] = useState(true);
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
+  const [loadingSchools, setLoadingSchools] = useState(true);
   
   const [staffForm, setStaffForm] = useState({ identifier: '', password: '' });
   const [parentForm, setParentForm] = useState({ studentId: '', password: '' });
@@ -41,11 +51,27 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Fetch schools list
+  useEffect(() => {
+    const fetchSchools = async () => {
+      const { data, error } = await supabase
+        .from('schools')
+        .select('id, name, code')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (!error && data) {
+        setSchools(data);
+      }
+      setLoadingSchools(false);
+    };
+    fetchSchools();
+  }, []);
+
   // Check if any admin exists using secure RPC function
   const checkAdmins = async () => {
     const { data, error } = await supabase.rpc('admin_exists');
     
-    // If there's an error or data is null, default to assuming admin exists (show login)
     if (error) {
       console.error('Error checking admin:', error);
       setHasAdmins(true);
@@ -60,7 +86,6 @@ export default function Auth() {
   }, []);
 
   useEffect(() => {
-    // Re-check admins when user becomes null (after signout)
     if (!loading && !user) {
       checkAdmins();
     }
@@ -70,6 +95,9 @@ export default function Auth() {
       navigate(path);
     }
   }, [user, userRole, loading, navigate]);
+
+  // Check if user is logging in as admin (email) — no school needed
+  const isAdminEmail = (identifier: string) => identifier.includes('@');
 
   // Staff Login (Admin with email, Teacher with ID)
   const handleStaffLogin = async (e: React.FormEvent) => {
@@ -91,13 +119,18 @@ export default function Auth() {
       }
     }
 
+    const identifier = staffForm.identifier.trim();
+    
+    // For Teacher ID login, school selection is required if schools exist
+    if (!isAdminEmail(identifier) && schools.length > 0 && !selectedSchoolId) {
+      setErrors({ school: 'Please select your school' });
+      return;
+    }
+
     setIsLoading(true);
     
-    const identifier = staffForm.identifier.trim();
-    const isEmail = identifier.includes('@');
-    
-    if (isEmail) {
-      // Admin login with email
+    if (isAdminEmail(identifier)) {
+      // Admin login with email — no school needed
       const { error } = await signIn(identifier, staffForm.password);
       if (error) {
         toast({
@@ -109,15 +142,17 @@ export default function Auth() {
         });
       }
     } else {
-      // Teacher login with Teacher ID
+      // Teacher login with Teacher ID — use school-scoped lookup
       try {
-        const { data: teacher, error: teacherError } = await supabase
-          .from('teachers')
-          .select('id, teacher_id, user_id')
-          .eq('teacher_id', identifier.toUpperCase())
-          .maybeSingle();
+        const rpcParams: any = { teacher_identifier: identifier };
+        if (selectedSchoolId) {
+          rpcParams._school_id = selectedSchoolId;
+        }
+        
+        const { data: teacherEmail, error: rpcError } = await supabase
+          .rpc('get_teacher_login_email', rpcParams);
 
-        if (teacherError || !teacher) {
+        if (rpcError || !teacherEmail) {
           toast({
             variant: "destructive",
             title: "Login failed",
@@ -127,27 +162,12 @@ export default function Auth() {
           return;
         }
 
-        // Get teacher's email from profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('user_id', teacher.user_id)
-          .maybeSingle();
-
-        if (profile?.email) {
-          const { error } = await signIn(profile.email, staffForm.password);
-          if (error) {
-            toast({
-              variant: "destructive",
-              title: "Login failed",
-              description: "Invalid password. Please try again.",
-            });
-          }
-        } else {
+        const { error } = await signIn(teacherEmail, staffForm.password);
+        if (error) {
           toast({
             variant: "destructive",
             title: "Login failed",
-            description: "Teacher account not properly configured. Contact admin.",
+            description: "Invalid password. Please try again.",
           });
         }
       } catch (err) {
@@ -182,12 +202,22 @@ export default function Auth() {
       }
     }
 
+    // School selection required if schools exist
+    if (schools.length > 0 && !selectedSchoolId) {
+      setErrors({ school: 'Please select your school' });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
-      // Use secure RPC function to get parent email from student identifier
+      const rpcParams: any = { student_identifier: parentForm.studentId };
+      if (selectedSchoolId) {
+        rpcParams._school_id = selectedSchoolId;
+      }
+
       const { data: parentEmail, error: rpcError } = await supabase
-        .rpc('get_parent_login_email', { student_identifier: parentForm.studentId });
+        .rpc('get_parent_login_email', rpcParams);
 
       if (rpcError || !parentEmail) {
         toast({
@@ -199,7 +229,6 @@ export default function Auth() {
         return;
       }
 
-      // Sign in with the parent's email
       const { error } = await signIn(parentEmail, parentForm.password);
       
       if (error) {
@@ -243,7 +272,6 @@ export default function Auth() {
     setIsLoading(true);
     
     try {
-      // Create user account - trigger handles profile & role creation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: signupForm.email,
         password: signupForm.password,
@@ -264,7 +292,6 @@ export default function Auth() {
       setHasAdmins(true);
       setSignupForm({ email: '', password: '', fullName: '' });
       
-      // Auto login after signup (with auto-confirm enabled)
       await signIn(signupForm.email, signupForm.password);
     } catch (error: any) {
       toast({ 
@@ -275,6 +302,35 @@ export default function Auth() {
     }
     
     setIsLoading(false);
+  };
+
+  // School selector component
+  const SchoolSelector = () => {
+    if (loadingSchools || schools.length === 0) return null;
+    
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="school-select">
+          <div className="flex items-center gap-2">
+            <School className="h-4 w-4 text-muted-foreground" />
+            Select Your School
+          </div>
+        </Label>
+        <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
+          <SelectTrigger id="school-select">
+            <SelectValue placeholder="Choose your school..." />
+          </SelectTrigger>
+          <SelectContent>
+            {schools.map((school) => (
+              <SelectItem key={school.id} value={school.id}>
+                {school.name} ({school.code})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.school && <p className="text-sm text-destructive">{errors.school}</p>}
+      </div>
+    );
   };
 
   if (loading || checkingAdmins) {
@@ -407,6 +463,9 @@ export default function Auth() {
               <CardContent>
                 {loginMode === 'staff' ? (
                   <form onSubmit={handleStaffLogin} className="space-y-4">
+                    {/* School Selector - shown for teacher ID login when schools exist */}
+                    <SchoolSelector />
+
                     <div className="space-y-2">
                       <Label htmlFor="staff-id">Email or Teacher ID</Label>
                       <div className="relative">
@@ -447,12 +506,15 @@ export default function Auth() {
                     <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                       <p className="text-xs text-muted-foreground text-center">
                         <strong>Admin:</strong> Use your email address<br />
-                        <strong>Teacher:</strong> Use your Teacher ID (e.g., JOHN-MATH)
+                        <strong>Teacher:</strong> Select school, then use Teacher ID
                       </p>
                     </div>
                   </form>
                 ) : (
                   <form onSubmit={handleParentLogin} className="space-y-4">
+                    {/* School Selector */}
+                    <SchoolSelector />
+
                     <div className="space-y-2">
                       <Label htmlFor="student-id">Student ID / Admission Number</Label>
                       <div className="relative">
@@ -496,7 +558,7 @@ export default function Auth() {
 
                     <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                       <p className="text-xs text-muted-foreground text-center">
-                        Use your child's Student ID and password provided by the teacher.
+                        Select your school, then use Student ID and password provided by the teacher.
                       </p>
                     </div>
                   </form>
