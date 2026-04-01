@@ -539,7 +539,7 @@ export default function Auth() {
                 ) : (
                   <form onSubmit={handleParentLogin} className="space-y-4">
                     {/* School Selector */}
-                    <SchoolSelector />
+                    {renderSchoolSelector()}
 
                     <div className="space-y-2">
                       <Label htmlFor="student-id">Student ID / Admission Number</Label>
