@@ -59,8 +59,8 @@ interface TodayExam {
 
 export default function AdminDashboard() {
   const adminSidebarItems = useAdminSidebar();
-  const { isModuleEnabled } = useModuleVisibility();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, schoolId, loading } = useAuth();
+  const { isModuleEnabled } = useModuleVisibility(schoolId, userRole);
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,

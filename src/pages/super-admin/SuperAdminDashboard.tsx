@@ -9,9 +9,9 @@ import { Loader2, Users, GraduationCap, Shield, ToggleLeft, School } from 'lucid
 import { useModuleVisibility } from '@/hooks/useModuleVisibility';
 
 export default function SuperAdminDashboard() {
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, schoolId, loading } = useAuth();
   const navigate = useNavigate();
-  const { modules } = useModuleVisibility();
+  const { modules } = useModuleVisibility(schoolId, userRole);
   const [stats, setStats] = useState({ admins: 0, teachers: 0, students: 0, schools: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
 
