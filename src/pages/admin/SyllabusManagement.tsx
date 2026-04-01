@@ -56,7 +56,7 @@ const ROLE_TYPES = [
 
 export default function SyllabusManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('general');
   const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);

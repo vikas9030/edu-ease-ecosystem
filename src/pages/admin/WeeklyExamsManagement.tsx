@@ -59,7 +59,7 @@ interface CycleOption { id: string; exam_type: string; cycle_number: number; is_
 
 export default function WeeklyExamsManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const [exams, setExams] = useState<WeeklyExam[]>([]);
   const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);

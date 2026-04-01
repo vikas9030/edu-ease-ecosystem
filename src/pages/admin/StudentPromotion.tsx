@@ -42,7 +42,7 @@ interface ClassItem {
 
 export default function StudentPromotion() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
 
   const [classes, setClasses] = useState<ClassItem[]>([]);

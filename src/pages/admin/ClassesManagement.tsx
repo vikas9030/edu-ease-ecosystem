@@ -61,7 +61,7 @@ interface Teacher {
 
 export default function ClassesManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 

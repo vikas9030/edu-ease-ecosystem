@@ -28,7 +28,7 @@ interface GalleryImage {
 
 export default function GalleryManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<GalleryFolder | null>(null);
