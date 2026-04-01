@@ -24,9 +24,9 @@ interface SchoolOverride {
 }
 
 export default function ModuleControl() {
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, schoolId, loading } = useAuth();
   const navigate = useNavigate();
-  const { modules, loading: modulesLoading, refetch } = useModuleVisibility();
+  const { modules, loading: modulesLoading, refetch } = useModuleVisibility(schoolId, userRole);
 
   const [schools, setSchools] = useState<SchoolItem[]>([]);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
