@@ -335,6 +335,7 @@ export default function TimetableManagement() {
         start_time: formData.startTime,
         end_time: formData.endTime,
         is_published: false,
+        school_id: schoolId,
       });
 
       if (error) {
