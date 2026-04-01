@@ -41,6 +41,7 @@ const initialFormData: ExamFormData = {
 };
 
 export default function ExamCreationWizard({ open, onOpenChange, classes, subjects, onSuccess }: Props) {
+  const { schoolId } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ExamFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
