@@ -32,6 +32,7 @@ import WeeklyExamsManagement from "./pages/admin/WeeklyExamsManagement";
 import StudentPromotion from "./pages/admin/StudentPromotion";
 import StudentHistory from "./pages/admin/StudentHistory";
 import HolidaysManagement from "./pages/admin/HolidaysManagement";
+import DiscontinuedStudents from "./pages/admin/DiscontinuedStudents";
 
 // Super Admin Pages
 import SuperAdminDashboard from "./pages/super-admin/SuperAdminDashboard";
