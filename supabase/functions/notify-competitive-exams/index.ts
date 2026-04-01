@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
       .eq('exam_date', yesterdayStr)
 
     for (const exam of finishedComp || []) {
-      const className = exam.classes ? `${exam.classes.name}-${exam.classes.section}` : ''
+      const className = exam.classes ? (exam.classes.section && exam.classes.section !== '-' ? `${exam.classes.name}-${exam.classes.section}` : exam.classes.name) : ''
       const subjectName = exam.subjects?.name || ''
       const title = '✅ Competitive Exam Completed'
       const message = `${exam.exam_title} (${subjectName}, Class ${className}) has been completed [compdone_${exam.id}]`
