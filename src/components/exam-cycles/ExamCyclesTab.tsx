@@ -50,7 +50,7 @@ function getCycleProgress(startDate: string, endDate: string): number {
 }
 
 export default function ExamCyclesTab() {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [cycles, setCycles] = useState<ExamCycle[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -117,6 +117,7 @@ export default function ExamCyclesTab() {
       end_date: formData.end_date,
       is_active: false,
       created_by: user?.id,
+      school_id: schoolId,
     });
     if (error) { toast.error(error.message); return; }
     toast.success('Exam cycle created');

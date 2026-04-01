@@ -83,7 +83,7 @@ interface Teacher {
 
 export default function TimetableManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -158,7 +158,7 @@ export default function TimetableManagement() {
     } else {
       await supabase
         .from('app_settings')
-        .insert({ setting_key: 'timetable_schedule', setting_value: newSchedule as any, updated_by: user?.id } as any);
+        .insert({ setting_key: 'timetable_schedule', setting_value: newSchedule as any, updated_by: user?.id, school_id: schoolId } as any);
     }
   };
 
@@ -335,6 +335,7 @@ export default function TimetableManagement() {
         start_time: formData.startTime,
         end_time: formData.endTime,
         is_published: false,
+        school_id: schoolId,
       });
 
       if (error) {

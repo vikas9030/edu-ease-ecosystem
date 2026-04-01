@@ -42,7 +42,7 @@ interface ClassItem {
 
 export default function StudentPromotion() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
 
   const [classes, setClasses] = useState<ClassItem[]>([]);
@@ -155,6 +155,7 @@ export default function StudentPromotion() {
             emergency_contact: student.emergency_contact,
             emergency_contact_name: student.emergency_contact_name,
             user_id: student.user_id,
+            school_id: schoolId,
           })
           .select('id')
           .single();
@@ -175,6 +176,7 @@ export default function StudentPromotion() {
                 student_id: newStudent.id,
                 parent_id: link.parent_id,
                 relationship: link.relationship,
+                school_id: schoolId,
               })));
           }
         }

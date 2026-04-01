@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Save, CheckCircle2, BookOpen, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Exam {
   id: string;
@@ -35,6 +36,7 @@ interface Props {
 }
 
 export default function ExamMarksEntry({ exams, onMarksUpdated }: Props) {
+  const { schoolId } = useAuth();
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [selectedExamName, setSelectedExamName] = useState<string>('');
   const [students, setStudents] = useState<Student[]>([]);
@@ -165,6 +167,7 @@ export default function ExamMarksEntry({ exams, onMarksUpdated }: Props) {
           marks_obtained: parseFloat(marks[student.id].marks) || null,
           grade: marks[student.id].grade || null,
           remarks: marks[student.id].remarks || null,
+          school_id: schoolId,
         }));
 
       if (records.length > 0) {

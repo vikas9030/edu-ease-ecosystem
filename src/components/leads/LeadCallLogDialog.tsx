@@ -34,7 +34,7 @@ export default function LeadCallLogDialog({
   studentName,
   onSuccess,
 }: LeadCallLogDialogProps) {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [outcome, setOutcome] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -50,6 +50,7 @@ export default function LeadCallLogDialog({
           called_by: user.id,
           call_outcome: outcome,
           notes: notes || null,
+          school_id: schoolId,
         } as any);
       if (error) throw error;
       toast({ title: 'Call logged successfully' });

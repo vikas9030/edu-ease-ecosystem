@@ -7,6 +7,7 @@ import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lu
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
+import { useAuth } from '@/hooks/useAuth';
 
 interface TeacherExcelImportProps {
   open: boolean;
@@ -28,6 +29,7 @@ const TEMPLATE_COLUMNS = [
 export default function TeacherExcelImport({ open, onOpenChange, onSuccess }: TeacherExcelImportProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { schoolId } = useAuth();
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [totalRows, setTotalRows] = useState(0);
@@ -139,6 +141,7 @@ export default function TeacherExcelImport({ open, onOpenChange, onSuccess }: Te
             qualification,
             subjects: subjectsArray,
             status: 'active',
+            school_id: schoolId,
           } as any);
 
           if (teacherError) {

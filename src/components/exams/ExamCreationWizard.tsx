@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import { ExamFormData, ClassItem, SubjectItem, ExamSlot } from './types';
 import ExamWizardStep1 from './ExamWizardStep1';
 import ExamWizardStep2 from './ExamWizardStep2';
@@ -40,6 +41,7 @@ const initialFormData: ExamFormData = {
 };
 
 export default function ExamCreationWizard({ open, onOpenChange, classes, subjects, onSuccess }: Props) {
+  const { schoolId } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ExamFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,6 +96,7 @@ export default function ExamCreationWizard({ open, onOpenChange, classes, subjec
           max_marks: parseInt(formData.maxMarks) || 100,
           class_id: entry.classId,
           subject_id: entry.subjectId,
+          school_id: schoolId,
         };
       });
 

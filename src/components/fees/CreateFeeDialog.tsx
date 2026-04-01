@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,7 @@ interface Props {
 
 export default function CreateFeeDialog({ open, onOpenChange, onSuccess }: Props) {
   const { toast } = useToast();
+  const { schoolId } = useAuth();
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [students, setStudents] = useState<StudentInfo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -280,6 +282,7 @@ export default function CreateFeeDialog({ open, onOpenChange, onSuccess }: Props
             due_date: dueDateStr,
             reminder_days_before: reminderDaysBefore,
             class_id: studentClassId,
+            school_id: schoolId,
           };
         });
       });

@@ -58,7 +58,7 @@ const COLUMN_MAP: Record<string, string> = {
 };
 
 export default function LeadExcelImport({ open, onOpenChange, onSuccess }: LeadExcelImportProps) {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [errors, setErrors] = useState<ImportError[]>([]);
@@ -106,7 +106,7 @@ export default function LeadExcelImport({ open, onOpenChange, onSuccess }: LeadE
 
       rows.forEach((row, index) => {
         const rowNum = index + 2; // +2 for header row and 0-index
-        const mapped: any = { created_by: user.id, status: 'new_lead' };
+        const mapped: any = { created_by: user.id, status: 'new_lead', school_id: schoolId };
 
         // Map columns
         Object.entries(COLUMN_MAP).forEach(([excelCol, dbCol]) => {

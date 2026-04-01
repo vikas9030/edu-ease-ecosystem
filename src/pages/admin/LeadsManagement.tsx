@@ -31,7 +31,7 @@ const CHART_COLORS = ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444', '#8
 
 export default function LeadsManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [leads, setLeads] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,6 +153,7 @@ export default function LeadsManagement() {
         new_status: newStatus,
         changed_by: user.id,
         remarks: statusRemarks || null,
+        school_id: schoolId,
       } as any);
 
       await supabase
@@ -429,6 +430,7 @@ export default function LeadsManagement() {
                                       old_status: lead.status,
                                       new_status: value,
                                       changed_by: user.id,
+                                      school_id: schoolId,
                                     } as any);
                                     await supabase
                                       .from('leads')

@@ -28,7 +28,7 @@ interface GalleryImage {
 
 export default function GalleryManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const [folders, setFolders] = useState<GalleryFolder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<GalleryFolder | null>(null);
@@ -72,7 +72,7 @@ export default function GalleryManagement() {
       if (error) { toast.error('Failed to update folder'); return; }
       toast.success('Folder updated');
     } else {
-      const { error } = await supabase.from('gallery_folders').insert({ title: folderTitle, created_by: user?.id });
+      const { error } = await supabase.from('gallery_folders').insert({ title: folderTitle, created_by: user?.id, school_id: schoolId });
       if (error) { toast.error('Failed to create folder'); return; }
       toast.success('Folder created');
     }
@@ -106,6 +106,7 @@ export default function GalleryManagement() {
         image_url: urlData.publicUrl,
         caption: file.name.replace(/\.[^/.]+$/, ''),
         created_by: user?.id,
+        school_id: schoolId,
       });
     }
     setUploading(false);

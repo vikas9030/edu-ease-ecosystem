@@ -50,7 +50,7 @@ const typeConfig: Record<string, { bg: string; dot: string; icon: React.ReactNod
 
 export default function HolidaysManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -103,6 +103,7 @@ export default function HolidaysManagement() {
         holiday_date: format(form.holiday_date, 'yyyy-MM-dd'),
         holiday_type: form.holiday_type,
         created_by: user?.id,
+        school_id: schoolId,
       };
       if (editingHoliday) {
         const { error } = await supabase.from('holidays').update(payload).eq('id', editingHoliday.id);

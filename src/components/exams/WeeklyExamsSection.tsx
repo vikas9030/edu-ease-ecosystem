@@ -70,7 +70,7 @@ interface SubjectOption { id: string; name: string; category: string | null; }
 interface CycleOption { id: string; exam_type: string; cycle_number: number; is_active: boolean; }
 
 export default function WeeklyExamsSection() {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [exams, setExams] = useState<WeeklyExam[]>([]);
   const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);
   const [examSyllabusLinks, setExamSyllabusLinks] = useState<ExamSyllabusLink[]>([]);
@@ -141,6 +141,7 @@ export default function WeeklyExamsSection() {
     const { error } = await supabase.from('weekly_exams').insert({
       class_id: formData.class_id,
       subject_id: formData.subject_id || null,
+      school_id: schoolId,
       syllabus_type: syllabusType,
       cycle_id: syllabusType === 'competitive' && formData.cycle_id ? formData.cycle_id : null,
       week_number: formData.week_number ? parseInt(formData.week_number) : null,

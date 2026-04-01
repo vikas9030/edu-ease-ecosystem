@@ -93,7 +93,7 @@ interface ClassItem {
 
 export default function TeachersManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -281,6 +281,7 @@ export default function TeachersManagement() {
         qualification: formData.qualification,
         subjects,
         status: 'active',
+        school_id: schoolId,
       }).select().single();
 
       if (teacherError) {

@@ -59,7 +59,7 @@ interface CycleOption { id: string; exam_type: string; cycle_number: number; is_
 
 export default function WeeklyExamsManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const [exams, setExams] = useState<WeeklyExam[]>([]);
   const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);
@@ -138,6 +138,7 @@ export default function WeeklyExamsManagement() {
       negative_marking: formData.negative_marking,
       negative_marks_value: formData.negative_marking ? parseFloat(formData.negative_marks_value) : 0,
       reminder_enabled: formData.reminder_enabled,
+      school_id: schoolId,
       status: 'scheduled',
       created_by: user?.id,
     });

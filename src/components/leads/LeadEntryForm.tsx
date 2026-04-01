@@ -70,7 +70,7 @@ const INCOME_RANGES = [
 const BOARD_OPTIONS = ['CBSE', 'ICSE', 'State Board', 'IB', 'Other'];
 
 export default function LeadEntryForm({ onSuccess, initialData, isEdit }: LeadEntryFormProps) {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [loading, setLoading] = useState(false);
   const [calculatedAge, setCalculatedAge] = useState<number | null>(null);
 
@@ -133,6 +133,7 @@ export default function LeadEntryForm({ onSuccess, initialData, isEdit }: LeadEn
         date_of_birth: data.date_of_birth || null,
         email: data.email || null,
         created_by: user.id,
+        school_id: schoolId,
       };
 
       if (isEdit && initialData?.id) {

@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Save, CheckCircle2, FlaskConical, BookOpen, Users, Calendar, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface WeeklyExam {
   id: string;
@@ -41,6 +42,7 @@ interface ClassOption {
 }
 
 export default function WeeklyExamMarksEntry() {
+  const { schoolId } = useAuth();
   const [exams, setExams] = useState<WeeklyExam[]>([]);
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -159,6 +161,7 @@ export default function WeeklyExamMarksEntry() {
           obtained_marks: parseFloat(marks[student.id].obtained) || 0,
           total_marks: selectedExam.total_marks,
           percentage: parseFloat(marks[student.id].percentage) || 0,
+          school_id: schoolId,
         }));
 
       if (records.length > 0) {

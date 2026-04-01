@@ -56,7 +56,7 @@ const ROLE_TYPES = [
 
 export default function SyllabusManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('general');
   const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);
@@ -198,6 +198,7 @@ export default function SyllabusManagement() {
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         created_by: user?.id,
+        school_id: schoolId,
       }));
 
       const { data: inserted, error } = await supabase.from('syllabus').insert(rows).select('id');
@@ -228,6 +229,7 @@ export default function SyllabusManagement() {
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         created_by: user?.id,
+        school_id: schoolId,
       }).select('id').single();
 
       if (error) { toast.error(error.message); setSaving(false); return; }

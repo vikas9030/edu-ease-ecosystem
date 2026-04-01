@@ -61,7 +61,7 @@ interface Teacher {
 
 export default function ClassesManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -157,6 +157,7 @@ export default function ClassesManagement() {
       section: formData.section || '-',
       academic_year: formData.academicYear,
       class_teacher_id: formData.classTeacherId || null,
+      school_id: schoolId,
     });
 
     if (error) {

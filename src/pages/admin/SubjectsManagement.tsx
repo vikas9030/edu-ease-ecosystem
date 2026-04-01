@@ -48,7 +48,7 @@ interface Subject {
 
 export default function SubjectsManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -105,6 +105,7 @@ export default function SubjectsManagement() {
       name: formData.name.trim(),
       code: formData.code.trim() || null,
       category: formData.category,
+      school_id: schoolId,
     });
 
     if (error) {

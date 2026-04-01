@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { IndianRupee } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FeeRecord {
   id: string;
@@ -29,6 +30,7 @@ export default function RecordPaymentDialog({ open, onOpenChange, fee, onSuccess
   const { toast } = useToast();
   const [amount, setAmount] = useState('');
   const [saving, setSaving] = useState(false);
+  const { schoolId } = useAuth();
 
   if (!fee) return null;
 
@@ -88,6 +90,7 @@ export default function RecordPaymentDialog({ open, onOpenChange, fee, onSuccess
       receipt_number: receiptNumber,
       paid_at: paidAt,
       recorded_by: (await supabase.auth.getUser()).data.user?.id,
+      school_id: schoolId,
     });
 
     setSaving(false);

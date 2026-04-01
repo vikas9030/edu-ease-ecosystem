@@ -48,7 +48,7 @@ interface Announcement {
 
 export default function AnnouncementsManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -99,6 +99,7 @@ export default function AnnouncementsManagement() {
       content: formData.content,
       target_audience: [formData.targetAudience],
       created_by: user?.id,
+      school_id: schoolId,
     });
 
     if (error) {
