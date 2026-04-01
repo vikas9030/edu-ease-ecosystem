@@ -31,7 +31,7 @@ const CHART_COLORS = ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444', '#8
 
 export default function LeadsManagement() {
   const adminSidebarItems = useAdminSidebar();
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [leads, setLeads] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
