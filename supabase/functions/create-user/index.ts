@@ -7,13 +7,11 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify the requesting user is an admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
@@ -22,7 +20,6 @@ serve(async (req) => {
       });
     }
 
-    // Create client with user's token to verify they're admin
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -40,7 +37,7 @@ serve(async (req) => {
     }
 
     // Check if calling user is admin
-    const { data: roleData } = await userClient.from("user_roles").select("role").eq("user_id", callingUser.id).single();
+    const { data: roleData } = await userClient.from("user_roles").select("role, school_id").eq("user_id", callingUser.id).single();
     if (roleData?.role !== "admin" && roleData?.role !== "super_admin") {
       return new Response(JSON.stringify({ error: "Only admins can create users" }), {
         status: 403,
@@ -48,8 +45,7 @@ serve(async (req) => {
       });
     }
 
-    // Parse request body
-    const { email, password, fullName, role, phone } = await req.json();
+    const { email, password, fullName, role, phone, schoolId } = await req.json();
 
     if (!email || !password || !fullName || !role) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -69,12 +65,13 @@ serve(async (req) => {
       });
     }
 
-    // Use service role client to create user (won't affect admin's session)
+    // Determine school_id: explicit param > caller's school
+    const effectiveSchoolId = schoolId || roleData?.school_id || null;
+
     const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Create user with admin API
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
       password,
@@ -95,22 +92,24 @@ serve(async (req) => {
 
     const userId = newUser.user.id;
 
-    // Upsert profile (handle_new_user trigger may have already created it)
+    // Upsert profile with school_id
     const { error: profileError } = await adminClient.from("profiles").upsert({
       user_id: userId,
       full_name: fullName,
       email: email,
       phone: phone || null,
+      school_id: effectiveSchoolId,
     }, { onConflict: "user_id" });
 
     if (profileError) {
       console.error("Error creating profile:", profileError);
     }
 
-    // Create user role
+    // Create user role with school_id
     const { error: roleError } = await adminClient.from("user_roles").insert({
       user_id: userId,
       role: role,
+      school_id: effectiveSchoolId,
     });
 
     if (roleError) {

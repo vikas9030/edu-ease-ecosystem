@@ -4,11 +4,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { superAdminSidebarItems } from '@/config/superAdminSidebar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Loader2, Plus, Key, Shield, Users } from 'lucide-react';
+import { Loader2, Plus, Key, Shield, Users, School } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AdminUser {
@@ -26,16 +27,25 @@ interface AdminUser {
   role: string;
   full_name: string;
   email: string;
+  school_id: string | null;
+  school_name?: string;
+}
+
+interface SchoolOption {
+  id: string;
+  name: string;
+  code: string;
 }
 
 export default function ManageAdmins() {
   const { user, userRole, loading } = useAuth();
   const navigate = useNavigate();
   const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
   const [loadingAdmins, setLoadingAdmins] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ email: '', fullName: '', password: '' });
+  const [form, setForm] = useState({ email: '', fullName: '', password: '', schoolId: '' });
   const [resetOpen, setResetOpen] = useState(false);
   const [resetTarget, setResetTarget] = useState<AdminUser | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -47,27 +57,39 @@ export default function ManageAdmins() {
     }
   }, [user, userRole, loading, navigate]);
 
+  const fetchSchools = async () => {
+    const { data } = await supabase.from('schools').select('id, name, code').eq('is_active', true).order('name');
+    if (data) setSchools(data);
+  };
+
   const fetchAdmins = async () => {
     setLoadingAdmins(true);
     const { data: roles } = await supabase
       .from('user_roles')
-      .select('user_id, role')
+      .select('user_id, role, school_id')
       .in('role', ['admin', 'super_admin']);
 
     if (roles && roles.length > 0) {
       const userIds = roles.map(r => r.user_id);
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, email')
-        .in('user_id', userIds);
+      const schoolIds = roles.map(r => r.school_id).filter(Boolean) as string[];
+      
+      const [profilesRes, schoolsRes] = await Promise.all([
+        supabase.from('profiles').select('user_id, full_name, email').in('user_id', userIds),
+        schoolIds.length > 0 
+          ? supabase.from('schools').select('id, name').in('id', schoolIds)
+          : Promise.resolve({ data: [] }),
+      ]);
 
       const merged: AdminUser[] = roles.map(r => {
-        const p = profiles?.find(p => p.user_id === r.user_id);
+        const p = profilesRes.data?.find(p => p.user_id === r.user_id);
+        const s = schoolsRes.data?.find(s => s.id === r.school_id);
         return {
           user_id: r.user_id,
           role: r.role,
           full_name: p?.full_name || 'Unknown',
           email: p?.email || '',
+          school_id: r.school_id || null,
+          school_name: s?.name,
         };
       });
       setAdmins(merged);
@@ -78,7 +100,10 @@ export default function ManageAdmins() {
   };
 
   useEffect(() => {
-    if (user) fetchAdmins();
+    if (user) {
+      fetchAdmins();
+      fetchSchools();
+    }
   }, [user]);
 
   const handleCreateAdmin = async () => {
@@ -90,12 +115,23 @@ export default function ManageAdmins() {
       toast.error('Password must be at least 6 characters');
       return;
     }
+    if (!form.schoolId) {
+      toast.error('Please select a school for this admin');
+      return;
+    }
 
     setCreating(true);
     try {
       const { data: session } = await supabase.auth.getSession();
       const response = await supabase.functions.invoke('create-user', {
-        body: { email: form.email, password: form.password, fullName: form.fullName, role: 'admin', phone: '' },
+        body: { 
+          email: form.email, 
+          password: form.password, 
+          fullName: form.fullName, 
+          role: 'admin', 
+          phone: '',
+          schoolId: form.schoolId,
+        },
         headers: { Authorization: `Bearer ${session.session?.access_token}` },
       });
 
@@ -103,7 +139,7 @@ export default function ManageAdmins() {
 
       toast.success(`Admin ${form.fullName} created successfully`);
       setCreateOpen(false);
-      setForm({ email: '', fullName: '', password: '' });
+      setForm({ email: '', fullName: '', password: '', schoolId: '' });
       fetchAdmins();
     } catch (err: any) {
       toast.error(err.message || 'Failed to create admin');
@@ -147,7 +183,7 @@ export default function ManageAdmins() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display text-2xl font-bold">Manage Admins</h1>
-            <p className="text-muted-foreground">Create and manage admin accounts</p>
+            <p className="text-muted-foreground">Create and manage admin accounts for each school</p>
           </div>
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
@@ -156,9 +192,25 @@ export default function ManageAdmins() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create New Admin</DialogTitle>
-                <DialogDescription>Create a new admin account with email and password</DialogDescription>
+                <DialogDescription>Create a new admin and assign them to a school</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Assign to School *</Label>
+                  <Select value={form.schoolId} onValueChange={(v) => setForm({ ...form, schoolId: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a school..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {schools.map(s => (
+                        <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {schools.length === 0 && (
+                    <p className="text-xs text-destructive">No schools created yet. Create a school first.</p>
+                  )}
+                </div>
                 <div className="space-y-2">
                   <Label>Full Name</Label>
                   <Input value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} placeholder="Admin Name" />
@@ -173,7 +225,7 @@ export default function ManageAdmins() {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleCreateAdmin} disabled={creating}>
+                <Button onClick={handleCreateAdmin} disabled={creating || schools.length === 0}>
                   {creating && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Create Admin
                 </Button>
               </DialogFooter>
@@ -204,6 +256,12 @@ export default function ManageAdmins() {
                       <div>
                         <p className="font-medium">{admin.full_name}</p>
                         <p className="text-sm text-muted-foreground">{admin.email}</p>
+                        {admin.school_name && (
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <School className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">{admin.school_name}</span>
+                          </div>
+                        )}
                       </div>
                       <Badge variant={admin.role === 'super_admin' ? 'default' : 'secondary'}>
                         {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}

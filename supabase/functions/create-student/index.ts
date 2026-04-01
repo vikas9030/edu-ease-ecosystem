@@ -7,13 +7,11 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify the requesting user is an admin or teacher
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
@@ -26,7 +24,6 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Create client with user's token to verify they're admin or teacher
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -40,7 +37,7 @@ serve(async (req) => {
     }
 
     // Check if calling user is admin or teacher
-    const { data: roleData } = await userClient.from("user_roles").select("role").eq("user_id", callingUser.id).single();
+    const { data: roleData } = await userClient.from("user_roles").select("role, school_id").eq("user_id", callingUser.id).single();
     if (!roleData || !["admin", "teacher", "super_admin"].includes(roleData.role)) {
       return new Response(JSON.stringify({ error: "Only admins and teachers can create students" }), {
         status: 403,
@@ -48,20 +45,10 @@ serve(async (req) => {
       });
     }
 
-    // Parse request body
     const { 
-      studentId, 
-      fullName, 
-      dateOfBirth, 
-      classId, 
-      address, 
-      bloodGroup, 
-      parentName, 
-      parentPhone, 
-      emergencyContact, 
-      emergencyContactName, 
-      password,
-      photoUrl 
+      studentId, fullName, dateOfBirth, classId, address, bloodGroup, 
+      parentName, parentPhone, emergencyContact, emergencyContactName, 
+      password, photoUrl, schoolId 
     } = await req.json();
 
     if (!fullName || !classId || !studentId || !password) {
@@ -71,12 +58,14 @@ serve(async (req) => {
       });
     }
 
-    // Use service role client for all operations (bypasses RLS)
+    // Determine school_id from explicit param or caller's school
+    const effectiveSchoolId = schoolId || roleData?.school_id || null;
+
     const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Create parent auth account with generated email (add unique suffix to avoid collisions)
+    // Create parent auth account
     const uniqueSuffix = Date.now().toString(36);
     const parentEmail = `parent.${studentId.toLowerCase()}.${uniqueSuffix}@school.local`;
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
@@ -97,41 +86,42 @@ serve(async (req) => {
 
     const userId = newUser.user.id;
 
-    // Update the profile created by the trigger (handle_new_user creates it automatically)
+    // Update profile with school_id
     const { error: profileError } = await adminClient.from("profiles").update({
       full_name: parentName || `Parent of ${fullName}`,
       email: parentEmail,
       phone: parentPhone || null,
+      school_id: effectiveSchoolId,
     }).eq("user_id", userId);
 
     if (profileError) {
       console.error("Error updating profile:", profileError);
-      // Non-fatal - profile was already created by trigger with basic info
     }
 
-    // Assign parent role
+    // Assign parent role with school_id
     const { error: roleError } = await adminClient.from("user_roles").insert({
       user_id: userId,
       role: "parent",
+      school_id: effectiveSchoolId,
     });
 
     if (roleError) {
       console.error("Error creating role:", roleError);
     }
 
-    // Create parent record
+    // Create parent record with school_id
     const { data: parentData, error: parentError } = await adminClient
       .from("parents")
       .insert({
         user_id: userId,
         phone: parentPhone || null,
+        school_id: effectiveSchoolId,
       })
       .select()
       .single();
 
     if (parentError) {
       console.error("Error creating parent:", parentError);
-      // Rollback
       await adminClient.auth.admin.deleteUser(userId);
       return new Response(JSON.stringify({ error: "Failed to create parent record" }), {
         status: 500,
@@ -139,7 +129,7 @@ serve(async (req) => {
       });
     }
 
-    // Create student record
+    // Create student record with school_id
     const { data: studentData, error: studentError } = await adminClient
       .from("students")
       .insert({
@@ -157,13 +147,13 @@ serve(async (req) => {
         photo_url: photoUrl || null,
         status: "active",
         user_id: userId,
+        school_id: effectiveSchoolId,
       })
       .select()
       .single();
 
     if (studentError) {
       console.error("Error creating student:", studentError);
-      // Rollback
       await adminClient.from("parents").delete().eq("id", parentData.id);
       await adminClient.auth.admin.deleteUser(userId);
       return new Response(JSON.stringify({ error: studentError.message }), {
@@ -177,6 +167,7 @@ serve(async (req) => {
       student_id: studentData.id,
       parent_id: parentData.id,
       relationship: "parent",
+      school_id: effectiveSchoolId,
     });
 
     if (linkError) {
