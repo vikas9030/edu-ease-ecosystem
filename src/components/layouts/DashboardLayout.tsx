@@ -42,6 +42,7 @@ import { cn, formatClassName } from "@/lib/utils";
 import { toast } from 'sonner';
 import NotificationBell from '@/components/NotificationBell';
 import InstallAppBanner from '@/components/InstallAppBanner';
+import { useSchoolBranding } from '@/hooks/useSchoolBranding';
 
 
 interface SidebarItem {
@@ -88,6 +89,7 @@ export default function DashboardLayout({ children, sidebarItems, roleColor }: D
   const { user, userRole, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { schoolName, schoolLogo } = useSchoolBranding();
 
   useEffect(() => {
     async function fetchProfile() {
@@ -221,12 +223,16 @@ export default function DashboardLayout({ children, sidebarItems, roleColor }: D
         {/* Logo */}
         <div className="h-16 flex items-center px-3 border-b border-sidebar-border">
           <div className={cn("flex items-center gap-2 min-w-0", !sidebarOpen && "justify-center w-full")}>
-            <div className="h-9 w-9 flex-shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
-              <GraduationCap className="h-5 w-5 text-primary" />
-            </div>
+            {schoolLogo ? (
+              <img src={schoolLogo} alt={schoolName || 'School'} className="h-9 w-9 flex-shrink-0 rounded-lg object-cover" />
+            ) : (
+              <div className="h-9 w-9 flex-shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+                <GraduationCap className="h-5 w-5 text-primary" />
+              </div>
+            )}
             {sidebarOpen && (
               <div className="min-w-0">
-                <h1 className="font-display font-bold text-base leading-tight truncate">SmartEduConnect</h1>
+                <h1 className="font-display font-bold text-base leading-tight truncate">{schoolName || 'SmartEduConnect'}</h1>
                 <p className="text-[10px] text-sidebar-foreground/60 truncate">{roleLabel}</p>
               </div>
             )}
@@ -292,10 +298,14 @@ export default function DashboardLayout({ children, sidebarItems, roleColor }: D
           <div className="flex items-center gap-4">
             {/* Mobile: Logo + Name */}
             <div className="flex items-center gap-2 lg:hidden">
-              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <GraduationCap className="h-5 w-5 text-primary" />
-              </div>
-              <h1 className="font-display font-bold text-base leading-tight">SmartEduConnect</h1>
+              {schoolLogo ? (
+                <img src={schoolLogo} alt={schoolName || 'School'} className="h-9 w-9 rounded-lg object-cover" />
+              ) : (
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                </div>
+              )}
+              <h1 className="font-display font-bold text-base leading-tight">{schoolName || 'SmartEduConnect'}</h1>
             </div>
             {/* Desktop: Page title */}
             <div className="hidden lg:block">
