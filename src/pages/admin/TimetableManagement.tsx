@@ -122,46 +122,83 @@ export default function TimetableManagement() {
     endTime: '08:45',
   });
 
-  // Load schedule from database (app_settings)
+  // Load schedule for selected class from database (app_settings)
   useEffect(() => {
+    if (!selectedClass) return;
     async function loadSchedule() {
-      const { data } = await supabase
+      setLoadingSchedule(true);
+      // Try class-specific schedule first
+      const { data: classData } = await supabase
         .from('app_settings')
         .select('setting_value')
-        .eq('setting_key', 'timetable_schedule')
+        .eq('setting_key', `timetable_schedule_${selectedClass}`)
         .maybeSingle();
-      if (data?.setting_value) {
+      
+      if (classData?.setting_value) {
         try {
-          const parsed = typeof data.setting_value === 'string'
-            ? JSON.parse(data.setting_value)
-            : data.setting_value;
-          if (Array.isArray(parsed)) setSchedule(parsed);
+          const parsed = typeof classData.setting_value === 'string'
+            ? JSON.parse(classData.setting_value)
+            : classData.setting_value;
+          if (Array.isArray(parsed)) { setSchedule(parsed); setLoadingSchedule(false); return; }
         } catch (e) {
           console.error('Failed to parse saved schedule');
         }
       }
+
+      // Fallback to global schedule
+      const { data: globalData } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'timetable_schedule')
+        .maybeSingle();
+      
+      if (globalData?.setting_value) {
+        try {
+          const parsed = typeof globalData.setting_value === 'string'
+            ? JSON.parse(globalData.setting_value)
+            : globalData.setting_value;
+          if (Array.isArray(parsed)) { setSchedule(parsed); setLoadingSchedule(false); return; }
+        } catch (e) {
+          console.error('Failed to parse global schedule');
+        }
+      }
+      
+      setSchedule(DEFAULT_SCHEDULE);
+      setLoadingSchedule(false);
     }
     loadSchedule();
-  }, []);
+  }, [selectedClass]);
 
-  // Save schedule to database
-  const saveSchedule = async (newSchedule: PeriodConfig[]) => {
-    setSchedule(newSchedule);
+  // Save schedule for specific class(es) to database
+  const saveScheduleForClass = async (newSchedule: PeriodConfig[], classId: string) => {
+    const settingKey = `timetable_schedule_${classId}`;
     const { data: existing } = await supabase
       .from('app_settings')
       .select('id')
-      .eq('setting_key', 'timetable_schedule')
+      .eq('setting_key', settingKey)
       .maybeSingle();
 
     if (existing) {
       await supabase
         .from('app_settings')
         .update({ setting_value: newSchedule as any, updated_at: new Date().toISOString(), updated_by: user?.id } as any)
-        .eq('setting_key', 'timetable_schedule');
+        .eq('setting_key', settingKey);
     } else {
       await supabase
         .from('app_settings')
-        .insert({ setting_key: 'timetable_schedule', setting_value: newSchedule as any, updated_by: user?.id, school_id: schoolId } as any);
+        .insert({ setting_key: settingKey, setting_value: newSchedule as any, updated_by: user?.id, school_id: schoolId } as any);
+    }
+  };
+
+  const saveSchedule = async (newSchedule: PeriodConfig[]) => {
+    setSchedule(newSchedule);
+    // Save for currently selected class
+    await saveScheduleForClass(newSchedule, selectedClass);
+    // Also apply to any additional selected classes
+    for (const classId of applyToClasses) {
+      if (classId !== selectedClass) {
+        await saveScheduleForClass(newSchedule, classId);
+      }
     }
   };
 
