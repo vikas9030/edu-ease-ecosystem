@@ -114,6 +114,7 @@ export default function TeacherExams() {
       const { data: studentData } = await supabase
         .from('students')
         .select('id, full_name, admission_number, class_id')
+        .eq('status', 'active')
         .order('full_name');
       if (studentData) setStudents(studentData);
     } catch (error) {

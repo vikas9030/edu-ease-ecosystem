@@ -85,6 +85,7 @@ export default function ExamMarksEntry({ exams, onMarksUpdated }: Props) {
         .from('students')
         .select('id, full_name, admission_number, photo_url')
         .eq('class_id', exam.class_id)
+        .eq('status', 'active')
         .order('full_name');
 
       if (studentData) {
