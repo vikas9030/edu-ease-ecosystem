@@ -36,7 +36,7 @@ import {
 
 export default function SettingsPage() {
   const adminSidebarItems = useAdminSidebar();
-  const { user, userRole, loading, signOut } = useAuth();
+  const { user, userRole, schoolId, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 

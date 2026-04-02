@@ -32,7 +32,7 @@ interface AuditEntry {
 }
 
 export default function LeadsSettings() {
-  const { user } = useAuth();
+  const { user, schoolId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [moduleEnabled, setModuleEnabled] = useState(false);
