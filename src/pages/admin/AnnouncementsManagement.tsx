@@ -17,17 +17,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Loader2, MoreHorizontal, Edit, Trash2, Bell, Megaphone } from 'lucide-react';
+import { Plus, Search, Loader2, MoreHorizontal, Edit, Trash2, Megaphone } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,6 +49,7 @@ export default function AnnouncementsManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -85,7 +78,27 @@ export default function AnnouncementsManagement() {
     setLoadingData(false);
   };
 
-  const handleCreateAnnouncement = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setFormData({ title: '', content: '', targetAudience: 'all' });
+    setEditingAnnouncement(null);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (announcement: Announcement) => {
+    setEditingAnnouncement(announcement);
+    setFormData({
+      title: announcement.title,
+      content: announcement.content,
+      targetAudience: announcement.target_audience?.[0] || 'all',
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.content) {
       toast({ variant: 'destructive', title: 'Error', description: 'Title and content are required' });
@@ -94,21 +107,41 @@ export default function AnnouncementsManagement() {
 
     setIsSubmitting(true);
 
-    const { error } = await supabase.from('announcements').insert({
-      title: formData.title,
-      content: formData.content,
-      target_audience: [formData.targetAudience],
-      created_by: user?.id,
-      school_id: schoolId,
-    });
+    if (editingAnnouncement) {
+      const { error } = await supabase
+        .from('announcements')
+        .update({
+          title: formData.title,
+          content: formData.content,
+          target_audience: [formData.targetAudience],
+        })
+        .eq('id', editingAnnouncement.id);
 
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message });
+      if (error) {
+        toast({ variant: 'destructive', title: 'Error', description: error.message });
+      } else {
+        toast({ title: 'Success', description: 'Announcement updated' });
+        setDialogOpen(false);
+        resetForm();
+        fetchAnnouncements();
+      }
     } else {
-      toast({ title: 'Success', description: 'Announcement published' });
-      setDialogOpen(false);
-      setFormData({ title: '', content: '', targetAudience: 'all' });
-      fetchAnnouncements();
+      const { error } = await supabase.from('announcements').insert({
+        title: formData.title,
+        content: formData.content,
+        target_audience: [formData.targetAudience],
+        created_by: user?.id,
+        school_id: schoolId,
+      });
+
+      if (error) {
+        toast({ variant: 'destructive', title: 'Error', description: error.message });
+      } else {
+        toast({ title: 'Success', description: 'Announcement published' });
+        setDialogOpen(false);
+        resetForm();
+        fetchAnnouncements();
+      }
     }
 
     setIsSubmitting(false);
@@ -143,50 +176,55 @@ export default function AnnouncementsManagement() {
             <p className="text-muted-foreground">Manage school announcements</p>
           </div>
 
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gradient-admin"><Plus className="h-4 w-4 mr-2" />New Announcement</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle className="font-display">Create Announcement</DialogTitle>
-                <DialogDescription>Publish a new announcement</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleCreateAnnouncement} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Title *</Label>
-                  <Input placeholder="Announcement title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Content *</Label>
-                  <Textarea placeholder="Announcement content..." rows={5} value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Target Audience</Label>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={formData.targetAudience}
-                    onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
-                  >
-                    <option value="all">All</option>
-                    <option value="teachers">Teachers Only</option>
-                    <option value="parents">Parents Only</option>
-                    <option value="students">Students Only</option>
-                  </select>
-                </div>
-
-                <DialogFooter>
-                  <Button type="submit" disabled={isSubmitting} className="w-full gradient-admin">
-                    {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Publish Announcement
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button className="gradient-admin" onClick={openCreateDialog}>
+            <Plus className="h-4 w-4 mr-2" />New Announcement
+          </Button>
         </div>
+
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="font-display">
+                {editingAnnouncement ? 'Edit Announcement' : 'Create Announcement'}
+              </DialogTitle>
+              <DialogDescription>
+                {editingAnnouncement ? 'Update the announcement details' : 'Publish a new announcement'}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Title *</Label>
+                <Input placeholder="Announcement title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Content *</Label>
+                <Textarea placeholder="Announcement content..." rows={5} value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Target Audience</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={formData.targetAudience}
+                  onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
+                >
+                  <option value="all">All</option>
+                  <option value="teachers">Teachers Only</option>
+                  <option value="parents">Parents Only</option>
+                  <option value="students">Students Only</option>
+                </select>
+              </div>
+
+              <DialogFooter>
+                <Button type="submit" disabled={isSubmitting} className="w-full gradient-admin">
+                  {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {editingAnnouncement ? 'Update Announcement' : 'Publish Announcement'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         <Card className="card-elevated">
           <CardContent className="pt-6">
@@ -229,7 +267,7 @@ export default function AnnouncementsManagement() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem><Edit className="h-4 w-4 mr-2" />Edit</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEditDialog(announcement)}><Edit className="h-4 w-4 mr-2" />Edit</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteAnnouncement(announcement.id)}><Trash2 className="h-4 w-4 mr-2" />Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
