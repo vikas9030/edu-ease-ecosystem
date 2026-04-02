@@ -96,16 +96,21 @@ export default function ReceiptTemplateSettings({ open, onOpenChange }: Props) {
       .eq('setting_key', 'receipt_template')
       .maybeSingle();
 
+    // Get school_id from auth context
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const { data: roleData } = await supabase.from('user_roles').select('school_id').eq('user_id', currentUser!.id).maybeSingle();
+    const currentSchoolId = roleData?.school_id;
+
     let error;
     if (existing) {
       ({ error } = await supabase
         .from('app_settings')
-        .update({ setting_value: template as any, updated_at: new Date().toISOString() })
+        .update({ setting_value: template as any, updated_at: new Date().toISOString(), school_id: currentSchoolId })
         .eq('setting_key', 'receipt_template'));
     } else {
       ({ error } = await supabase
         .from('app_settings')
-        .insert({ setting_key: 'receipt_template', setting_value: template as any }));
+        .insert({ setting_key: 'receipt_template', setting_value: template as any, school_id: currentSchoolId }));
     }
 
     setSaving(false);

@@ -181,7 +181,7 @@ export default function TimetableManagement() {
     if (existing) {
       await supabase
         .from('app_settings')
-        .update({ setting_value: newSchedule as any, updated_at: new Date().toISOString(), updated_by: user?.id } as any)
+        .update({ setting_value: newSchedule as any, updated_at: new Date().toISOString(), updated_by: user?.id, school_id: schoolId } as any)
         .eq('setting_key', settingKey);
     } else {
       await supabase
