@@ -556,7 +556,10 @@ export default function TimetableManagement() {
                   </SelectContent>
                 </Select>
 
-                <Button variant="outline" onClick={() => setConfigDialogOpen(true)}>
+                <Button variant="outline" onClick={() => {
+                  setApplyToClasses([selectedClass]);
+                  setConfigDialogOpen(true);
+                }}>
                   <Settings className="h-4 w-4 mr-2" />Configure
                 </Button>
 
