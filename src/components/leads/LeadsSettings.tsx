@@ -146,7 +146,7 @@ export default function LeadsSettings() {
     try {
       const { error } = await supabase
         .from('app_settings')
-        .upsert({ setting_key: 'leads_permission_mode', setting_value: mode, updated_by: user.id, updated_at: new Date().toISOString() } as any, { onConflict: 'setting_key' });
+        .upsert({ setting_key: 'leads_permission_mode', setting_value: mode, updated_by: user.id, updated_at: new Date().toISOString(), school_id: schoolId } as any, { onConflict: 'setting_key' });
 
       if (error) throw error;
 

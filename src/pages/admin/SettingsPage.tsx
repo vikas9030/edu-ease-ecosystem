@@ -124,9 +124,9 @@ export default function SettingsPage() {
           .maybeSingle();
 
         if (existing) {
-          await supabase.from('app_settings').update({ setting_value: JSON.stringify(value) as any, updated_by: user!.id }).eq('setting_key', key);
+          await supabase.from('app_settings').update({ setting_value: JSON.stringify(value) as any, updated_by: user!.id, school_id: schoolId }).eq('setting_key', key);
         } else {
-          await supabase.from('app_settings').insert({ setting_key: key, setting_value: JSON.stringify(value) as any, updated_by: user!.id });
+          await supabase.from('app_settings').insert({ setting_key: key, setting_value: JSON.stringify(value) as any, updated_by: user!.id, school_id: schoolId });
         }
       }
       toast({ title: 'Razorpay Keys Saved', description: 'Payment gateway credentials updated successfully' });
