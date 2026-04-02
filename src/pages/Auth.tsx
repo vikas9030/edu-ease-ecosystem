@@ -320,19 +320,21 @@ export default function Auth() {
           </div>
         </Label>
         <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
-          <SelectTrigger id="school-select">
-            {selectedSchool ? (
-              <span className="flex items-center gap-2">
-                {selectedSchool.logo_url ? (
-                  <img src={selectedSchool.logo_url} alt="" className="h-5 w-5 rounded object-cover shrink-0" />
-                ) : (
-                  <School className="h-4 w-4 text-muted-foreground shrink-0" />
-                )}
-                <span className="truncate">{selectedSchool.name} ({selectedSchool.code})</span>
-              </span>
-            ) : (
-              <span className="text-muted-foreground">Choose your school...</span>
-            )}
+          <SelectTrigger id="school-select" className="h-10">
+            <div className="flex items-center gap-2 min-w-0 w-full">
+              {selectedSchool ? (
+                <>
+                  {selectedSchool.logo_url ? (
+                    <img src={selectedSchool.logo_url} alt="" className="h-5 w-5 rounded object-cover shrink-0" />
+                  ) : (
+                    <School className="h-4 w-4 text-muted-foreground shrink-0" />
+                  )}
+                  <span className="truncate text-sm">{selectedSchool.name} ({selectedSchool.code})</span>
+                </>
+              ) : (
+                <span className="text-muted-foreground text-sm">Choose your school...</span>
+              )}
+            </div>
           </SelectTrigger>
           <SelectContent>
             {schools.map((school) => (
