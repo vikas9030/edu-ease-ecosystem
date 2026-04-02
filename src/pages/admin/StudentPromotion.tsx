@@ -108,6 +108,13 @@ export default function StudentPromotion() {
   const fromClassData = classes.find(c => c.id === fromClass);
   const toClassData = classes.find(c => c.id === toClass);
 
+  const generateStudentId = (name: string, className: string, section: string): string => {
+    const namePart = name.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '');
+    const classPart = className.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const sectionPart = section && section !== '-' ? section.toUpperCase().replace(/[^A-Z]/g, '') : '';
+    return sectionPart ? `${namePart}-${classPart}-${sectionPart}` : `${namePart}-${classPart}`;
+  };
+
   const handlePromote = async () => {
     if (!toClass || selectedIds.size === 0) return;
     setPromoting(true);
@@ -117,18 +124,39 @@ export default function StudentPromotion() {
       const selectedStudents = students.filter(s => selectedIds.has(s.id));
       const retainedStudents = students.filter(s => !selectedIds.has(s.id));
       const targetClass = classes.find(c => c.id === toClass);
+      const sourceClass = classes.find(c => c.id === fromClass);
 
       let promotedCount = 0;
 
       for (const student of selectedStudents) {
-        // Extract base name from admission number
-        let baseName = student.admission_number;
-        baseName = baseName.replace(/-[^-]+-[^-]+$/, '');
-        baseName = baseName.replace(/^[A-Za-z0-9]+[A-Za-z]\//, '');
-        baseName = baseName.replace(/\/\d{4}$/, '');
-        if (!baseName.trim()) baseName = student.full_name.toUpperCase().replace(/\s+/g, '');
+        const newAdmissionNumber = generateStudentId(
+          student.full_name,
+          targetClass?.name || '',
+          targetClass?.section || ''
+        );
 
-        const newAdmissionNumber = `${baseName}-${targetClass?.name || ''}-${targetClass?.section || ''}`;
+        // Fetch snapshots of current data for history
+        const [attendanceRes, marksRes, feesRes, timetableRes] = await Promise.all([
+          supabase.from('attendance').select('*').eq('student_id', student.id),
+          supabase.from('exam_marks').select('*, exams(name, exam_date)').eq('student_id', student.id),
+          supabase.from('fees').select('*').eq('student_id', student.id),
+          supabase.from('timetable').select('*, subjects(name)').eq('class_id', fromClass),
+        ]);
+
+        // Store promotion history with snapshots
+        await supabase.from('student_promotion_history' as any).insert({
+          student_id: student.id,
+          student_name: student.full_name,
+          admission_number: student.admission_number,
+          from_class_name: formatClassName(sourceClass?.name, sourceClass?.section),
+          to_class_name: formatClassName(targetClass?.name, targetClass?.section),
+          promoted_by: user?.id,
+          attendance_snapshot: attendanceRes.data || [],
+          marks_snapshot: marksRes.data || [],
+          fees_snapshot: feesRes.data || [],
+          timetable_snapshot: timetableRes.data || [],
+          school_id: schoolId,
+        });
 
         // 1. Mark old record as 'promoted' (preserve it)
         const { error: updateError } = await supabase
