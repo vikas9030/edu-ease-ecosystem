@@ -102,6 +102,8 @@ export default function TimetableManagement() {
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<PeriodConfig | null>(null);
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
+  const [applyToClasses, setApplyToClasses] = useState<string[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
 
   // For click-to-fill
   const [selectedCell, setSelectedCell] = useState<{ day: string; period: number } | null>(null);
