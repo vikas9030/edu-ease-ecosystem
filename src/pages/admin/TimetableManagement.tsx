@@ -898,15 +898,49 @@ export default function TimetableManagement() {
                 <Settings className="h-5 w-5" />
                 Schedule Configuration
               </DialogTitle>
-              <DialogDescription>Configure periods, breaks, and timings</DialogDescription>
+              <DialogDescription>
+                Configure periods, breaks, and timings for {formatClassName(classes.find(c => c.id === selectedClass)?.name || '', classes.find(c => c.id === selectedClass)?.section)}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
+              {/* Apply to multiple classes */}
+              {classes.length > 1 && (
+                <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Copy className="h-4 w-4" />
+                    Also apply this schedule to:
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                    {classes.filter(c => c.id !== selectedClass).map((c) => (
+                      <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={applyToClasses.includes(c.id)}
+                          onCheckedChange={(checked) => {
+                            setApplyToClasses(prev =>
+                              checked
+                                ? [...prev, c.id]
+                                : prev.filter(id => id !== c.id)
+                            );
+                          }}
+                        />
+                        {formatClassName(c.name, c.section)}
+                      </label>
+                    ))}
+                  </div>
+                  {applyToClasses.filter(id => id !== selectedClass).length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Changes will apply to {applyToClasses.filter(id => id !== selectedClass).length + 1} class(es) total
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-2 flex-wrap">
                 <Button variant="outline" size="sm" onClick={addPeriod}><Plus className="h-4 w-4 mr-1" />Add Period</Button>
                 <Button variant="outline" size="sm" onClick={addBreak}><Coffee className="h-4 w-4 mr-1" />Add Break</Button>
                 <Button variant="outline" size="sm" onClick={resetToDefault}>Reset Default</Button>
               </div>
-              <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+              <div className="space-y-2 max-h-[40vh] overflow-y-auto">
                 {schedule.map((slot, index) => (
                   <div key={index} className={cn("flex items-center justify-between p-3 rounded-lg border", slot.isBreak ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800" : "bg-muted/30")}>
                     <div className="flex items-center gap-3">
