@@ -1,6 +1,6 @@
 # 🎓 Smart EduConnect — School Management System
 
-A comprehensive, role-based school management platform built with modern web technologies. Smart EduConnect streamlines academic operations by connecting **administrators**, **teachers**, and **parents** through a unified, real-time interface.
+A comprehensive, multi-tenant, role-based school management platform built with modern web technologies. Smart EduConnect streamlines academic operations by connecting **super administrators**, **school administrators**, **teachers**, and **parents/students** through a unified, real-time interface.
 
 ---
 
@@ -10,6 +10,7 @@ A comprehensive, role-based school management platform built with modern web tec
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
+- [Multi-Tenancy](#multi-tenancy)
 - [User Roles](#user-roles)
 - [Module Breakdown](#module-breakdown)
 - [Getting Started](#getting-started)
@@ -17,24 +18,38 @@ A comprehensive, role-based school management platform built with modern web tec
 - [Database Schema](#database-schema)
 - [Authentication & Security](#authentication--security)
 - [Design System](#design-system)
+- [Changelog](#changelog)
 
 ---
 
 ## Overview
 
-Smart EduConnect is a full-stack school ERP that digitizes day-to-day school operations — from attendance tracking and exam management to fee collection and parent communication. It features three distinct dashboards tailored to each user role, with real-time data synchronization and a responsive, mobile-friendly design.
+Smart EduConnect is a full-stack, multi-tenant school ERP that digitizes day-to-day school operations — from attendance tracking and exam management to fee collection and parent communication. It features **four distinct dashboards** tailored to each user role (Super Admin, Admin, Teacher, Parent), with real-time data synchronization, school-level data isolation via Row Level Security (RLS), and a responsive, mobile-friendly design.
 
 ---
 
 ## ✨ Features
 
 ### 🔑 Core Capabilities
-- **Role-based access control** — Admin, Teacher, and Parent portals with distinct permissions
-- **Real-time data sync** — Live updates across all connected users
+- **Multi-tenant architecture** — Each school's data is isolated via `school_id` on all 49+ tables, enforced by RLS policies
+- **4-panel role-based access control** — Super Admin, Admin, Teacher, and Parent portals with distinct permissions
+- **Real-time data sync** — Live updates across all connected users via Supabase Realtime
 - **Responsive design** — Works seamlessly on desktop, tablet, and mobile
 - **Dark mode support** — Full light/dark theme with semantic design tokens
-- **Export & reporting** — Separate CSV and PDF downloads for attendance reports across all panels; PDF export for fees (landscape report with summary stats, color-coded statuses, grand totals), and more
+- **IST timezone** — All notification timestamps and relative time displays use Indian Standard Time (Asia/Kolkata)
+- **Export & reporting** — CSV and PDF downloads for attendance, fees (landscape report with summary stats, color-coded statuses, grand totals), timetable, and more
 - **Bulk import/export** — Excel-based bulk import with downloadable templates and progress tracking for Students (with auto parent account creation) and Teachers; Excel export of current data
+- **School branding** — Dynamic school name and logo displayed in sidebar header, fetched from the schools table
+- **Module visibility control** — Super Admin can enable/disable modules globally; per-school overrides supported
+
+### 🏢 Super Admin Panel
+| Module | Description |
+|--------|-------------|
+| **Dashboard** | System-wide overview with total schools, admins, and quick actions |
+| **Schools Management** | Create, edit, activate/deactivate schools with logo upload, view admin/student/teacher counts per school, delete schools |
+| **Module Control** | Global module visibility toggles + per-school overrides for granular feature control |
+| **Manage Admins** | Create admin accounts, assign to schools, reset passwords via edge function |
+| **Settings** | Super admin profile management |
 
 ### 📊 Admin Panel
 | Module | Description |
@@ -44,7 +59,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Students** | Student registry with admission numbers, class assignments, and profiles; **bulk import from Excel** (with downloadable template, sequential edge function calls with progress bar) and **export to Excel** |
 | **Classes** | Create classes with manual class name/number input (no dropdown restriction), optional section field (defaults to "-" if empty), and assign class teachers |
 | **Subjects** | Manage subject catalog with codes and categories (academic/competitive) |
-| **Timetable** | Build and publish weekly timetables per class |
+| **Timetable** | Build and publish weekly timetables per class with configurable period schedules stored in `app_settings` |
 | **Attendance Reports** | View, filter, search, and export attendance data (separate CSV and PDF downloads) across all classes |
 | **Exams** | Create exams with 5-step wizard, manage schedules, enter marks, view results (5-tab layout) |
 | **Weekly Exams** | Manage weekly/competitive exam cycles with question papers and student results |
@@ -52,16 +67,17 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Syllabus** | Manage syllabus topics per class/subject with completion tracking (shows teacher who completed & date) |
 | **Question Paper Builder** | Build question papers for weekly exams with MCQ support |
 | **Leads (CRM)** | Track admission inquiries with status pipeline, follow-ups, call logs, and Excel import |
-| **Announcements** | Broadcast announcements to specific audiences |
+| **Announcements** | Broadcast announcements to specific audiences with automated notifications |
 | **Leave Requests** | Approve or reject leave applications from teachers and students; view/download attachments |
 | **Certificates** | Process certificate requests with document attachment download |
 | **Complaints** | Handle and respond to parent complaints with visibility-based filtering (admin/teacher) |
-| **Fees** | Batch-assign fees by class/student, percentage-based discounts (flat or per-student), custom partial payments with Record Payment dialog, auto balance tracking, payment history log, PDF receipt generation (blob download), **PDF fee collection report export** (landscape, summary box, color-coded statuses, grand totals), Razorpay online payments, automated reminders |
+| **Fees** | Batch-assign fees by class/student, percentage-based discounts (flat or per-student), custom partial payments with Record Payment dialog, auto balance tracking, payment history log, PDF receipt generation (blob download), **PDF fee collection report export** (landscape, summary box, color-coded statuses, grand totals), Razorpay online payments, automated reminders, **receipt template customization** (school name, address, phone, header/footer text, logo, field toggles) |
 | **Messages** | Direct messaging system with file/image sharing |
 | **Gallery** | Manage photo gallery with folders |
-| **Notifications** | View and manage admin notifications |
-| **Settings** | App configuration, module toggles, and lead permissions |
-| **Student Promotion** | Versioned record model — old record marked as `status = 'promoted'` (preserving original class_id & admission_number), new record created for the target class with auto-regenerated admission number & login ID (`{Name}-{Class}-{Section}`), parent links (`student_parents`) automatically copied to new record, bulk or individual selection, retained students marked separately |
+| **Notifications** | View and manage admin notifications with date filtering, mark all read, delete read |
+| **Settings** | App configuration, module toggles, lead permissions, receipt template settings, password reset |
+| **Student Promotion** | Versioned record model — old record marked as `status = 'promoted'` (preserving original class_id & admission_number), new record created for the target class with auto-regenerated admission number & login ID (`{Name}-{Class}-{Section}`), parent links (`student_parents`) automatically copied to new record, bulk or individual selection, retained students marked separately, full history snapshot (attendance, marks, fees, timetable) stored in `student_promotion_history` |
+| **Discontinued Students** | Discontinue students with reason, archive snapshots (attendance, marks, fees, timetable) in `student_discontinuation_archives`, reinstate discontinued students back to active status |
 | **Student History** | Search any student by name or admission number, view all class records (current & previous) as selectable cards, drill into each class with tabbed view: Attendance (calendar by month), Marks (by exam name with grades), Fees (payment status & amounts). Shared across Admin, Teacher, and Parent panels |
 | **Holidays** | Create, edit, and delete holidays/occasions/events with date, type, and description; redesigned mobile-responsive calendar (full-width, no empty space) with upcoming holidays banner, summary stat cards (total/holidays/occasions/events), search & filter by type, date badge cards with "Today" indicator, month-wise breakdown in calendar sidebar, color-coded type badges using semantic tokens, loading skeletons, scrollable list, compact FAB for mobile add; automated notifications on creation and 2-day-before reminders |
 
@@ -85,13 +101,14 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Student History** | Search students, view all class records (current & promoted), drill into attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
 | **Holidays** | View upcoming holidays with banner, search & filter by type, date badge cards with "Today" indicator, month-wise calendar sidebar breakdown, responsive layout |
-| **Notifications** | View personal notifications |
+| **Notifications** | View personal notifications with date filter, mark all read, delete read |
+| **Settings** | Profile management |
 
 ### 👨‍👩‍👧 Parent Panel
 | Module | Description |
 |--------|-------------|
 | **Dashboard** | Child's overview with attendance, upcoming exams, and alerts |
-| **My Child** | Detailed child profile and academic info |
+| **My Child** | Detailed child profile and academic info with child selector for parents with multiple children |
 | **Attendance** | View 30-day attendance history with stats, progress bar, and day-of-week details |
 | **Timetable** | View child's weekly class schedule |
 | **Homework** | Track assigned homework, due dates, and download teacher-uploaded attachments |
@@ -107,7 +124,7 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 | **Student History** | View child's complete academic history across all classes (current & promoted) with attendance, marks, and fees per class |
 | **Gallery** | View school photo gallery |
 | **Holidays** | View upcoming holidays with banner, search & filter by type, date badge cards with "Today" indicator, month-wise calendar sidebar breakdown, responsive layout |
-| **Notifications** | View personal notifications (in-app + Web Push) |
+| **Notifications** | View personal notifications (in-app + Web Push) with date filter, mark all read, delete read |
 | **Settings** | Profile management |
 
 ---
@@ -137,23 +154,36 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 ## 🏗 Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│                   Frontend (SPA)                 │
-│  React + TypeScript + Tailwind + shadcn/ui       │
-├─────────────────────────────────────────────────┤
-│              React Router (Client)               │
-│  /admin/*  │  /teacher/*  │  /parent/*  │ /auth  │
-├─────────────────────────────────────────────────┤
-│         Supabase JS Client + React Query         │
-├─────────────────────────────────────────────────┤
-│              Lovable Cloud Backend               │
-│  ┌───────────┬──────────┬───────────────────┐   │
-│  │  Auth     │  DB      │  Edge Functions    │   │
-│  │  (JWT)    │  (PgSQL) │  (Deno Runtime)    │   │
-│  └───────────┴──────────┴───────────────────┘   │
-│              Row Level Security (RLS)            │
-└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                     Frontend (SPA)                       │
+│    React + TypeScript + Tailwind + shadcn/ui             │
+├─────────────────────────────────────────────────────────┤
+│                React Router (Client)                     │
+│  /super-admin/*  │  /admin/*  │  /teacher/*  │  /parent/*│
+├─────────────────────────────────────────────────────────┤
+│           Supabase JS Client + React Query               │
+├─────────────────────────────────────────────────────────┤
+│                Lovable Cloud Backend                     │
+│  ┌───────────┬──────────┬───────────────────┐           │
+│  │  Auth     │  DB      │  Edge Functions    │           │
+│  │  (JWT)    │  (PgSQL) │  (Deno Runtime)    │           │
+│  └───────────┴──────────┴───────────────────┘           │
+│       Row Level Security (RLS) + school_id isolation     │
+└─────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🏢 Multi-Tenancy
+
+Smart EduConnect uses a **single-database, multi-tenant** architecture with logical data isolation:
+
+- **Every table** includes a `school_id` column referencing the `schools` table
+- **RLS policies** automatically filter data so each school can only access its own records
+- **Security-definer functions** (`get_user_school_id()`, `has_role()`, `is_admin_or_super()`) enforce isolation at the database level
+- **Super Admins** can operate across all schools for global management
+- **Module visibility** can be configured globally and overridden per school via `module_visibility` and `school_module_overrides` tables
+- **School branding** — each school has its own name, logo, address, and contact info displayed dynamically
 
 ---
 
@@ -161,11 +191,12 @@ Smart EduConnect is a full-stack school ERP that digitizes day-to-day school ope
 
 | Role | Access Level | Description |
 |------|-------------|-------------|
-| **Admin** | Full | Complete system control — manage users, settings, all modules |
+| **Super Admin** | Global | Manage all schools, create admins, control modules, system-wide settings |
+| **Admin** | School-scoped | Complete control within their school — manage users, settings, all modules |
 | **Teacher** | Scoped | Access to assigned classes, mark attendance, enter marks, manage leads (if permitted) |
 | **Parent** | Read-heavy | View child's data, submit leave requests, pay fees, communicate with teachers |
 
-Role assignment is stored in the `user_roles` table and checked on every authenticated request via RLS policies.
+Role assignment is stored in the `user_roles` table (separate from profiles for security) and checked on every authenticated request via RLS policies. The `app_role` enum includes: `admin`, `teacher`, `parent`, `super_admin`.
 
 ---
 
@@ -175,34 +206,47 @@ Role assignment is stored in the `user_roles` table and checked on every authent
 src/
 ├── components/
 │   ├── ui/                    # shadcn/ui primitives (Button, Card, Dialog, etc.)
-│   ├── layouts/               # DashboardLayout with sidebar
-│   ├── exams/                 # Exam wizard, marks entry, schedule builder
+│   ├── layouts/               # DashboardLayout with sidebar, MobileBottomNav
+│   ├── exams/                 # Exam wizard, marks entry, schedule builder, results view
+│   ├── exam-cycles/           # Exam cycles & weekly exams tab components
 │   ├── students/              # StudentExcelImport (dialog), StudentExcelExport (utility)
 │   ├── teachers/              # TeacherExcelImport (dialog), TeacherExcelExport (utility)
-│   ├── leads/                 # Lead forms, call logs, Excel import, settings
-│   ├── messaging/             # Messaging interface
-│   ├── AttendanceSummary.tsx   # Reusable attendance widget
+│   ├── leads/                 # Lead forms, call logs, Excel import, settings, permissions
+│   ├── messaging/             # Messaging interface with file sharing
+│   ├── fees/                  # Fee creation, payment, receipts, receipt template settings
+│   ├── gallery/               # Gallery view component
+│   ├── history/               # StudentHistoryContent — shared history (Admin/Teacher/Parent)
+│   ├── notifications/         # NotificationsPage — full notification management
+│   ├── attendance/            # Attendance calendar component
+│   ├── parent/                # ChildSelector for multi-child parents
+│   ├── NotificationBell.tsx   # Header notification bell with unread count (IST timestamps)
+│   ├── PushNotificationToggle.tsx  # Push notification on/off toggle
+│   ├── InstallAppBanner.tsx   # PWA install banner
+│   ├── AttendanceSummary.tsx  # Reusable attendance widget
 │   ├── NavLink.tsx            # Navigation link component
 │   └── StatCard.tsx           # Dashboard stat card
 ├── config/
 │   ├── adminSidebar.tsx       # Admin navigation config
 │   ├── teacherSidebar.tsx     # Teacher navigation config (dynamic leads toggle)
-│   └── parentSidebar.tsx      # Parent navigation config
-├── components/
-│   ├── exams/                 # Exam wizard (5 steps), marks entry, schedule builder, results view, weekly exams
-│   ├── exam-cycles/           # Exam cycles & weekly exams tab components
-│   ├── gallery/               # Gallery view component
-│   ├── history/               # StudentHistoryContent — shared history component (Admin/Teacher/Parent)
-│   ├── attendance/            # Attendance calendar component
+│   ├── parentSidebar.tsx      # Parent navigation config
+│   └── superAdminSidebar.tsx  # Super admin navigation config
 ├── hooks/
-│   ├── useAuth.tsx            # Authentication context & provider
-│   ├── useLeadPermissions.ts  # Teacher lead access check
+│   ├── useAuth.tsx            # Authentication context & provider (includes schoolId)
+│   ├── useAdminSidebar.ts     # Dynamic admin sidebar builder with module visibility
 │   ├── useTeacherSidebar.ts   # Dynamic teacher sidebar builder
+│   ├── useParentSidebar.ts    # Dynamic parent sidebar builder
+│   ├── useLeadPermissions.ts  # Teacher lead access check
+│   ├── useModuleVisibility.ts # Module visibility with school overrides & caching
+│   ├── useSchoolBranding.ts   # School name & logo fetcher for sidebar
+│   ├── usePushNotifications.ts # Web Push subscription management
+│   ├── useInstallPrompt.ts    # PWA install prompt hook
+│   ├── use-mobile.tsx         # Mobile breakpoint detection
 │   └── use-toast.ts           # Toast notification hook
 ├── pages/
-│   ├── admin/                 # 21 admin pages (Dashboard, Teachers, Students, Classes, Subjects, Timetable, Attendance, Exams, Weekly Exams, Exam Cycles, Syllabus, Question Papers, Leads, Announcements, Leave, Certificates, Complaints, Fees, Messages, Gallery, Holidays, Settings)
-│   ├── teacher/               # 17 teacher pages (Dashboard, Classes, Students, Attendance, Homework, Exams, Syllabus, Weekly Exams, Reports, Announcements, Leave, Leads, Gallery, Holidays, Messages, Timetable, Notifications)
-│   ├── parent/                # 16 parent pages (Dashboard, Child, Attendance, Timetable, Homework, Exams, Syllabus, Progress, Announcements, Leave, Messages, Certificates, Fees, Gallery, Holidays, Notifications)
+│   ├── super-admin/           # 5 super admin pages (Dashboard, Schools, Modules, Admins, Settings)
+│   ├── admin/                 # 23 admin pages (Dashboard, Teachers, Students, Classes, Subjects, Timetable, Attendance, Exams, Weekly Exams, Exam Cycles, Syllabus, Question Papers, Leads, Announcements, Leave, Certificates, Complaints, Fees, Messages, Gallery, Holidays, Notifications, Promotion, Discontinued, Student History, Settings)
+│   ├── teacher/               # 19 teacher pages (Dashboard, Classes, Students, Attendance, Homework, Exams, Syllabus, Weekly Exams, Reports, Announcements, Leave, Leads, Gallery, Holidays, Messages, Timetable, Notifications, Student History, Settings)
+│   ├── parent/                # 18 parent pages (Dashboard, Child, Attendance, Timetable, Homework, Exams, Syllabus, Progress, Announcements, Leave, Messages, Certificates, Fees, Gallery, Holidays, Notifications, Complaints, Student History, Settings)
 │   ├── Auth.tsx               # Login / signup page
 │   ├── Index.tsx              # Landing page
 │   └── NotFound.tsx           # 404 page
@@ -214,23 +258,15 @@ src/
 │   ├── attendanceDownload.ts  # CSV & PDF export for attendance
 │   └── timetableDownload.ts   # Timetable export utilities
 ├── lib/
-│   └── utils.ts               # Tailwind merge utility
+│   └── utils.ts               # Tailwind merge utility + formatClassName helper
 ├── index.css                  # Design tokens, theme, component classes
-└── App.tsx                    # Root component with all routes
-
-├── hooks/
-│   ├── usePushNotifications.ts # Web Push subscription management
-│   └── useInstallPrompt.ts    # PWA install prompt hook
-├── components/
-│   ├── PushNotificationToggle.tsx  # Push notification on/off toggle
-│   ├── InstallAppBanner.tsx        # PWA install banner
-│   └── NotificationBell.tsx        # Header notification bell with unread count
+└── App.tsx                    # Root component with all routes (65+ routes)
 
 supabase/
 ├── config.toml                # Project configuration
 └── functions/
-    ├── create-student/            # Edge function: create student with auth
-    ├── create-user/               # Edge function: create user accounts
+    ├── create-student/            # Edge function: create student with auth & parent linking
+    ├── create-user/               # Edge function: create user accounts with role assignment
     ├── create-razorpay-order/     # Edge function: create Razorpay payment order
     ├── verify-razorpay-payment/   # Edge function: verify Razorpay payment signature & update fee
     ├── reset-user-password/       # Edge function: super-admin password reset for any user
@@ -238,8 +274,8 @@ supabase/
     ├── full-reset/                # Edge function: reset demo data
     ├── seed-demo-users/           # Edge function: seed demo accounts
     ├── send-push-notification/    # Edge function: Web Push delivery via VAPID
-    ├── notify-competitive-exams/  # Edge function: scheduled competitive exam reminders
-    └── notify-holiday-reminders/  # Edge function: automated holiday reminder notifications (2 days before)
+    ├── notify-competitive-exams/  # Edge function: scheduled competitive exam reminders (daily 7 AM)
+    └── notify-holiday-reminders/  # Edge function: automated holiday reminders (daily 8 AM, 2 days before)
 
 public/
 ├── sw-push.js                 # Service worker push event handler
@@ -258,11 +294,34 @@ capacitor.config.ts            # Capacitor native app configuration
 
 | Enum | Values |
 |------|--------|
-| `app_role` | `admin`, `teacher`, `parent` |
+| `app_role` | `admin`, `teacher`, `parent`, `super_admin` |
 
 ---
 
 ### Core Tables
+
+#### `schools`
+Multi-tenant school registry.
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `id` | uuid | No | `gen_random_uuid()` |
+| `name` | text | No | — |
+| `code` | text | No | — |
+| `email` | text | Yes | — |
+| `phone` | text | Yes | — |
+| `address` | text | Yes | — |
+| `logo_url` | text | Yes | — |
+| `is_active` | boolean | Yes | `true` |
+| `created_by` | uuid | Yes | — |
+| `created_at` | timestamptz | Yes | `now()` |
+| `updated_at` | timestamptz | Yes | `now()` |
+
+**RLS Policies:**
+- Super admins can manage all schools (ALL)
+- Admins can view their own school (SELECT)
+
+---
 
 #### `profiles`
 User profile data linked to auth users.
@@ -275,18 +334,19 @@ User profile data linked to auth users.
 | `email` | text | Yes | — |
 | `phone` | text | Yes | — |
 | `photo_url` | text | Yes | — |
+| `school_id` | uuid (→ `schools.id`) | Yes | — |
 | `created_at` | timestamptz | Yes | `now()` |
 | `updated_at` | timestamptz | Yes | `now()` |
 
 **RLS Policies:**
 - Public profiles viewable by everyone (SELECT)
 - Users can view & update own profile
-- Admins can manage all profiles
+- Admins can manage all profiles in their school
 
 ---
 
 #### `user_roles`
-Role assignments for access control.
+Role assignments for access control (stored separately from profiles for security).
 
 | Column | Type | Nullable | Default |
 |--------|------|----------|---------|
@@ -312,13 +372,9 @@ Teacher-specific data and employment info.
 | `qualification` | text | Yes | — |
 | `status` | text | Yes | `'active'` |
 | `joining_date` | date | Yes | `CURRENT_DATE` |
+| `school_id` | uuid (→ `schools.id`) | Yes | — |
 | `created_at` | timestamptz | Yes | `now()` |
 | `updated_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- All authenticated users can view teachers (SELECT)
-- Teachers can view own record (SELECT)
-- Admins can manage teachers (ALL)
 
 ---
 
@@ -343,51 +399,20 @@ Student registry with class assignments and parent info.
 | `login_id` | text | Yes | — |
 | `password_hash` | text | Yes | — |
 | `status` | text | Yes | `'active'` |
+| `discontinuation_reason` | text | Yes | — |
+| `school_id` | uuid (→ `schools.id`) | Yes | — |
 | `created_at` | timestamptz | Yes | `now()` |
 | `updated_at` | timestamptz | Yes | `now()` |
 
-**RLS Policies:**
-- Admins & teachers can manage students (ALL)
-- Teachers can view students in their classes (SELECT)
-- Parents can view their linked children (SELECT)
-
 ---
 
-#### `parents`
-Parent accounts linked to auth users.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `user_id` | uuid | No | — |
-| `phone` | text | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Parents can view own record (SELECT)
-- Teachers can view parents (SELECT)
-- Admins can manage parents (ALL)
-
----
-
-#### `student_parents`
-Many-to-many: student ↔ parent relationships.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `student_id` | uuid (→ `students.id`) | No | — |
-| `parent_id` | uuid (→ `parents.id`) | No | — |
-| `relationship` | text | Yes | `'parent'` |
-
-**RLS Policies:**
-- Admins & teachers can manage (ALL)
-- Parents can view own links (SELECT)
+#### `parents` & `student_parents`
+Parent accounts and many-to-many student ↔ parent relationships.
 
 ---
 
 #### `classes`
-Class definitions with sections.
+Class definitions with sections and academic year.
 
 | Column | Type | Nullable | Default |
 |--------|------|----------|---------|
@@ -396,524 +421,143 @@ Class definitions with sections.
 | `section` | text | No | — |
 | `class_teacher_id` | uuid (→ `teachers.id`) | Yes | — |
 | `academic_year` | text | No | `'2024-2025'` |
+| `academic_type` | text | Yes | — |
+| `school_id` | uuid (→ `schools.id`) | Yes | — |
 | `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Authenticated users can view classes (SELECT)
-- Admins can manage classes (ALL)
 
 ---
 
-#### `subjects`
-Subject catalog.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `name` | text | No | — |
-| `code` | text | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Authenticated users can view subjects (SELECT)
-- Teachers can create subjects (INSERT)
-- Admins can manage subjects (ALL)
-
----
-
-#### `teacher_classes`
-Teacher ↔ class assignments.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `teacher_id` | uuid (→ `teachers.id`) | No | — |
-| `class_id` | uuid (→ `classes.id`) | No | — |
-
-**RLS Policies:**
-- Authenticated users can view (SELECT)
-- Admins can manage (ALL)
+#### `subjects` & `teacher_classes`
+Subject catalog and teacher ↔ class assignments.
 
 ---
 
 ### Academic Tables
 
 #### `attendance`
-Daily attendance records per student.
+Daily attendance records per student with session support.
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `student_id` | uuid (→ `students.id`) | No | — |
-| `date` | date | No | `CURRENT_DATE` |
-| `status` | text | No | — |
-| `session` | text | Yes | — |
-| `reason` | text | Yes | — |
-| `marked_by` | uuid (→ `teachers.id`) | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
+#### `exams` & `exam_marks`
+Exam definitions and student marks per exam.
 
-**RLS Policies:**
-- Teachers & admins can manage attendance (ALL)
-- Parents can view their children's attendance (SELECT)
+#### `exam_cycles`
+Exam cycle periods with date ranges and exam types.
 
----
+#### `weekly_exams`, `question_papers`, `questions`
+Weekly/competitive exam system with MCQ question papers.
 
-#### `exams`
-Exam definitions.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `name` | text | No | — |
-| `exam_date` | date | Yes | — |
-| `max_marks` | integer | Yes | `100` |
-| `class_id` | uuid (→ `classes.id`) | Yes | — |
-| `subject_id` | uuid (→ `subjects.id`) | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- All can view exams (SELECT)
-- Staff (admin/teacher) can manage exams (ALL)
-
----
-
-#### `exam_marks`
-Student marks per exam.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `exam_id` | uuid (→ `exams.id`) | No | — |
-| `student_id` | uuid (→ `students.id`) | No | — |
-| `marks_obtained` | numeric | Yes | — |
-| `grade` | text | Yes | — |
-| `remarks` | text | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Teachers & admins can manage marks (ALL)
-- Parents can view their children's marks (SELECT)
-
----
+#### `student_exam_results` & `student_exam_answers`
+Student results and individual question answers for weekly exams.
 
 #### `homework`
-Homework assignments per class/subject.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `title` | text | No | — |
-| `description` | text | Yes | — |
-| `class_id` | uuid (→ `classes.id`) | No | — |
-| `subject_id` | uuid (→ `subjects.id`) | Yes | — |
-| `due_date` | date | No | — |
-| `attachment_url` | text | Yes | — |
-| `created_by` | uuid (→ `teachers.id`) | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- All can view homework (SELECT)
-- Teachers & admins can manage homework (ALL)
-
----
+Homework assignments per class/subject with file attachments.
 
 #### `timetable`
-Weekly timetable entries.
+Weekly timetable entries with day, period, subject, and teacher.
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `class_id` | uuid (→ `classes.id`) | No | — |
-| `day_of_week` | text | No | — |
-| `period_number` | integer | No | — |
-| `start_time` | time | No | — |
-| `end_time` | time | No | — |
-| `subject_id` | uuid (→ `subjects.id`) | Yes | — |
-| `teacher_id` | uuid (→ `teachers.id`) | Yes | — |
-| `is_published` | boolean | Yes | `false` |
-| `created_at` | timestamptz | Yes | `now()` |
+#### `syllabus`, `teacher_syllabus_map`, `syllabus_schedule`
+Syllabus topics, teacher assignments, and scheduling.
 
-**RLS Policies:**
-- Authenticated users can view published timetable (SELECT)
-- Admins & teachers can view all (SELECT)
-- Admins can manage timetable (ALL)
+#### `student_reports`
+Behavioral/academic reports with parent visibility control.
 
 ---
 
-#### `student_reports`
-Behavioral/academic reports.
+### Financial Tables
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `student_id` | uuid (→ `students.id`) | No | — |
-| `category` | text | No | — |
-| `description` | text | No | — |
-| `severity` | text | Yes | — |
-| `parent_visible` | boolean | Yes | `true` |
-| `created_by` | uuid (→ `teachers.id`) | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
+#### `fees`
+Fee records with payment tracking, percentage-based discounts, and partial payment support.
 
-**RLS Policies:**
-- Teachers & admins can manage reports (ALL)
-- Parents can view their children's visible reports (SELECT, where `parent_visible = true`)
+#### `fee_payments`
+Individual payment transaction log for partial/full payments with per-receipt tracking and Razorpay integration.
+
+---
+
+### Communication Tables
+
+#### `announcements`
+School-wide announcements with audience targeting.
+
+#### `messages`
+Direct messaging between users with file and image sharing.
+
+#### `notifications`
+Per-user notification records with read status and navigation links.
+
+#### `complaints`
+Complaint tickets with response tracking and visibility control.
 
 ---
 
 ### Administrative Tables
 
-#### `fees`
-Fee records with payment tracking, percentage-based discounts, and partial payment support.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `student_id` | uuid (→ `students.id`) | No | — |
-| `fee_type` | text | No | — |
-| `amount` | numeric | No | — |
-| `discount` | numeric | Yes | `0` |
-| `due_date` | date | No | — |
-| `paid_amount` | numeric | Yes | `0` |
-| `payment_status` | text | Yes | `'unpaid'` |
-| `receipt_number` | text | Yes | — |
-| `paid_at` | timestamptz | Yes | — |
-| `reminder_sent` | boolean | Yes | `false` |
-| `reminder_days_before` | integer | Yes | `3` |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Admins can manage fees (ALL)
-- Parents can view their children's fees (SELECT)
-
----
-
-#### `fee_payments`
-Individual payment transaction log for partial/full payments with per-receipt tracking.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `fee_id` | uuid (→ `fees.id`) | No | — |
-| `student_id` | uuid (→ `students.id`) | No | — |
-| `amount` | numeric | No | — |
-| `payment_method` | text | No | `'cash'` |
-| `receipt_number` | text | No | — |
-| `razorpay_payment_id` | text | Yes | — |
-| `paid_at` | timestamptz | No | `now()` |
-| `recorded_by` | uuid | Yes | — |
-| `created_at` | timestamptz | No | `now()` |
-
-**RLS Policies:**
-- Admins can manage fee payments (ALL)
-- Parents can view their children's fee payments (SELECT)
-
----
-
 #### `leave_requests`
 Leave applications for teachers and students with optional document attachments.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `request_type` | text | No | — |
-| `student_id` | uuid (→ `students.id`) | Yes | — |
-| `teacher_id` | uuid (→ `teachers.id`) | Yes | — |
-| `from_date` | date | No | — |
-| `to_date` | date | No | — |
-| `reason` | text | No | — |
-| `attachment_url` | text | Yes | — |
-| `status` | text | Yes | `'pending'` |
-| `approved_by` | uuid | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Admins can manage all leave requests (ALL)
-- Teachers can create their own leave requests (INSERT)
-- Parents can create student leave requests (INSERT)
-- Users can view own leave requests (SELECT)
-
----
-
-#### `announcements`
-School-wide announcements with audience targeting.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `title` | text | No | — |
-| `content` | text | No | — |
-| `target_audience` | text[] | Yes | `ARRAY['all']` |
-| `created_by` | uuid | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- All can view announcements (SELECT)
-- Admins & teachers can create announcements (INSERT)
-- Admins can manage announcements (ALL)
-
----
-
-#### `complaints`
-Complaint tickets with response tracking.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `subject` | text | No | — |
-| `description` | text | No | — |
-| `submitted_by` | uuid | No | — |
-| `response` | text | Yes | — |
-| `status` | text | Yes | `'open'` |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Admins can manage complaints (ALL)
-- Users can submit complaints (INSERT, own `submitted_by`)
-- Users can view own complaints (SELECT)
-
----
 
 #### `certificate_requests`
 Certificate request processing with optional document attachments.
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `student_id` | uuid (→ `students.id`) | No | — |
-| `certificate_type` | text | No | — |
-| `requested_by` | uuid | Yes | — |
-| `approved_by` | uuid | Yes | — |
-| `attachment_url` | text | Yes | — |
-| `status` | text | Yes | `'pending'` |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Admins can manage certificates (ALL)
-- Parents can create certificate requests for their children (INSERT)
-- Parents can view own requests (SELECT)
-
----
-
-#### `messages`
-Direct messaging between users with file and image sharing.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `sender_id` | uuid | No | — |
-| `recipient_id` | uuid | No | — |
-| `content` | text | No | — |
-| `is_read` | boolean | No | `false` |
-| `student_id` | uuid (→ `students.id`) | Yes | — |
-| `attachment_url` | text | Yes | — |
-| `attachment_type` | text | Yes | — |
-| `created_at` | timestamptz | No | `now()` |
-
-**RLS Policies:**
-- Users can send messages (INSERT, own `sender_id`)
-- Users can view their own messages (SELECT, sender or recipient)
-- Recipients can update read status (UPDATE)
-- Admins can view all messages (SELECT)
-- **No DELETE allowed**
-
----
+#### `holidays`
+School holidays, occasions, and events calendar with automated notification triggers.
 
 #### `app_settings`
-Application configuration key-value store.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `setting_key` | text | No | — |
-| `setting_value` | jsonb | No | `'false'` |
-| `updated_by` | uuid | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-| `updated_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Anyone can read settings (SELECT)
-- Admins can manage settings (ALL)
-
----
+Application configuration key-value store (receipt templates, timetable schedules, Razorpay keys, etc.).
 
 #### `settings_audit_log`
 Audit trail for settings changes.
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `setting_key` | text | No | — |
-| `old_value` | text | Yes | — |
-| `new_value` | text | Yes | — |
-| `changed_by` | uuid | No | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Admins can manage audit log (ALL)
-
 ---
 
-### CRM Tables (Leads Module)
+### CRM Tables
 
 #### `leads`
-Admission inquiry tracking.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `student_name` | text | No | — |
-| `status` | text | No | `'new_lead'` |
-| `primary_mobile` | text | No | — |
-| `alternate_mobile` | text | Yes | — |
-| `email` | text | Yes | — |
-| `father_name` | text | Yes | — |
-| `mother_name` | text | Yes | — |
-| `primary_contact_person` | text | Yes | `'father'` |
-| `date_of_birth` | date | Yes | — |
-| `gender` | text | Yes | — |
-| `current_class` | text | Yes | — |
-| `class_applying_for` | text | Yes | — |
-| `academic_year` | text | Yes | — |
-| `previous_school` | text | Yes | — |
-| `education_board` | text | Yes | — |
-| `medium_of_instruction` | text | Yes | — |
-| `last_class_passed` | text | Yes | — |
-| `academic_performance` | text | Yes | — |
-| `father_occupation` | text | Yes | — |
-| `father_education` | text | Yes | — |
-| `mother_occupation` | text | Yes | — |
-| `mother_education` | text | Yes | — |
-| `annual_income_range` | text | Yes | — |
-| `address` | text | Yes | — |
-| `area_city` | text | Yes | — |
-| `remarks` | text | Yes | — |
-| `next_followup_date` | date | Yes | — |
-| `assigned_teacher_id` | uuid (→ `teachers.id`) | Yes | — |
-| `created_by` | uuid | No | — |
-| `created_at` | timestamptz | Yes | `now()` |
-| `updated_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Admins can manage all leads (ALL)
-- Teachers can create leads (INSERT, own `created_by`)
-- Teachers can update own/assigned leads (UPDATE)
-- Teachers can view own/assigned leads (SELECT)
-
----
+Admission inquiry tracking with comprehensive student/parent info and status pipeline.
 
 #### `lead_call_logs`
 Call history per lead.
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `lead_id` | uuid (→ `leads.id`) | No | — |
-| `called_by` | uuid | No | — |
-| `call_outcome` | text | Yes | — |
-| `notes` | text | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Admins can manage all call logs (ALL)
-- Teachers can insert call logs (INSERT, own `called_by`)
-- Teachers can view call logs of own leads (SELECT)
-
----
-
 #### `lead_status_history`
 Status change audit trail.
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `lead_id` | uuid (→ `leads.id`) | No | — |
-| `old_status` | text | Yes | — |
-| `new_status` | text | No | — |
-| `changed_by` | uuid | No | — |
-| `remarks` | text | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Admins can manage all status history (ALL)
-- Teachers can insert status history (INSERT, own `changed_by`)
-- Teachers can view status history of own leads (SELECT)
-
----
-
 #### `teacher_lead_permissions`
 Per-teacher lead module access control.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `teacher_id` | uuid (→ `teachers.id`) | No | — |
-| `enabled` | boolean | No | `false` |
-| `updated_by` | uuid | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
-| `updated_at` | timestamptz | Yes | `now()` |
-
-**RLS Policies:**
-- Admins can manage permissions (ALL)
-- Teachers can view own permission (SELECT)
 
 ---
 
 ### Gallery Tables
 
-#### `gallery_folders`
-Photo gallery folder organization.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `title` | text | No | — |
-| `created_by` | uuid | Yes | — |
-| `created_at` | timestamptz | No | `now()` |
-
-**RLS Policies:**
-- All authenticated can view folders (SELECT)
-- Admins can insert, update, delete folders
+#### `gallery_folders` & `gallery_images`
+Photo gallery with folder organization.
 
 ---
 
-#### `gallery_images`
-Images within gallery folders.
+### Multi-Tenancy & Module Control Tables
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `folder_id` | uuid (→ `gallery_folders.id`) | No | — |
-| `image_url` | text | No | — |
-| `caption` | text | Yes | — |
-| `created_by` | uuid | Yes | — |
-| `created_at` | timestamptz | No | `now()` |
+#### `module_visibility`
+Global module enable/disable toggles.
 
-**RLS Policies:**
-- All authenticated can view images (SELECT)
-- Admins can insert, update, delete images
+#### `school_module_overrides`
+Per-school module visibility overrides.
 
 ---
 
-### Holiday Tables
+### Student Lifecycle Tables
 
-#### `holidays`
-School holidays, occasions, and events calendar.
+#### `student_promotion_history`
+Promotion records with full snapshots of attendance, marks, fees, and timetable at time of promotion.
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `title` | text | No | — |
-| `description` | text | Yes | — |
-| `holiday_date` | date | No | — |
-| `holiday_type` | text | No | `'holiday'` |
-| `created_by` | uuid | Yes | — |
-| `created_at` | timestamptz | Yes | `now()` |
+#### `student_discontinuation_archives`
+Discontinuation records with full snapshots and reasons.
 
-**RLS Policies:**
-- All authenticated users can view holidays (SELECT)
-- Admins can insert, update, delete holidays (using `has_role`)
+---
 
-**Trigger:** `on_holiday_created` — automatically creates notifications for all teachers and parents when a new holiday is added.
+### Push Notification Tables
+
+#### `push_config`
+VAPID key pair storage (auto-generated).
+
+#### `push_subscriptions`
+Per-user, per-device push subscription endpoints.
 
 ---
 
@@ -923,14 +567,15 @@ School holidays, occasions, and events calendar.
 |----------|---------|
 | `create-user` | Creates auth user accounts with role assignment (admin-only) |
 | `create-student` | Creates student records with optional parent account linking |
+| `reset-user-password` | Super-admin password reset for any user |
 | `seed-demo-users` | Seeds demo admin, teacher, and parent accounts for testing |
 | `full-reset` | Resets all demo data (teachers, students, parents, etc.) |
 | `notify-competitive-exams` | Sends notifications for upcoming competitive exams (scheduled via pg_cron at 7 AM daily) |
+| `notify-holiday-reminders` | Sends reminder notifications 2 days before upcoming holidays (scheduled via pg_cron at 8 AM daily) |
 | `send-push-notification` | Delivers Web Push notifications via VAPID keys; also serves GET to return public VAPID key for frontend subscription |
 | `create-razorpay-order` | Creates Razorpay payment orders for online fee payments (reads API keys from `app_settings`) |
 | `verify-razorpay-payment` | Verifies Razorpay payment signatures (HMAC SHA256), accumulates `paid_amount`, auto-sets payment status, and logs transaction in `fee_payments` |
 | `send-fee-reminders` | Sends automated fee reminders to parents based on configurable due-date windows |
-| `notify-holiday-reminders` | Sends reminder notifications 2 days before upcoming holidays to all teachers and parents (scheduled via pg_cron at 8 AM daily) |
 
 All edge functions run on Deno runtime and use the Supabase service role key for privileged operations.
 
@@ -951,10 +596,30 @@ All edge functions run on Deno runtime and use the Supabase service role key for
 |----------|---------|---------|
 | `admin_exists()` | boolean | Checks if any admin role exists in the system |
 | `get_user_role(uuid)` | `app_role` | Returns the role for a given user ID |
-| `has_role(uuid, app_role)` | boolean | Checks if a user has a specific role (used in RLS policies) |
+| `has_role(uuid, app_role)` | boolean | Security definer — checks if a user has a specific role (used in RLS) |
+| `is_admin_or_super(uuid)` | boolean | Checks if user is admin or super_admin |
+| `get_user_school_id(uuid)` | uuid | Returns the school_id for a user (used in RLS for multi-tenant isolation) |
 | `handle_new_user()` | trigger | Auto-creates profile on signup; assigns admin role if first user |
 | `get_parent_login_email(text)` | text | Retrieves parent login email by student admission number or login ID |
 | `update_updated_at_column()` | trigger | Auto-updates `updated_at` timestamp on row modification |
+
+---
+
+## 🔔 Notification Triggers
+
+Automated database triggers fire notifications on key events:
+
+| Trigger Function | Event | Recipients |
+|---|---|---|
+| `notify_parent_attendance()` | Attendance marked | Parents of the student |
+| `notify_parent_homework()` | New homework assigned | Parents of students in the class |
+| `notify_parent_exam_result()` | Exam result published | Parents of the student |
+| `notify_announcement()` | New announcement | Target audience (all/admin/teacher/parent) |
+| `notify_admin_leave_request()` | Leave request submitted | All admin users |
+| `notify_admin_certificate_request()` | Certificate requested | All admin users |
+| `notify_complaint()` | Complaint created or updated | Admin/Teachers on INSERT (per visibility), Parent on UPDATE (response/resolve) |
+| `on_holiday_created` | Holiday created | All teachers and parents in the school |
+| `send_push_on_notification()` | Any notification inserted | Triggers Web Push delivery via Edge Function |
 
 ---
 
@@ -962,8 +627,10 @@ All edge functions run on Deno runtime and use the Supabase service role key for
 
 - **Email/password authentication** via Lovable Cloud Auth
 - **Row Level Security (RLS)** on all tables — users can only access data they're authorized to see
+- **Multi-tenant isolation** — `school_id` filtering enforced at database level via security-definer functions
 - **Role-based route protection** — each page checks user role before rendering
-- **Edge Functions** for privileged operations (creating users, seeding data)
+- **Separate roles table** — `user_roles` stored independently from `profiles` to prevent privilege escalation
+- **Edge Functions** for privileged operations (creating users, seeding data, password resets)
 - **Audit logging** for sensitive operations (settings changes, lead status updates)
 
 ---
@@ -974,9 +641,10 @@ Smart EduConnect uses a semantic design token system with role-based color diffe
 
 - **Primary**: ASE Blue (`hsl(210 85% 40%)`)
 - **Secondary**: Warm Sand (`hsl(32 45% 68%)`)
-- **Role Colors**: Admin (Blue), Teacher (Deep Forest Green `#1a3628`), Parent (Grey-blue `#6c7580`)
+- **Role Colors**: Admin (Blue), Teacher (Deep Forest Green `#1a3628`), Parent (Grey-blue `#6c7580`), Super Admin (Purple)
 - **Hidden scrollbars** — Clean UI with invisible scrollbars across the app
 - **Fixed sidebar** — Desktop sidebar stays fixed while content scrolls independently
+- **IST timestamps** — All notification time displays converted to Asia/Kolkata timezone
 
 **Typography**: Plus Jakarta Sans (headings) + Inter (body text)
 
@@ -1015,146 +683,68 @@ Smart EduConnect is fully mobile-responsive with optimized layouts:
 - **Compact filter grids** — 2-per-row aligned filters on mobile using `w-[calc(50%-4px)]`
 - **Scaled typography** — `text-[9px]` to `text-sm` responsive font sizing
 - **Mobile cards** — Card-based layouts replace tables on small screens
-- **Bottom navigation** — Mobile bottom nav bar for quick access
+- **Bottom navigation** — Mobile bottom nav bar with "More" menu for additional sidebar items
 - **Sticky action bars** — Fixed position CTAs on mobile for attendance and marks entry
 - **Truncated tabs** — Tab labels truncate gracefully on narrow viewports
 
 ---
 
-## 🔄 Recent Updates
+## 📝 Changelog
 
-### 📱 Progressive Web App (PWA)
+### Latest Updates
+
+#### 🏢 Multi-Tenant & Super Admin Panel
+- Full super admin dashboard with system-wide school management
+- Schools CRUD with logo upload, active/inactive toggle, admin/student/teacher counts
+- Global module visibility control with per-school overrides
+- Admin account creation and password reset via edge function
+- School branding (name + logo) in sidebar header via `useSchoolBranding` hook
+
+#### 👨‍🎓 Student Lifecycle Management
+- **Student Promotion** — Versioned record model with history snapshots, auto admission number regeneration, parent link copying
+- **Student Discontinuation** — Archive with full snapshots, reinstatement support
+- **Student History** — Cross-panel search with attendance/marks/fees drill-down per class record
+
+#### 💰 Fee Management System
+- Batch fee creation with multi-section targeting
+- Percentage-based discounts (class-wide and per-student)
+- Custom partial payments with cumulative tracking
+- Razorpay online payment integration
+- Per-transaction receipt generation (PDF)
+- Receipt template customization (school info, logo, field toggles)
+- PDF fee collection report export (landscape, summary stats, color-coded)
+- Automated fee reminders via edge function
+
+#### 📱 Progressive Web App (PWA)
 - Full offline support with Workbox service worker caching
-- Installable from browser to home screen on any device (iOS & Android)
-- Custom manifest with school branding, icons, and standalone display mode
+- Installable from browser to home screen
+- Custom manifest with school branding
 - Runtime caching for API calls with NetworkFirst strategy
-- Install prompt banner component for user onboarding
 
-### 🔔 Web Push Notifications
-- VAPID-based Web Push notification system
-- Auto-generated VAPID keys stored securely in `push_config` table
-- Per-device push subscriptions stored in `push_subscriptions` table
-- Push toggle component in settings for users to enable/disable
-- Service worker (`sw-push.js`) handles push events and displays native OS notifications
-- Database trigger on `notifications` table auto-sends push to subscribed devices
-- Expired/invalid subscriptions are cleaned up automatically
+#### 🔔 Notifications & Push
+- Per-user notification bell with unread count badge
+- Full notifications page with date filtering, mark all read, delete read
+- IST timezone for all notification timestamps
+- Web Push via VAPID with auto-generated keys
+- Database triggers for automated notifications (attendance, homework, exams, announcements, complaints, holidays, leave, certificates)
 
-### 📲 Native Mobile App (Capacitor)
+#### 📲 Native Mobile App (Capacitor)
 - Capacitor integration for building native iOS and Android apps
-- Live-reload development server configuration pointing to preview URL
-- App ID: `app.lovable.c153f9895e3d4f089502710552fea44e`
-- Supports publishing to Apple App Store and Google Play Store
 - Shared codebase — same React app runs as web, PWA, and native mobile
 
-### Syllabus Completion Tracking
-- Teachers can mark syllabus topics as completed with timestamp
-- Completion status (date + teacher name) visible in Admin and Parent panels
-- Filter syllabus by status, class, subject, and exam type
-
-### Exam Management Enhancements
-- 5-tab layout: Schedule, Weekly, Marks, Weekly Marks, Results
+#### 📚 Academic Features
 - 5-step exam creation wizard with auto/manual scheduling
-- Weekly exam system with question papers and student results
-- Exam cycles management for organizing exam periods
-- Competitive exam support with countdown reminders on Teacher Dashboard
+- Weekly/competitive exam system with question papers (MCQ)
+- Exam cycles management
+- Syllabus completion tracking with teacher attribution
+- Competitive exam countdown reminders on Teacher Dashboard
 
-### Teacher Dashboard Widgets
-- Upcoming Exam Timetable widget showing next 5 scheduled exams
-- Competitive Exam Reminders with color-coded urgency countdown badges
-
-### Teacher Timetable Module
-- **My Schedule** tab: View personal teaching schedule with day-wise cards showing subject, class, and period timings
-- **Class Timetables** tab: Browse any class timetable with class selector filter across all 6 days (Mon–Sat)
-- CSV and PDF export for both personal schedule and class timetables
-- Fully mobile-responsive with compact buttons, full-width selectors, and grid tab layout
-
-### Notifications System
-- Per-user notification bell with unread count badge in the header
-- Dedicated notifications page for Admin, Teacher, and Parent roles
-- Mark as read, delete, and link-based navigation from notifications
-- Web Push delivery for real-time alerts even when app is closed
-
-### Mobile UI Alignment
-- Consistent 2x2 filter grid alignment across Admin, Teacher, and Parent panels
+#### 🎨 UI/UX Enhancements
+- Hidden scrollbars for clean UI
+- Fixed sidebar with independent content scrolling
+- Mobile bottom navigation with "More" menu
+- Consistent 2x2 filter grid alignment across all panels
 - Responsive tab sizing with icons and truncated labels
-- Compact select dropdowns with `h-7`/`h-8` heights on mobile
-- Mobile bottom navigation bar with "More" menu for additional sidebar items
-### 💰 Fee Management System
-- **Batch fee creation** — Assign multiple fee types to entire classes or individual students in one go
-- **Multi-section targeting** — Selecting a class auto-toggles all sections (A, B, C); individual sections can be deselected
-- **Percentage-based discounts** — Enter discount as a percentage (e.g., 15 = 15% off); auto-calculates the ₹ amount per fee type
-- **Per-student discounts** — Override class-wide discount with individual student-level percentage discounts
-- **Custom partial payments** — Admin "Record Payment" dialog accepts any amount up to the remaining balance
-- **Parent online payments** — Parents enter a custom amount and pay via Razorpay; supports partial payments
-- **Cumulative payment tracking** — `paid_amount` accumulates across multiple payments; status auto-updates to `partial` or `paid`
-- **Payment history log** — Every payment (cash or online) is logged in `fee_payments` table with its own receipt number
-- **Per-transaction receipts** — Each partial payment generates a unique receipt downloadable as PDF
-- **Balance display** — Balance column (`Net - Paid`) shown across admin fee table, student detail dialog, and parent view
-- **Class Summary view** — Collection analytics per class with discount-adjusted totals
-- **PDF fee report export** — Landscape PDF with summary stats (total records, amount, discount, collected, balance, paid/unpaid/partial/overdue counts), detailed table with color-coded status column, and grand totals footer; exports filtered data when filters applied, otherwise all records
-- **Automated reminders** — Edge function sends fee reminders to parents based on configurable due-date windows
-- **Razorpay integration** — Order creation and HMAC SHA256 signature verification via Edge Functions; API keys stored in `app_settings`
-
----
-
-## 🗄 Backend Tables (Push Notifications)
-
-#### `push_config`
-VAPID key pair storage (auto-generated).
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `public_key` | text | No | — |
-| `private_key` | text | No | — |
-| `created_at` | timestamptz | Yes | `now()` |
-
----
-
-#### `push_subscriptions`
-Per-user, per-device push subscription endpoints.
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | No | `gen_random_uuid()` |
-| `user_id` | uuid | No | — |
-| `endpoint` | text | No | — |
-| `p256dh` | text | No | — |
-| `auth` | text | No | — |
-| `created_at` | timestamptz | No | `now()` |
-
----
-
-## 🔔 Notification Triggers
-
-Automated database triggers fire notifications on key events:
-
-| Trigger Function | Event | Recipients |
-|---|---|---|
-| `notify_parent_attendance()` | Attendance marked | Parents of the student |
-| `notify_parent_homework()` | New homework assigned | Parents of students in the class |
-| `notify_parent_exam_result()` | Exam result published | Parents of the student |
-| `notify_announcement()` | New announcement | Target audience (all/admin/teacher/parent) |
-| `notify_admin_leave_request()` | Leave request submitted | All admin users |
-| `notify_admin_certificate_request()` | Certificate requested | All admin users |
-| `notify_complaint()` | Complaint created or updated | Admin/Teachers on INSERT (per visibility), Parent on UPDATE (response/resolve) |
-| `send_push_on_notification()` | Any notification inserted | Triggers Web Push delivery via Edge Function |
-
----
-
-## 🛠️ Edge Functions
-
-| Function | Purpose |
-|---|---|
-| `create-razorpay-order` | Creates Razorpay payment orders for online fee collection |
-| `verify-razorpay-payment` | Verifies Razorpay signatures, records transactions, generates receipt numbers |
-| `create-student` | Creates student records with linked parent auth accounts |
-| `create-user` | Creates auth users with role assignments |
-| `send-push-notification` | Delivers Web Push notifications via VAPID (web-push library) |
-| `send-fee-reminders` | Sends automated fee due date reminders to parents |
-| `notify-competitive-exams` | Scheduled cron (daily 7 AM) for competitive exam reminders |
-| `seed-demo-users` | Seeds demo admin/teacher/parent accounts for testing |
-| `full-reset` | Resets database to clean state |
 
 ---
 
