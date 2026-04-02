@@ -25,7 +25,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Calendar, Clock, Eye, EyeOff, Trash2, Plus, Settings, Coffee, User, FileText, Table } from 'lucide-react';
+import { Loader2, Calendar, Clock, Eye, EyeOff, Trash2, Plus, Settings, Coffee, User, FileText, Table, Copy } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { cn, formatClassName } from "@/lib/utils";
 import { Switch } from '@/components/ui/switch';
@@ -101,6 +102,8 @@ export default function TimetableManagement() {
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<PeriodConfig | null>(null);
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
+  const [applyToClasses, setApplyToClasses] = useState<string[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
 
   // For click-to-fill
   const [selectedCell, setSelectedCell] = useState<{ day: string; period: number } | null>(null);
@@ -119,46 +122,83 @@ export default function TimetableManagement() {
     endTime: '08:45',
   });
 
-  // Load schedule from database (app_settings)
+  // Load schedule for selected class from database (app_settings)
   useEffect(() => {
+    if (!selectedClass) return;
     async function loadSchedule() {
-      const { data } = await supabase
+      setLoadingSchedule(true);
+      // Try class-specific schedule first
+      const { data: classData } = await supabase
         .from('app_settings')
         .select('setting_value')
-        .eq('setting_key', 'timetable_schedule')
+        .eq('setting_key', `timetable_schedule_${selectedClass}`)
         .maybeSingle();
-      if (data?.setting_value) {
+      
+      if (classData?.setting_value) {
         try {
-          const parsed = typeof data.setting_value === 'string'
-            ? JSON.parse(data.setting_value)
-            : data.setting_value;
-          if (Array.isArray(parsed)) setSchedule(parsed);
+          const parsed = typeof classData.setting_value === 'string'
+            ? JSON.parse(classData.setting_value)
+            : classData.setting_value;
+          if (Array.isArray(parsed)) { setSchedule(parsed); setLoadingSchedule(false); return; }
         } catch (e) {
           console.error('Failed to parse saved schedule');
         }
       }
+
+      // Fallback to global schedule
+      const { data: globalData } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'timetable_schedule')
+        .maybeSingle();
+      
+      if (globalData?.setting_value) {
+        try {
+          const parsed = typeof globalData.setting_value === 'string'
+            ? JSON.parse(globalData.setting_value)
+            : globalData.setting_value;
+          if (Array.isArray(parsed)) { setSchedule(parsed); setLoadingSchedule(false); return; }
+        } catch (e) {
+          console.error('Failed to parse global schedule');
+        }
+      }
+      
+      setSchedule(DEFAULT_SCHEDULE);
+      setLoadingSchedule(false);
     }
     loadSchedule();
-  }, []);
+  }, [selectedClass]);
 
-  // Save schedule to database
-  const saveSchedule = async (newSchedule: PeriodConfig[]) => {
-    setSchedule(newSchedule);
+  // Save schedule for specific class(es) to database
+  const saveScheduleForClass = async (newSchedule: PeriodConfig[], classId: string) => {
+    const settingKey = `timetable_schedule_${classId}`;
     const { data: existing } = await supabase
       .from('app_settings')
       .select('id')
-      .eq('setting_key', 'timetable_schedule')
+      .eq('setting_key', settingKey)
       .maybeSingle();
 
     if (existing) {
       await supabase
         .from('app_settings')
         .update({ setting_value: newSchedule as any, updated_at: new Date().toISOString(), updated_by: user?.id } as any)
-        .eq('setting_key', 'timetable_schedule');
+        .eq('setting_key', settingKey);
     } else {
       await supabase
         .from('app_settings')
-        .insert({ setting_key: 'timetable_schedule', setting_value: newSchedule as any, updated_by: user?.id, school_id: schoolId } as any);
+        .insert({ setting_key: settingKey, setting_value: newSchedule as any, updated_by: user?.id, school_id: schoolId } as any);
+    }
+  };
+
+  const saveSchedule = async (newSchedule: PeriodConfig[]) => {
+    setSchedule(newSchedule);
+    // Save for currently selected class
+    await saveScheduleForClass(newSchedule, selectedClass);
+    // Also apply to any additional selected classes
+    for (const classId of applyToClasses) {
+      if (classId !== selectedClass) {
+        await saveScheduleForClass(newSchedule, classId);
+      }
     }
   };
 
@@ -516,7 +556,10 @@ export default function TimetableManagement() {
                   </SelectContent>
                 </Select>
 
-                <Button variant="outline" onClick={() => setConfigDialogOpen(true)}>
+                <Button variant="outline" onClick={() => {
+                  setApplyToClasses([selectedClass]);
+                  setConfigDialogOpen(true);
+                }}>
                   <Settings className="h-4 w-4 mr-2" />Configure
                 </Button>
 
@@ -855,15 +898,49 @@ export default function TimetableManagement() {
                 <Settings className="h-5 w-5" />
                 Schedule Configuration
               </DialogTitle>
-              <DialogDescription>Configure periods, breaks, and timings</DialogDescription>
+              <DialogDescription>
+                Configure periods, breaks, and timings for {formatClassName(classes.find(c => c.id === selectedClass)?.name || '', classes.find(c => c.id === selectedClass)?.section)}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
+              {/* Apply to multiple classes */}
+              {classes.length > 1 && (
+                <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Copy className="h-4 w-4" />
+                    Also apply this schedule to:
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                    {classes.filter(c => c.id !== selectedClass).map((c) => (
+                      <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={applyToClasses.includes(c.id)}
+                          onCheckedChange={(checked) => {
+                            setApplyToClasses(prev =>
+                              checked
+                                ? [...prev, c.id]
+                                : prev.filter(id => id !== c.id)
+                            );
+                          }}
+                        />
+                        {formatClassName(c.name, c.section)}
+                      </label>
+                    ))}
+                  </div>
+                  {applyToClasses.filter(id => id !== selectedClass).length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Changes will apply to {applyToClasses.filter(id => id !== selectedClass).length + 1} class(es) total
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-2 flex-wrap">
                 <Button variant="outline" size="sm" onClick={addPeriod}><Plus className="h-4 w-4 mr-1" />Add Period</Button>
                 <Button variant="outline" size="sm" onClick={addBreak}><Coffee className="h-4 w-4 mr-1" />Add Break</Button>
                 <Button variant="outline" size="sm" onClick={resetToDefault}>Reset Default</Button>
               </div>
-              <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+              <div className="space-y-2 max-h-[40vh] overflow-y-auto">
                 {schedule.map((slot, index) => (
                   <div key={index} className={cn("flex items-center justify-between p-3 rounded-lg border", slot.isBreak ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800" : "bg-muted/30")}>
                     <div className="flex items-center gap-3">
