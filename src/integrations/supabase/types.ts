@@ -1816,6 +1816,72 @@ export type Database = {
           },
         ]
       }
+      student_promotion_history: {
+        Row: {
+          admission_number: string
+          attendance_snapshot: Json | null
+          created_at: string
+          fees_snapshot: Json | null
+          from_class_name: string | null
+          id: string
+          marks_snapshot: Json | null
+          promoted_at: string
+          promoted_by: string | null
+          school_id: string | null
+          student_id: string
+          student_name: string
+          timetable_snapshot: Json | null
+          to_class_name: string | null
+        }
+        Insert: {
+          admission_number: string
+          attendance_snapshot?: Json | null
+          created_at?: string
+          fees_snapshot?: Json | null
+          from_class_name?: string | null
+          id?: string
+          marks_snapshot?: Json | null
+          promoted_at?: string
+          promoted_by?: string | null
+          school_id?: string | null
+          student_id: string
+          student_name: string
+          timetable_snapshot?: Json | null
+          to_class_name?: string | null
+        }
+        Update: {
+          admission_number?: string
+          attendance_snapshot?: Json | null
+          created_at?: string
+          fees_snapshot?: Json | null
+          from_class_name?: string | null
+          id?: string
+          marks_snapshot?: Json | null
+          promoted_at?: string
+          promoted_by?: string | null
+          school_id?: string | null
+          student_id?: string
+          student_name?: string
+          timetable_snapshot?: Json | null
+          to_class_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_promotion_history_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_promotion_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_reports: {
         Row: {
           category: string
