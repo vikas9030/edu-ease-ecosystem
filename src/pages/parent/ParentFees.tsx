@@ -62,7 +62,7 @@ function PaymentHistorySection({ studentId, studentName }: { studentId: string; 
     if (!studentId) return;
     supabase
       .from('fee_payments' as any)
-      .select('id, amount, payment_method, receipt_number, paid_at, fee_id')
+      .select('id, amount, payment_method, receipt_number, paid_at, fee_id, receipt_url')
       .eq('student_id', studentId)
       .order('paid_at', { ascending: false })
       .then(({ data }) => setPayments((data as any[]) || []));
@@ -100,6 +100,8 @@ function PaymentHistorySection({ studentId, studentName }: { studentId: string; 
                   paidAmount: Number(p.amount),
                   paidAt: p.paid_at,
                   template: template || undefined,
+                  paymentId: p.id,
+                  existingUrl: p.receipt_url || undefined,
                 });
               }}>
                 <Download className="h-3 w-3" />
@@ -114,7 +116,7 @@ function PaymentHistorySection({ studentId, studentName }: { studentId: string; 
 
 export default function ParentFees() {
   const parentSidebarItems = useParentSidebar();
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, schoolId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [children, setChildren] = useState<Child[]>([]);
@@ -332,6 +334,9 @@ export default function ParentFees() {
       paidAmount: fee.paid_amount || 0,
       paidAt: fee.paid_at,
       template: receiptTemplate || undefined,
+      feeId: fee.id,
+      studentId: selectedChild?.id,
+      schoolId: schoolId || undefined,
     });
   };
 
