@@ -274,9 +274,6 @@ export default function ParentFees() {
     }
   };
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  }
   const fees = selectedChild?.fees || [];
   const totalDue = fees.filter(f => f.payment_status !== 'paid').reduce((sum, f) => sum + (f.amount - (f.discount || 0) - (f.paid_amount || 0)), 0);
   const totalPaid = fees.filter(f => f.payment_status === 'paid').reduce((sum, f) => sum + (f.paid_amount || f.amount), 0);
@@ -301,6 +298,10 @@ export default function ParentFees() {
     // Sort: current class first
     return [...groups.values()].sort((a, b) => (b.isCurrent ? 1 : 0) - (a.isCurrent ? 1 : 0));
   }, [fees]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
 
   const getStatusStyle = (status: string) => {
     switch (status) {
