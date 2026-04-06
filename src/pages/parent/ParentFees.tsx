@@ -62,7 +62,7 @@ function PaymentHistorySection({ studentId, studentName }: { studentId: string; 
     if (!studentId) return;
     supabase
       .from('fee_payments' as any)
-      .select('id, amount, payment_method, receipt_number, paid_at, fee_id')
+      .select('id, amount, payment_method, receipt_number, paid_at, fee_id, receipt_url')
       .eq('student_id', studentId)
       .order('paid_at', { ascending: false })
       .then(({ data }) => setPayments((data as any[]) || []));
