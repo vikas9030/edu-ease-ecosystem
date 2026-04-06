@@ -464,6 +464,7 @@ export type Database = {
           payment_method: string
           razorpay_payment_id: string | null
           receipt_number: string
+          receipt_url: string | null
           recorded_by: string | null
           school_id: string | null
           student_id: string
@@ -477,6 +478,7 @@ export type Database = {
           payment_method?: string
           razorpay_payment_id?: string | null
           receipt_number: string
+          receipt_url?: string | null
           recorded_by?: string | null
           school_id?: string | null
           student_id: string
@@ -490,6 +492,7 @@ export type Database = {
           payment_method?: string
           razorpay_payment_id?: string | null
           receipt_number?: string
+          receipt_url?: string | null
           recorded_by?: string | null
           school_id?: string | null
           student_id?: string
