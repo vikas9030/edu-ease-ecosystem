@@ -44,6 +44,8 @@ interface Child {
   id: string;
   studentIds: string[];
   name: string;
+  admissionNumber?: string;
+  currentClassName?: string;
   fees: Fee[];
   currentClassId?: string | null;
 }
@@ -146,20 +148,22 @@ export default function ParentFees() {
     if (parentData) {
       const { data: links } = await supabase
         .from('student_parents')
-        .select('student_id, students(full_name, status, class_id)')
+        .select('student_id, students(full_name, status, class_id, admission_number, classes(name, section))')
         .eq('parent_id', parentData.id);
 
       if (links && links.length > 0) {
         // Merge student records by name (promoted students have multiple records)
-        const nameMap = new Map<string, { studentIds: string[]; activeId: string | null; currentClassId: string | null }>();
+        const nameMap = new Map<string, { studentIds: string[]; activeId: string | null; currentClassId: string | null; admissionNumber: string; currentClassName: string }>();
         for (const link of links) {
           const student = (link as any).students;
           const name = student?.full_name || '';
-          const existing = nameMap.get(name) || { studentIds: [], activeId: null, currentClassId: null };
+          const existing = nameMap.get(name) || { studentIds: [], activeId: null, currentClassId: null, admissionNumber: '', currentClassName: '' };
           existing.studentIds.push(link.student_id);
           if (student?.status === 'active') {
             existing.activeId = link.student_id;
             existing.currentClassId = student?.class_id || null;
+            existing.admissionNumber = student?.admission_number || '';
+            existing.currentClassName = student?.classes ? formatClassName(student.classes.name, student.classes.section) : '';
           }
           nameMap.set(name, existing);
         }
@@ -184,6 +188,8 @@ export default function ParentFees() {
             id: info.activeId || info.studentIds[0],
             studentIds: info.studentIds,
             name,
+            admissionNumber: info.admissionNumber,
+            currentClassName: info.currentClassName,
             fees: allFees,
             currentClassId: info.currentClassId,
           });
