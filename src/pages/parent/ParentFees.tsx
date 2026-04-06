@@ -394,26 +394,32 @@ export default function ParentFees() {
           </Card>
         </div>
 
-        {/* Fee Details */}
-        <Card className="card-elevated">
-          <CardHeader className="pb-3">
-            <CardTitle className="font-display flex items-center gap-2 text-base sm:text-lg">
-              <CreditCard className="h-5 w-5 text-primary" />
-              Fee Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {fees.length === 0 ? (
-              <p className="text-center py-8 text-muted-foreground text-sm">No fee records found.</p>
-            ) : (
-              <>
+        {/* Fee Details - Grouped by Class */}
+        {fees.length === 0 ? (
+          <Card className="card-elevated">
+            <CardContent className="py-8">
+              <p className="text-center text-muted-foreground text-sm">No fee records found.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          feesByClass.map((group, gi) => (
+            <Card key={gi} className={`card-elevated ${group.isCurrent ? 'border-l-4 border-l-primary' : 'border-l-4 border-l-muted-foreground/30'}`}>
+              <CardHeader className="pb-3">
+                <CardTitle className="font-display flex items-center gap-2 text-base sm:text-lg">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                  {group.className}
+                  <Badge variant={group.isCurrent ? 'default' : 'secondary'} className="text-xs ml-auto">
+                    {group.isCurrent ? '📗 Current Class' : '📕 Previous Class'}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 {/* Desktop Table */}
                 <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Fee Type</TableHead>
-                        <TableHead>Class</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Discount</TableHead>
                         <TableHead>Net Amount</TableHead>
@@ -424,13 +430,12 @@ export default function ParentFees() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {fees.map((fee) => {
+                      {group.fees.map((fee) => {
                         const style = getStatusStyle(fee.payment_status);
                         const isOverdue = fee.payment_status !== 'paid' && new Date(fee.due_date) < new Date();
                         return (
                           <TableRow key={fee.id}>
                             <TableCell className="font-medium">{fee.fee_type}</TableCell>
-                            <TableCell className="text-sm">{(fee as any).fee_class ? `${formatClassName((fee as any).fee_class.name, (fee as any).fee_class.section)}` : '-'}</TableCell>
                             <TableCell><span className="flex items-center"><IndianRupee className="h-3 w-3" />{fee.amount.toLocaleString()}</span></TableCell>
                             <TableCell>
                               {(fee.discount || 0) > 0 ? (
@@ -478,7 +483,7 @@ export default function ParentFees() {
 
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-3">
-                  {fees.map((fee) => {
+                  {group.fees.map((fee) => {
                     const style = getStatusStyle(fee.payment_status);
                     const isOverdue = fee.payment_status !== 'paid' && new Date(fee.due_date) < new Date();
                     const net = fee.amount - (fee.discount || 0);
@@ -486,7 +491,6 @@ export default function ParentFees() {
                     return (
                       <Card key={fee.id} className="border">
                         <CardContent className="p-4 space-y-3">
-                          {/* Header */}
                           <div className="flex items-center justify-between">
                             <span className="font-medium capitalize">{fee.fee_type}</span>
                             <Badge className={`${style.class} flex items-center gap-1`}>
@@ -494,8 +498,6 @@ export default function ParentFees() {
                               {fee.payment_status}
                             </Badge>
                           </div>
-
-                          {/* Details - aligned row layout */}
                           <div className="text-sm">
                             <div className="flex justify-between py-1.5 border-b border-border/50">
                               <span className="text-muted-foreground">Amount</span>
@@ -527,8 +529,6 @@ export default function ParentFees() {
                               </span>
                             </div>
                           </div>
-
-                          {/* Actions */}
                           <div className="pt-2 border-t space-y-2">
                             {fee.payment_status !== 'paid' ? (
                               <Button
@@ -552,10 +552,10 @@ export default function ParentFees() {
                     );
                   })}
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))
+        )}
 
         {/* Payment History */}
         <PaymentHistorySection studentId={selectedChildId} studentName={selectedChild?.name || ''} />
