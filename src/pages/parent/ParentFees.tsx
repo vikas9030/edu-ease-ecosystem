@@ -334,6 +334,9 @@ export default function ParentFees() {
       paidAmount: fee.paid_amount || 0,
       paidAt: fee.paid_at,
       template: receiptTemplate || undefined,
+      feeId: fee.id,
+      studentId: selectedChild?.id,
+      schoolId: schoolId || undefined,
     });
   };
 
