@@ -37,12 +37,15 @@ interface Fee {
   discount: number | null;
   class_id?: string | null;
   fee_class?: { name: string; section: string } | null;
+  _isCurrentClass?: boolean;
 }
 
 interface Child {
   id: string;
+  studentIds: string[];
   name: string;
   fees: Fee[];
+  currentClassId?: string | null;
 }
 
 function PaymentHistorySection({ studentId, studentName }: { studentId: string; studentName: string }) {
@@ -143,22 +146,46 @@ export default function ParentFees() {
     if (parentData) {
       const { data: links } = await supabase
         .from('student_parents')
-        .select('student_id, students(full_name)')
+        .select('student_id, students(full_name, status, class_id)')
         .eq('parent_id', parentData.id);
 
       if (links && links.length > 0) {
-        const childrenData: Child[] = [];
+        // Merge student records by name (promoted students have multiple records)
+        const nameMap = new Map<string, { studentIds: string[]; activeId: string | null; currentClassId: string | null }>();
         for (const link of links) {
-          const { data: feesData } = await supabase
-            .from('fees')
-            .select('*, fee_class:classes(name, section)' as any)
-            .eq('student_id', link.student_id)
-            .order('due_date', { ascending: false });
+          const student = (link as any).students;
+          const name = student?.full_name || '';
+          const existing = nameMap.get(name) || { studentIds: [], activeId: null, currentClassId: null };
+          existing.studentIds.push(link.student_id);
+          if (student?.status === 'active') {
+            existing.activeId = link.student_id;
+            existing.currentClassId = student?.class_id || null;
+          }
+          nameMap.set(name, existing);
+        }
 
+        const childrenData: Child[] = [];
+        for (const [name, info] of nameMap) {
+          const allFees: Fee[] = [];
+          for (const sid of info.studentIds) {
+            const { data: feesData } = await supabase
+              .from('fees')
+              .select('*, fee_class:classes(name, section)' as any)
+              .eq('student_id', sid)
+              .order('due_date', { ascending: false });
+            if (feesData) {
+              for (const f of feesData) {
+                (f as any)._isCurrentClass = f.class_id === info.currentClassId;
+                allFees.push(f as any as Fee);
+              }
+            }
+          }
           childrenData.push({
-            id: link.student_id,
-            name: (link as any).students?.full_name || '',
-            fees: (feesData as any as Fee[]) || [],
+            id: info.activeId || info.studentIds[0],
+            studentIds: info.studentIds,
+            name,
+            fees: allFees,
+            currentClassId: info.currentClassId,
           });
         }
         setChildren(childrenData);
