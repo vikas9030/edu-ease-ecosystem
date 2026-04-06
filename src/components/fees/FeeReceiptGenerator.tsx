@@ -141,16 +141,23 @@ export async function generateFeeReceipt(data: ReceiptData) {
   doc.setFont('helvetica', 'italic');
   doc.text(t?.footerText || 'This is a computer-generated receipt.', centerX, finalY, { align: 'center' });
 
-  // Direct download using blob link (avoids pop-up blockers)
+  // Direct download using blob
   const pdfBlob = doc.output('blob');
   const blobUrl = URL.createObjectURL(pdfBlob);
   const link = document.createElement('a');
   link.href = blobUrl;
   link.download = 'Receipt_' + data.receiptNumber + '.pdf';
+  link.style.display = 'none';
   document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+  
+  // Use setTimeout to ensure the link is in the DOM before clicking
+  setTimeout(() => {
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    }, 1000);
+  }, 100);
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {
