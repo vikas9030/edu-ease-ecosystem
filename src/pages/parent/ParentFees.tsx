@@ -283,6 +283,25 @@ export default function ParentFees() {
   const paidFees = fees.filter(f => f.payment_status === 'paid' && f.paid_at);
   const unpaidFees = fees.filter(f => f.payment_status !== 'paid');
 
+  // Group fees by class for clear current vs previous distinction
+  const feesByClass = useMemo(() => {
+    const groups = new Map<string, { className: string; isCurrent: boolean; fees: Fee[] }>();
+    fees.forEach(fee => {
+      const fc = (fee as any).fee_class;
+      const classKey = fee.class_id || 'unknown';
+      if (!groups.has(classKey)) {
+        groups.set(classKey, {
+          className: fc ? formatClassName(fc.name, fc.section) : 'Unknown Class',
+          isCurrent: !!(fee as any)._isCurrentClass,
+          fees: [],
+        });
+      }
+      groups.get(classKey)!.fees.push(fee);
+    });
+    // Sort: current class first
+    return [...groups.values()].sort((a, b) => (b.isCurrent ? 1 : 0) - (a.isCurrent ? 1 : 0));
+  }, [fees]);
+
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'paid': return { icon: <CheckCircle2 className="h-4 w-4" />, class: 'bg-success/10 text-success' };
