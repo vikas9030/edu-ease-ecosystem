@@ -175,7 +175,7 @@ export default function ParentFees() {
               .order('due_date', { ascending: false });
             if (feesData) {
               for (const f of feesData) {
-                (f as any)._isCurrentClass = f.class_id === info.currentClassId;
+                (f as any)._isCurrentClass = (f as any).class_id === info.currentClassId;
                 allFees.push(f as any as Fee);
               }
             }
