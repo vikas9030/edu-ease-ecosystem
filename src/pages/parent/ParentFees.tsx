@@ -100,6 +100,8 @@ function PaymentHistorySection({ studentId, studentName }: { studentId: string; 
                   paidAmount: Number(p.amount),
                   paidAt: p.paid_at,
                   template: template || undefined,
+                  paymentId: p.id,
+                  existingUrl: p.receipt_url || undefined,
                 });
               }}>
                 <Download className="h-3 w-3" />
