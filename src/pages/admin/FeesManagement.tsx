@@ -456,147 +456,170 @@ export default function FeesManagement() {
                   </div>
                 ) : (
                   <>
-                    {/* Desktop Table */}
-                    <div className="hidden lg:block overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Student</TableHead>
-                            <TableHead>Class</TableHead>
-                            <TableHead>Fee Type</TableHead>
-                            <TableHead>Amount</TableHead>
-                            <TableHead>Discount</TableHead>
-                            <TableHead>Net</TableHead>
-                            <TableHead>Paid</TableHead>
-                            <TableHead>Balance</TableHead>
-                            <TableHead>Due Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredFees.map((fee) => (
-                            <TableRow key={fee.id}>
-                              <TableCell>
-                                <button className="text-left hover:underline" onClick={() => openStudentDetail(fee.student_id)}>
-                                  <div className="font-medium">{fee.students?.full_name || 'N/A'}</div>
-                                  <div className="text-xs text-muted-foreground font-mono">{fee.students?.login_id || fee.students?.admission_number}</div>
-                                </button>
-                              </TableCell>
-                              <TableCell>{getClassName(fee)}</TableCell>
-                              <TableCell className="capitalize">{fee.fee_type}</TableCell>
-                              <TableCell className="font-medium">₹{fee.amount.toLocaleString()}</TableCell>
-                              <TableCell>{(fee.discount || 0) > 0 ? <span className="text-success">₹{(fee.discount || 0).toLocaleString()}</span> : '-'}</TableCell>
-                              <TableCell className="font-medium">₹{(fee.amount - (fee.discount || 0)).toLocaleString()}</TableCell>
-                              <TableCell className="text-success">₹{(fee.paid_amount || 0).toLocaleString()}</TableCell>
-                              <TableCell className="font-medium text-destructive">₹{(fee.amount - (fee.discount || 0) - (fee.paid_amount || 0)).toLocaleString()}</TableCell>
-                              <TableCell>{new Date(fee.due_date).toLocaleDateString()}</TableCell>
-                              <TableCell>{getStatusBadge(fee.payment_status, fee.due_date)}</TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-1">
-                                  <Button size="sm" variant="ghost" onClick={() => setEditFee(fee)} title="Edit">
-                                    <Edit2 className="h-3 w-3" />
-                                  </Button>
-                                  <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => { setDeleteMode('single'); setDeleteFeeIds([fee.id]); }} title="Delete">
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                  {fee.payment_status !== 'paid' && (
-                                    <Button size="sm" variant="outline" onClick={() => setPaymentFee(fee)}>
-                                      <DollarSign className="h-3 w-3 mr-1" />Record
-                                    </Button>
-                                  )}
-                                  {fee.receipt_number && (
-                                    <Button size="sm" variant="ghost" onClick={() => handleDownloadReceipt(fee)}>
-                                      <Download className="h-3 w-3 mr-1" />Receipt
-                                    </Button>
-                                  )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    {/* Group fees by class for clarity when showing promoted student */}
+                    {(() => {
+                      const grouped = new Map<string, { className: string; isCurrent: boolean; fees: typeof filteredFees }>();
+                      filteredFees.forEach(fee => {
+                        const clsId = fee.class_id || (fee.students?.classes as any)?.id || 'unknown';
+                        const clsName = getClassName(fee);
+                        if (!grouped.has(clsId)) {
+                          const isCurrent = classFilter ? clsId === classFilter : true;
+                          grouped.set(clsId, { className: clsName, isCurrent, fees: [] });
+                        }
+                        grouped.get(clsId)!.fees.push(fee);
+                      });
+                      const sortedGroups = Array.from(grouped.entries()).sort((a, b) => (b[1].isCurrent ? 1 : 0) - (a[1].isCurrent ? 1 : 0));
+                      const hasMultipleGroups = sortedGroups.length > 1;
 
-                    {/* Mobile Cards */}
-                    <div className="lg:hidden space-y-3">
-                      {filteredFees.map((fee) => {
-                        const net = fee.amount - (fee.discount || 0);
-                        const balance = net - (fee.paid_amount || 0);
-                        return (
-                          <Card key={fee.id} className="border">
-                            <CardContent className="p-4 space-y-3">
-                              {/* Header: Student + Status */}
-                              <div className="flex items-start justify-between gap-2">
-                                <button className="text-left" onClick={() => openStudentDetail(fee.student_id)}>
-                                  <div className="font-medium text-sm">{fee.students?.full_name || 'N/A'}</div>
-                                  <div className="text-xs text-muted-foreground font-mono">{fee.students?.login_id || fee.students?.admission_number}</div>
-                                </button>
-                                {getStatusBadge(fee.payment_status, fee.due_date)}
-                              </div>
-
-                              {/* Fee details - aligned table layout */}
-                              <div className="text-sm">
-                                <div className="flex justify-between py-1.5 border-b border-border/50">
-                                  <span className="text-muted-foreground">Fee Type</span>
-                                  <span className="capitalize font-medium text-right">{fee.fee_type}</span>
-                                </div>
-                                <div className="flex justify-between py-1.5 border-b border-border/50">
-                                  <span className="text-muted-foreground">Amount</span>
-                                  <span className="font-medium text-right">₹{fee.amount.toLocaleString()}</span>
-                                </div>
-                                {(fee.discount || 0) > 0 && (
-                                  <div className="flex justify-between py-1.5 border-b border-border/50">
-                                    <span className="text-muted-foreground">Discount</span>
-                                    <span className="text-success text-right">₹{(fee.discount || 0).toLocaleString()}</span>
-                                  </div>
-                                )}
-                                <div className="flex justify-between py-1.5 border-b border-border/50">
-                                  <span className="text-muted-foreground">Net</span>
-                                  <span className="font-semibold text-right">₹{net.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between py-1.5 border-b border-border/50">
-                                  <span className="text-muted-foreground">Paid</span>
-                                  <span className="text-success text-right">₹{(fee.paid_amount || 0).toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between py-1.5 border-b border-border/50">
-                                  <span className="text-muted-foreground">Balance</span>
-                                  <span className="font-semibold text-destructive text-right">₹{balance.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between py-1.5">
-                                  <span className="text-muted-foreground">Due Date</span>
-                                  <span className="text-right">{new Date(fee.due_date).toLocaleDateString()}</span>
-                                </div>
-                              </div>
-
-                              {/* Actions - stacked rows to prevent overflow */}
-                              <div className="pt-2 border-t space-y-2">
-                                <div className="grid grid-cols-3 gap-2">
-                                  <Button size="sm" variant="ghost" className="h-9 text-xs px-2" onClick={() => setEditFee(fee)}>
-                                    <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
-                                  </Button>
-                                  <Button size="sm" variant="ghost" className="h-9 text-xs px-2 text-destructive hover:text-destructive" onClick={() => { setDeleteMode('single'); setDeleteFeeIds([fee.id]); }}>
-                                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
-                                  </Button>
-                                  {fee.payment_status !== 'paid' ? (
-                                    <Button size="sm" variant="default" className="h-9 text-xs px-2" onClick={() => setPaymentFee(fee)}>
-                                      <DollarSign className="h-3.5 w-3.5 mr-1" /> Record
-                                    </Button>
-                                  ) : (
-                                    <div />
-                                  )}
-                                </div>
-                                {fee.receipt_number && (
-                                  <Button size="sm" variant="outline" className="w-full h-9 text-xs" onClick={() => handleDownloadReceipt(fee)}>
-                                    <Download className="h-3.5 w-3.5 mr-1" /> Download Receipt
-                                  </Button>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
+                      return sortedGroups.map(([clsId, group]) => (
+                        <div key={clsId} className={hasMultipleGroups ? "mb-6" : ""}>
+                          {hasMultipleGroups && (
+                            <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-md ${group.isCurrent ? 'bg-primary/5 border border-primary/20' : 'bg-muted/50 border border-border'}`}>
+                              <Badge variant={group.isCurrent ? "default" : "secondary"} className="text-xs">
+                                {group.isCurrent ? 'Current Class' : 'Previous Class'}
+                              </Badge>
+                              <span className="text-sm font-semibold">{group.className}</span>
+                              <span className="text-xs text-muted-foreground">({group.fees.length} records)</span>
+                            </div>
+                          )}
+                          {/* Desktop Table */}
+                          <div className="hidden lg:block overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Student</TableHead>
+                                  {!hasMultipleGroups && <TableHead>Class</TableHead>}
+                                  <TableHead>Fee Type</TableHead>
+                                  <TableHead>Amount</TableHead>
+                                  <TableHead>Discount</TableHead>
+                                  <TableHead>Net</TableHead>
+                                  <TableHead>Paid</TableHead>
+                                  <TableHead>Balance</TableHead>
+                                  <TableHead>Due Date</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead>Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {group.fees.map((fee) => (
+                                  <TableRow key={fee.id}>
+                                    <TableCell>
+                                      <button className="text-left hover:underline" onClick={() => openStudentDetail(fee.student_id)}>
+                                        <div className="font-medium">{fee.students?.full_name || 'N/A'}</div>
+                                        <div className="text-xs text-muted-foreground font-mono">{fee.students?.login_id || fee.students?.admission_number}</div>
+                                      </button>
+                                    </TableCell>
+                                    {!hasMultipleGroups && <TableCell>{getClassName(fee)}</TableCell>}
+                                    <TableCell className="capitalize">{fee.fee_type}</TableCell>
+                                    <TableCell className="font-medium">₹{fee.amount.toLocaleString()}</TableCell>
+                                    <TableCell>{(fee.discount || 0) > 0 ? <span className="text-success">₹{(fee.discount || 0).toLocaleString()}</span> : '-'}</TableCell>
+                                    <TableCell className="font-medium">₹{(fee.amount - (fee.discount || 0)).toLocaleString()}</TableCell>
+                                    <TableCell className="text-success">₹{(fee.paid_amount || 0).toLocaleString()}</TableCell>
+                                    <TableCell className="font-medium text-destructive">₹{(fee.amount - (fee.discount || 0) - (fee.paid_amount || 0)).toLocaleString()}</TableCell>
+                                    <TableCell>{new Date(fee.due_date).toLocaleDateString()}</TableCell>
+                                    <TableCell>{getStatusBadge(fee.payment_status, fee.due_date)}</TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-1">
+                                        <Button size="sm" variant="ghost" onClick={() => setEditFee(fee)} title="Edit">
+                                          <Edit2 className="h-3 w-3" />
+                                        </Button>
+                                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => { setDeleteMode('single'); setDeleteFeeIds([fee.id]); }} title="Delete">
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                        {fee.payment_status !== 'paid' && (
+                                          <Button size="sm" variant="outline" onClick={() => setPaymentFee(fee)}>
+                                            <DollarSign className="h-3 w-3 mr-1" />Record
+                                          </Button>
+                                        )}
+                                        {fee.receipt_number && (
+                                          <Button size="sm" variant="ghost" onClick={() => handleDownloadReceipt(fee)}>
+                                            <Download className="h-3 w-3 mr-1" />Receipt
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                          {/* Mobile Cards */}
+                          <div className="lg:hidden space-y-3">
+                            {group.fees.map((fee) => {
+                              const net = fee.amount - (fee.discount || 0);
+                              const balance = net - (fee.paid_amount || 0);
+                              return (
+                                <Card key={fee.id} className="border">
+                                  <CardContent className="p-4 space-y-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <button className="text-left" onClick={() => openStudentDetail(fee.student_id)}>
+                                        <div className="font-medium text-sm">{fee.students?.full_name || 'N/A'}</div>
+                                        <div className="text-xs text-muted-foreground font-mono">{fee.students?.login_id || fee.students?.admission_number}</div>
+                                      </button>
+                                      {getStatusBadge(fee.payment_status, fee.due_date)}
+                                    </div>
+                                    <div className="text-sm">
+                                      <div className="flex justify-between py-1.5 border-b border-border/50">
+                                        <span className="text-muted-foreground">Fee Type</span>
+                                        <span className="capitalize font-medium text-right">{fee.fee_type}</span>
+                                      </div>
+                                      <div className="flex justify-between py-1.5 border-b border-border/50">
+                                        <span className="text-muted-foreground">Amount</span>
+                                        <span className="font-medium text-right">₹{fee.amount.toLocaleString()}</span>
+                                      </div>
+                                      {(fee.discount || 0) > 0 && (
+                                        <div className="flex justify-between py-1.5 border-b border-border/50">
+                                          <span className="text-muted-foreground">Discount</span>
+                                          <span className="text-success text-right">₹{(fee.discount || 0).toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                      <div className="flex justify-between py-1.5 border-b border-border/50">
+                                        <span className="text-muted-foreground">Net</span>
+                                        <span className="font-semibold text-right">₹{net.toLocaleString()}</span>
+                                      </div>
+                                      <div className="flex justify-between py-1.5 border-b border-border/50">
+                                        <span className="text-muted-foreground">Paid</span>
+                                        <span className="text-success text-right">₹{(fee.paid_amount || 0).toLocaleString()}</span>
+                                      </div>
+                                      <div className="flex justify-between py-1.5 border-b border-border/50">
+                                        <span className="text-muted-foreground">Balance</span>
+                                        <span className="font-semibold text-destructive text-right">₹{balance.toLocaleString()}</span>
+                                      </div>
+                                      <div className="flex justify-between py-1.5">
+                                        <span className="text-muted-foreground">Due Date</span>
+                                        <span className="text-right">{new Date(fee.due_date).toLocaleDateString()}</span>
+                                      </div>
+                                    </div>
+                                    <div className="pt-2 border-t space-y-2">
+                                      <div className="grid grid-cols-3 gap-2">
+                                        <Button size="sm" variant="ghost" className="h-9 text-xs px-2" onClick={() => setEditFee(fee)}>
+                                          <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
+                                        </Button>
+                                        <Button size="sm" variant="ghost" className="h-9 text-xs px-2 text-destructive hover:text-destructive" onClick={() => { setDeleteMode('single'); setDeleteFeeIds([fee.id]); }}>
+                                          <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                                        </Button>
+                                        {fee.payment_status !== 'paid' ? (
+                                          <Button size="sm" variant="default" className="h-9 text-xs px-2" onClick={() => setPaymentFee(fee)}>
+                                            <DollarSign className="h-3.5 w-3.5 mr-1" /> Record
+                                          </Button>
+                                        ) : (
+                                          <div />
+                                        )}
+                                      </div>
+                                      {fee.receipt_number && (
+                                        <Button size="sm" variant="outline" className="w-full h-9 text-xs" onClick={() => handleDownloadReceipt(fee)}>
+                                          <Download className="h-3.5 w-3.5 mr-1" /> Download Receipt
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ));
+                    })()}
                   </>
                 )}
               </CardContent>
