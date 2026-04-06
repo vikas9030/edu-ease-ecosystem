@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,12 +37,15 @@ interface Fee {
   discount: number | null;
   class_id?: string | null;
   fee_class?: { name: string; section: string } | null;
+  _isCurrentClass?: boolean;
 }
 
 interface Child {
   id: string;
+  studentIds: string[];
   name: string;
   fees: Fee[];
+  currentClassId?: string | null;
 }
 
 function PaymentHistorySection({ studentId, studentName }: { studentId: string; studentName: string }) {
@@ -143,22 +146,46 @@ export default function ParentFees() {
     if (parentData) {
       const { data: links } = await supabase
         .from('student_parents')
-        .select('student_id, students(full_name)')
+        .select('student_id, students(full_name, status, class_id)')
         .eq('parent_id', parentData.id);
 
       if (links && links.length > 0) {
-        const childrenData: Child[] = [];
+        // Merge student records by name (promoted students have multiple records)
+        const nameMap = new Map<string, { studentIds: string[]; activeId: string | null; currentClassId: string | null }>();
         for (const link of links) {
-          const { data: feesData } = await supabase
-            .from('fees')
-            .select('*, fee_class:classes(name, section)' as any)
-            .eq('student_id', link.student_id)
-            .order('due_date', { ascending: false });
+          const student = (link as any).students;
+          const name = student?.full_name || '';
+          const existing = nameMap.get(name) || { studentIds: [], activeId: null, currentClassId: null };
+          existing.studentIds.push(link.student_id);
+          if (student?.status === 'active') {
+            existing.activeId = link.student_id;
+            existing.currentClassId = student?.class_id || null;
+          }
+          nameMap.set(name, existing);
+        }
 
+        const childrenData: Child[] = [];
+        for (const [name, info] of nameMap) {
+          const allFees: Fee[] = [];
+          for (const sid of info.studentIds) {
+            const { data: feesData } = await supabase
+              .from('fees')
+              .select('*, fee_class:classes(name, section)' as any)
+              .eq('student_id', sid)
+              .order('due_date', { ascending: false });
+            if (feesData) {
+              for (const f of feesData) {
+                (f as any)._isCurrentClass = (f as any).class_id === info.currentClassId;
+                allFees.push(f as any as Fee);
+              }
+            }
+          }
           childrenData.push({
-            id: link.student_id,
-            name: (link as any).students?.full_name || '',
-            fees: (feesData as any as Fee[]) || [],
+            id: info.activeId || info.studentIds[0],
+            studentIds: info.studentIds,
+            name,
+            fees: allFees,
+            currentClassId: info.currentClassId,
           });
         }
         setChildren(childrenData);
@@ -247,14 +274,34 @@ export default function ParentFees() {
     }
   };
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  }
   const fees = selectedChild?.fees || [];
   const totalDue = fees.filter(f => f.payment_status !== 'paid').reduce((sum, f) => sum + (f.amount - (f.discount || 0) - (f.paid_amount || 0)), 0);
   const totalPaid = fees.filter(f => f.payment_status === 'paid').reduce((sum, f) => sum + (f.paid_amount || f.amount), 0);
   const paidFees = fees.filter(f => f.payment_status === 'paid' && f.paid_at);
   const unpaidFees = fees.filter(f => f.payment_status !== 'paid');
+
+  // Group fees by class for clear current vs previous distinction
+  const feesByClass = useMemo(() => {
+    const groups = new Map<string, { className: string; isCurrent: boolean; fees: Fee[] }>();
+    fees.forEach(fee => {
+      const fc = (fee as any).fee_class;
+      const classKey = fee.class_id || 'unknown';
+      if (!groups.has(classKey)) {
+        groups.set(classKey, {
+          className: fc ? formatClassName(fc.name, fc.section) : 'Unknown Class',
+          isCurrent: !!(fee as any)._isCurrentClass,
+          fees: [],
+        });
+      }
+      groups.get(classKey)!.fees.push(fee);
+    });
+    // Sort: current class first
+    return [...groups.values()].sort((a, b) => (b.isCurrent ? 1 : 0) - (a.isCurrent ? 1 : 0));
+  }, [fees]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
 
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -347,26 +394,32 @@ export default function ParentFees() {
           </Card>
         </div>
 
-        {/* Fee Details */}
-        <Card className="card-elevated">
-          <CardHeader className="pb-3">
-            <CardTitle className="font-display flex items-center gap-2 text-base sm:text-lg">
-              <CreditCard className="h-5 w-5 text-primary" />
-              Fee Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {fees.length === 0 ? (
-              <p className="text-center py-8 text-muted-foreground text-sm">No fee records found.</p>
-            ) : (
-              <>
+        {/* Fee Details - Grouped by Class */}
+        {fees.length === 0 ? (
+          <Card className="card-elevated">
+            <CardContent className="py-8">
+              <p className="text-center text-muted-foreground text-sm">No fee records found.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          feesByClass.map((group, gi) => (
+            <Card key={gi} className={`card-elevated ${group.isCurrent ? 'border-l-4 border-l-primary' : 'border-l-4 border-l-muted-foreground/30'}`}>
+              <CardHeader className="pb-3">
+                <CardTitle className="font-display flex items-center gap-2 text-base sm:text-lg">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                  {group.className}
+                  <Badge variant={group.isCurrent ? 'default' : 'secondary'} className="text-xs ml-auto">
+                    {group.isCurrent ? '📗 Current Class' : '📕 Previous Class'}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 {/* Desktop Table */}
                 <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Fee Type</TableHead>
-                        <TableHead>Class</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Discount</TableHead>
                         <TableHead>Net Amount</TableHead>
@@ -377,13 +430,12 @@ export default function ParentFees() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {fees.map((fee) => {
+                      {group.fees.map((fee) => {
                         const style = getStatusStyle(fee.payment_status);
                         const isOverdue = fee.payment_status !== 'paid' && new Date(fee.due_date) < new Date();
                         return (
                           <TableRow key={fee.id}>
                             <TableCell className="font-medium">{fee.fee_type}</TableCell>
-                            <TableCell className="text-sm">{(fee as any).fee_class ? `${formatClassName((fee as any).fee_class.name, (fee as any).fee_class.section)}` : '-'}</TableCell>
                             <TableCell><span className="flex items-center"><IndianRupee className="h-3 w-3" />{fee.amount.toLocaleString()}</span></TableCell>
                             <TableCell>
                               {(fee.discount || 0) > 0 ? (
@@ -431,7 +483,7 @@ export default function ParentFees() {
 
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-3">
-                  {fees.map((fee) => {
+                  {group.fees.map((fee) => {
                     const style = getStatusStyle(fee.payment_status);
                     const isOverdue = fee.payment_status !== 'paid' && new Date(fee.due_date) < new Date();
                     const net = fee.amount - (fee.discount || 0);
@@ -439,7 +491,6 @@ export default function ParentFees() {
                     return (
                       <Card key={fee.id} className="border">
                         <CardContent className="p-4 space-y-3">
-                          {/* Header */}
                           <div className="flex items-center justify-between">
                             <span className="font-medium capitalize">{fee.fee_type}</span>
                             <Badge className={`${style.class} flex items-center gap-1`}>
@@ -447,8 +498,6 @@ export default function ParentFees() {
                               {fee.payment_status}
                             </Badge>
                           </div>
-
-                          {/* Details - aligned row layout */}
                           <div className="text-sm">
                             <div className="flex justify-between py-1.5 border-b border-border/50">
                               <span className="text-muted-foreground">Amount</span>
@@ -480,8 +529,6 @@ export default function ParentFees() {
                               </span>
                             </div>
                           </div>
-
-                          {/* Actions */}
                           <div className="pt-2 border-t space-y-2">
                             {fee.payment_status !== 'paid' ? (
                               <Button
@@ -505,10 +552,10 @@ export default function ParentFees() {
                     );
                   })}
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))
+        )}
 
         {/* Payment History */}
         <PaymentHistorySection studentId={selectedChildId} studentName={selectedChild?.name || ''} />
