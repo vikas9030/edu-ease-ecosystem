@@ -319,11 +319,16 @@ export default function ParentFees() {
 
   const handleDownloadReceipt = (fee: Fee) => {
     if (!fee.receipt_number || !fee.paid_at) return;
+    const fc = (fee as any).fee_class;
+    const feeClassName = fc ? formatClassName(fc.name, fc.section) : selectedChild?.currentClassName;
     generateFeeReceipt({
       receiptNumber: fee.receipt_number,
       studentName: selectedChild?.name || '',
+      admissionNumber: selectedChild?.admissionNumber,
+      className: feeClassName,
       feeType: fee.fee_type,
       amount: fee.amount,
+      discount: fee.discount || 0,
       paidAmount: fee.paid_amount || 0,
       paidAt: fee.paid_at,
       template: receiptTemplate || undefined,
