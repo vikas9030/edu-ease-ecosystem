@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { supabase } from '@/integrations/supabase/client';
 import type { ReceiptTemplate } from './ReceiptTemplateSettings';
 
 interface ReceiptData {
@@ -13,9 +14,21 @@ interface ReceiptData {
   paidAmount: number;
   paidAt: string;
   template?: ReceiptTemplate;
+  feeId?: string;
+  studentId?: string;
+  schoolId?: string;
+  paymentId?: string;
+  /** If a stored URL exists, download from storage instead of regenerating */
+  existingUrl?: string;
 }
 
 export async function generateFeeReceipt(data: ReceiptData) {
+  // If a stored receipt URL exists, download directly from storage
+  if (data.existingUrl) {
+    downloadFromUrl(data.existingUrl, 'Receipt_' + data.receiptNumber + '.pdf');
+    return;
+  }
+
   const t = data.template;
   const doc = new jsPDF();
   let y = 14;
@@ -141,16 +154,68 @@ export async function generateFeeReceipt(data: ReceiptData) {
   doc.setFont('helvetica', 'italic');
   doc.text(t?.footerText || 'This is a computer-generated receipt.', centerX, finalY, { align: 'center' });
 
-  // Direct download using blob
+  // Generate blob
   const pdfBlob = doc.output('blob');
-  const blobUrl = URL.createObjectURL(pdfBlob);
+
+  // Upload to storage in background (don't block download)
+  uploadReceiptToStorage(pdfBlob, data).catch(console.error);
+
+  // Direct download
+  triggerDownload(pdfBlob, 'Receipt_' + data.receiptNumber + '.pdf');
+}
+
+async function uploadReceiptToStorage(pdfBlob: Blob, data: ReceiptData) {
+  try {
+    const fileName = `${data.receiptNumber}.pdf`;
+    const filePath = data.schoolId
+      ? `${data.schoolId}/${fileName}`
+      : fileName;
+
+    const { error: uploadError } = await supabase.storage
+      .from('receipts')
+      .upload(filePath, pdfBlob, {
+        contentType: 'application/pdf',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('Receipt upload error:', uploadError);
+      return;
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('receipts')
+      .getPublicUrl(filePath);
+
+    const receiptUrl = urlData?.publicUrl;
+
+    // Update fee_payments record with receipt URL if we have a payment ID
+    if (receiptUrl && data.paymentId) {
+      await supabase
+        .from('fee_payments' as any)
+        .update({ receipt_url: receiptUrl } as any)
+        .eq('id', data.paymentId);
+    } else if (receiptUrl && data.receiptNumber) {
+      // Try to find the payment by receipt number
+      await supabase
+        .from('fee_payments' as any)
+        .update({ receipt_url: receiptUrl } as any)
+        .eq('receipt_number', data.receiptNumber);
+    }
+  } catch (err) {
+    console.error('Failed to store receipt:', err);
+  }
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = blobUrl;
-  link.download = 'Receipt_' + data.receiptNumber + '.pdf';
+  link.download = filename;
   link.style.display = 'none';
   document.body.appendChild(link);
-  
-  // Use setTimeout to ensure the link is in the DOM before clicking
+
   setTimeout(() => {
     link.click();
     setTimeout(() => {
@@ -158,6 +223,18 @@ export async function generateFeeReceipt(data: ReceiptData) {
       URL.revokeObjectURL(blobUrl);
     }, 1000);
   }, 100);
+}
+
+function downloadFromUrl(url: string, filename: string) {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => document.body.removeChild(link), 1000);
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {
