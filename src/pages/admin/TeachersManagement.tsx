@@ -116,7 +116,8 @@ export default function TeachersManagement() {
     phone: '',
     qualification: '',
     password: '',
-    subjects: '',
+    mainSubject: '',
+    secondarySubjects: '',
     classTeacherOf: '',
   });
 
@@ -124,7 +125,8 @@ export default function TeachersManagement() {
     fullName: '',
     phone: '',
     qualification: '',
-    subjects: '',
+    mainSubject: '',
+    secondarySubjects: '',
     status: '',
     newPassword: '',
     classTeacherOf: '',
@@ -269,17 +271,20 @@ export default function TeachersManagement() {
         await supabase.from('profiles').update({ photo_url: photoUrl }).eq('user_id', authData.user.id);
       }
 
-      // Create teacher record - ID format: NAME-SUBJECT
+      // Create teacher record - ID format: NAME-MAINSUBJECT
       const namePart = formData.fullName.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '');
-      const subjectPart = formData.subjects ? formData.subjects.split(',')[0].trim().toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
-      const teacherId = `${namePart}-${subjectPart}`;
-      const subjects = formData.subjects ? formData.subjects.split(',').map(s => s.trim()) : [];
+      const mainSubjectPart = formData.mainSubject ? formData.mainSubject.trim().toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
+      const teacherId = `${namePart}-${mainSubjectPart}`;
+      const secondarySubjects = formData.secondarySubjects ? formData.secondarySubjects.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const allSubjects = [formData.mainSubject.trim(), ...secondarySubjects].filter(Boolean);
 
       const { data: newTeacher, error: teacherError } = await supabase.from('teachers').insert({
         user_id: authData.user.id,
         teacher_id: teacherId,
         qualification: formData.qualification,
-        subjects,
+        subjects: allSubjects,
+        main_subject: formData.mainSubject.trim() || null,
+        secondary_subjects: secondarySubjects,
         status: 'active',
         school_id: schoolId,
       }).select().single();
@@ -294,7 +299,7 @@ export default function TeachersManagement() {
 
         toast({ title: 'Success', description: 'Teacher account created successfully' });
         setDialogOpen(false);
-        setFormData({ fullName: '', email: '', phone: '', qualification: '', password: '', subjects: '', classTeacherOf: '' });
+        setFormData({ fullName: '', email: '', phone: '', qualification: '', password: '', mainSubject: '', secondarySubjects: '', classTeacherOf: '' });
         setPhotoFile(null);
         setPhotoPreview('');
         fetchData();
@@ -327,7 +332,8 @@ export default function TeachersManagement() {
       fullName: teacher.profiles?.full_name || '',
       phone: teacher.profiles?.phone || '',
       qualification: teacher.qualification || '',
-      subjects: teacher.subjects?.join(', ') || '',
+      mainSubject: (teacher as any).main_subject || (teacher.subjects?.[0] || ''),
+      secondarySubjects: (teacher as any).secondary_subjects?.join(', ') || (teacher.subjects?.slice(1).join(', ') || ''),
       status: teacher.status || 'active',
       newPassword: '',
       classTeacherOf: classTeacherClass?.id || '',
@@ -349,15 +355,18 @@ export default function TeachersManagement() {
         }).eq('user_id', editingTeacher.user_id);
       }
 
-      // Update teacher record — auto-regenerate teacher_id when name or subjects change
-      const subjects = editFormData.subjects ? editFormData.subjects.split(',').map(s => s.trim()) : [];
+      // Update teacher record — auto-regenerate teacher_id from name + main subject
+      const secondarySubjects = editFormData.secondarySubjects ? editFormData.secondarySubjects.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const allSubjects = [editFormData.mainSubject.trim(), ...secondarySubjects].filter(Boolean);
       const namePart = editFormData.fullName.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '');
-      const subjectPart = subjects.length > 0 ? subjects[0].toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
-      const newTeacherId = `${namePart}-${subjectPart}`;
+      const mainSubjectPart = editFormData.mainSubject ? editFormData.mainSubject.trim().toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
+      const newTeacherId = `${namePart}-${mainSubjectPart}`;
       await supabase.from('teachers').update({
         teacher_id: newTeacherId,
         qualification: editFormData.qualification,
-        subjects,
+        subjects: allSubjects,
+        main_subject: editFormData.mainSubject.trim() || null,
+        secondary_subjects: secondarySubjects,
         status: editFormData.status,
       }).eq('id', editingTeacher.id);
 
@@ -466,18 +475,23 @@ export default function TeachersManagement() {
                   </div>
 
                   <div className="col-span-2 space-y-2">
-                    <Label>Subjects (comma separated)</Label>
-                    <Input placeholder="e.g., Math, Science, English" value={formData.subjects} onChange={(e) => setFormData({ ...formData, subjects: e.target.value })} />
+                    <Label>Main Subject * <span className="text-xs text-muted-foreground">(used for Teacher ID)</span></Label>
+                    <Input placeholder="e.g., Mathematics" value={formData.mainSubject} onChange={(e) => setFormData({ ...formData, mainSubject: e.target.value })} />
+                  </div>
+
+                  <div className="col-span-2 space-y-2">
+                    <Label>Secondary Subjects <span className="text-xs text-muted-foreground">(optional, comma separated)</span></Label>
+                    <Input placeholder="e.g., Science, English" value={formData.secondarySubjects} onChange={(e) => setFormData({ ...formData, secondarySubjects: e.target.value })} />
                   </div>
 
                   {/* Live ID Preview */}
-                  {(formData.fullName || formData.subjects) && (
+                  {(formData.fullName || formData.mainSubject) && (
                     <div className="col-span-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
                       <Label className="text-xs text-muted-foreground">Generated Teacher ID</Label>
                       <p className="font-mono text-lg font-bold text-primary mt-1">
                         {(() => {
                           const namePart = formData.fullName.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '') || 'NAME';
-                          const subjectPart = formData.subjects ? formData.subjects.split(',')[0].trim().toUpperCase().replace(/[^A-Z]/g, '') : 'SUB';
+                          const subjectPart = formData.mainSubject ? formData.mainSubject.trim().toUpperCase().replace(/[^A-Z]/g, '') : 'SUB';
                           return `${namePart}-${subjectPart || 'SUB'}`;
                         })()}
                       </p>
@@ -687,11 +701,20 @@ export default function TeachersManagement() {
                 </div>
 
                 <div className="sm:col-span-2 space-y-2">
-                  <Label>Subjects (comma separated)</Label>
+                  <Label>Main Subject <span className="text-xs text-muted-foreground">(used for Teacher ID)</span></Label>
                   <Input 
-                    value={editFormData.subjects} 
-                    onChange={(e) => setEditFormData({ ...editFormData, subjects: e.target.value })} 
-                    placeholder="e.g., Math, Science, English"
+                    value={editFormData.mainSubject} 
+                    onChange={(e) => setEditFormData({ ...editFormData, mainSubject: e.target.value })} 
+                    placeholder="e.g., Mathematics"
+                  />
+                </div>
+
+                <div className="sm:col-span-2 space-y-2">
+                  <Label>Secondary Subjects <span className="text-xs text-muted-foreground">(optional, comma separated)</span></Label>
+                  <Input 
+                    value={editFormData.secondarySubjects} 
+                    onChange={(e) => setEditFormData({ ...editFormData, secondarySubjects: e.target.value })} 
+                    placeholder="e.g., Science, English"
                   />
                 </div>
 
