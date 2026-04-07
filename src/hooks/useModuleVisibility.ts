@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ModuleVisibility {
   module_key: string;
@@ -39,9 +40,28 @@ async function fetchSchoolOverrides(schoolId: string): Promise<SchoolOverride[]>
   return (data as any[]) || [];
 }
 
+async function getCachedModules(): Promise<ModuleVisibility[]> {
+  if (cachedModules && cachedModules.length > 0) {
+    return cachedModules;
+  }
+
+  if (!fetchPromise) {
+    fetchPromise = fetchModules()
+      .then((data) => {
+        cachedModules = data;
+        return data;
+      })
+      .finally(() => {
+        fetchPromise = null;
+      });
+  }
+
+  return fetchPromise;
+}
+
 // Clear cache on auth state change
 supabase.auth.onAuthStateChange((event) => {
-  if (event === 'SIGNED_OUT' || event === 'SIGNED_IN') {
+  if (event === 'SIGNED_OUT' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
     cachedModules = null;
     cachedOverrides = {};
     fetchPromise = null;
@@ -49,17 +69,19 @@ supabase.auth.onAuthStateChange((event) => {
 });
 
 export function useModuleVisibility(schoolId?: string | null, userRole?: string | null) {
+  const { user, loading: authLoading } = useAuth();
   const [modules, setModules] = useState<ModuleVisibility[]>(cachedModules || []);
   const [overrides, setOverrides] = useState<SchoolOverride[]>([]);
-  const [loading, setLoading] = useState(!cachedModules);
+  const [loading, setLoading] = useState(authLoading || !cachedModules);
 
   const refetch = useCallback(async () => {
+    if (authLoading || !user) return;
+
     setLoading(true);
     cachedModules = null;
     cachedOverrides = {};
     fetchPromise = null;
-    const data = await fetchModules();
-    cachedModules = data;
+    const data = await getCachedModules();
     setModules(data);
 
     if (schoolId && userRole !== 'super_admin') {
@@ -70,42 +92,58 @@ export function useModuleVisibility(schoolId?: string | null, userRole?: string 
       setOverrides([]);
     }
     setLoading(false);
-  }, [schoolId, userRole]);
+  }, [authLoading, schoolId, userRole, user]);
 
   useEffect(() => {
-    // Fetch system modules
-    if (cachedModules && cachedModules.length > 0) {
-      setModules(cachedModules);
-    } else {
-      if (!fetchPromise) {
-        fetchPromise = fetchModules();
-      }
-      fetchPromise.then((data) => {
-        cachedModules = data;
-        setModules(data);
-      });
+    if (authLoading) {
+      setLoading(true);
+      return;
     }
 
-    // Fetch school overrides for non-super-admin users
-    if (schoolId && userRole !== 'super_admin') {
-      if (cachedOverrides[schoolId]) {
-        setOverrides(cachedOverrides[schoolId]);
-        setLoading(false);
-      } else {
-        fetchSchoolOverrides(schoolId).then((ov) => {
-          cachedOverrides[schoolId] = ov;
-          setOverrides(ov);
-          setLoading(false);
-        });
-      }
-    } else {
+    if (!user) {
+      setModules([]);
       setOverrides([]);
-      if (cachedModules) setLoading(false);
-      else {
-        fetchPromise?.then(() => setLoading(false));
-      }
+      setLoading(false);
+      return;
     }
-  }, [schoolId, userRole]);
+
+    let isActive = true;
+
+    const loadVisibility = async () => {
+      setLoading(true);
+
+      const data = await getCachedModules();
+      if (!isActive) return;
+
+      setModules(data);
+
+      if (schoolId && userRole !== 'super_admin') {
+        if (cachedOverrides[schoolId]) {
+          setOverrides(cachedOverrides[schoolId]);
+          setLoading(false);
+          return;
+        }
+
+        const ov = await fetchSchoolOverrides(schoolId);
+        cachedOverrides[schoolId] = ov;
+        if (!isActive) return;
+
+        setOverrides(ov);
+      } else {
+        setOverrides([]);
+      }
+
+      if (isActive) {
+        setLoading(false);
+      }
+    };
+
+    void loadVisibility();
+
+    return () => {
+      isActive = false;
+    };
+  }, [authLoading, schoolId, userRole, user]);
 
   const isModuleEnabled = useCallback((key: string): boolean => {
     const mod = modules.find((m) => m.module_key === key);
