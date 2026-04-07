@@ -271,17 +271,20 @@ export default function TeachersManagement() {
         await supabase.from('profiles').update({ photo_url: photoUrl }).eq('user_id', authData.user.id);
       }
 
-      // Create teacher record - ID format: NAME-SUBJECT
+      // Create teacher record - ID format: NAME-MAINSUBJECT
       const namePart = formData.fullName.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '');
-      const subjectPart = formData.subjects ? formData.subjects.split(',')[0].trim().toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
-      const teacherId = `${namePart}-${subjectPart}`;
-      const subjects = formData.subjects ? formData.subjects.split(',').map(s => s.trim()) : [];
+      const mainSubjectPart = formData.mainSubject ? formData.mainSubject.trim().toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
+      const teacherId = `${namePart}-${mainSubjectPart}`;
+      const secondarySubjects = formData.secondarySubjects ? formData.secondarySubjects.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const allSubjects = [formData.mainSubject.trim(), ...secondarySubjects].filter(Boolean);
 
       const { data: newTeacher, error: teacherError } = await supabase.from('teachers').insert({
         user_id: authData.user.id,
         teacher_id: teacherId,
         qualification: formData.qualification,
-        subjects,
+        subjects: allSubjects,
+        main_subject: formData.mainSubject.trim() || null,
+        secondary_subjects: secondarySubjects,
         status: 'active',
         school_id: schoolId,
       }).select().single();
@@ -296,7 +299,7 @@ export default function TeachersManagement() {
 
         toast({ title: 'Success', description: 'Teacher account created successfully' });
         setDialogOpen(false);
-        setFormData({ fullName: '', email: '', phone: '', qualification: '', password: '', subjects: '', classTeacherOf: '' });
+        setFormData({ fullName: '', email: '', phone: '', qualification: '', password: '', mainSubject: '', secondarySubjects: '', classTeacherOf: '' });
         setPhotoFile(null);
         setPhotoPreview('');
         fetchData();
@@ -329,7 +332,8 @@ export default function TeachersManagement() {
       fullName: teacher.profiles?.full_name || '',
       phone: teacher.profiles?.phone || '',
       qualification: teacher.qualification || '',
-      subjects: teacher.subjects?.join(', ') || '',
+      mainSubject: (teacher as any).main_subject || (teacher.subjects?.[0] || ''),
+      secondarySubjects: (teacher as any).secondary_subjects?.join(', ') || (teacher.subjects?.slice(1).join(', ') || ''),
       status: teacher.status || 'active',
       newPassword: '',
       classTeacherOf: classTeacherClass?.id || '',
@@ -351,15 +355,18 @@ export default function TeachersManagement() {
         }).eq('user_id', editingTeacher.user_id);
       }
 
-      // Update teacher record — auto-regenerate teacher_id when name or subjects change
-      const subjects = editFormData.subjects ? editFormData.subjects.split(',').map(s => s.trim()) : [];
+      // Update teacher record — auto-regenerate teacher_id from name + main subject
+      const secondarySubjects = editFormData.secondarySubjects ? editFormData.secondarySubjects.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const allSubjects = [editFormData.mainSubject.trim(), ...secondarySubjects].filter(Boolean);
       const namePart = editFormData.fullName.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '');
-      const subjectPart = subjects.length > 0 ? subjects[0].toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
-      const newTeacherId = `${namePart}-${subjectPart}`;
+      const mainSubjectPart = editFormData.mainSubject ? editFormData.mainSubject.trim().toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
+      const newTeacherId = `${namePart}-${mainSubjectPart}`;
       await supabase.from('teachers').update({
         teacher_id: newTeacherId,
         qualification: editFormData.qualification,
-        subjects,
+        subjects: allSubjects,
+        main_subject: editFormData.mainSubject.trim() || null,
+        secondary_subjects: secondarySubjects,
         status: editFormData.status,
       }).eq('id', editingTeacher.id);
 
