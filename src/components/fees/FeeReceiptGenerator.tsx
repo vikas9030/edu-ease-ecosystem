@@ -113,18 +113,32 @@ export async function generateFeeReceipt(data: ReceiptData) {
   }
   y += 4;
 
-  // Table data
+  // Payment status line
   const discount = data.discount || 0;
   const netAmount = data.amount - discount;
+  const isFullPayment = data.paidAmount >= netAmount;
+  const paymentStatusText = isFullPayment ? 'FULLY PAID' : 'PARTIALLY PAID';
+  const statusColor = isFullPayment ? [39, 174, 96] : [243, 156, 18];
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+  doc.text(`Payment Status: ${paymentStatusText}`, centerX, y, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+  y += 8;
+
+  // Table data — always show discount
   const showDiscount = t ? t.showDiscount : true;
 
   const head = showDiscount
-    ? [['Fee Type', 'Amount (Rs.)', 'Discount (Rs.)', 'Net (Rs.)', 'Paid (Rs.)']]
-    : [['Fee Type', 'Amount (Rs.)', 'Net (Rs.)', 'Paid (Rs.)']];
+    ? [['Fee Type', 'Amount (Rs.)', 'Discount (Rs.)', 'Net (Rs.)', 'Paid (Rs.)', 'Balance (Rs.)']]
+    : [['Fee Type', 'Amount (Rs.)', 'Net (Rs.)', 'Paid (Rs.)', 'Balance (Rs.)']];
+
+  const balance = netAmount - data.paidAmount;
 
   const body = showDiscount
-    ? [[data.feeType, data.amount.toLocaleString(), discount.toLocaleString(), netAmount.toLocaleString(), data.paidAmount.toLocaleString()]]
-    : [[data.feeType, data.amount.toLocaleString(), netAmount.toLocaleString(), data.paidAmount.toLocaleString()]];
+    ? [[data.feeType, data.amount.toLocaleString(), discount.toLocaleString(), netAmount.toLocaleString(), data.paidAmount.toLocaleString(), balance > 0 ? balance.toLocaleString() : '0']]
+    : [[data.feeType, data.amount.toLocaleString(), netAmount.toLocaleString(), data.paidAmount.toLocaleString(), balance > 0 ? balance.toLocaleString() : '0']];
 
   autoTable(doc, {
     startY: y,
