@@ -116,7 +116,8 @@ export default function TeachersManagement() {
     phone: '',
     qualification: '',
     password: '',
-    subjects: '',
+    mainSubject: '',
+    secondarySubjects: '',
     classTeacherOf: '',
   });
 
@@ -124,7 +125,8 @@ export default function TeachersManagement() {
     fullName: '',
     phone: '',
     qualification: '',
-    subjects: '',
+    mainSubject: '',
+    secondarySubjects: '',
     status: '',
     newPassword: '',
     classTeacherOf: '',

@@ -410,7 +410,7 @@ export default function HolidaysManagement() {
                   mode="single"
                   selected={form.holiday_date}
                   onSelect={d => d && setForm(f => ({ ...f, holiday_date: d }))}
-                  className="rounded-md border mt-1 pointer-events-auto"
+                  className="rounded-md border mt-1 pointer-events-auto w-full [&_.rdp-table]:w-full [&_.rdp-head_row]:flex [&_.rdp-head_row]:justify-between [&_.rdp-row]:flex [&_.rdp-row]:justify-between [&_.rdp-cell]:flex-1 [&_.rdp-cell]:text-center [&_.rdp-head_cell]:flex-1 [&_.rdp-head_cell]:text-center [&_.rdp-day]:w-full [&_.rdp-day]:mx-auto"
                 />
               </div>
               <div>

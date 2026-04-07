@@ -48,6 +48,7 @@ export default function ParentCertificates() {
   const [selectedType, setSelectedType] = useState('');
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [description, setDescription] = useState('');
+  const [parentCustomName, setParentCustomName] = useState('');
 
   useEffect(() => {
     if (!loading && (!user || userRole !== 'parent')) {
