@@ -413,6 +413,18 @@ export default function HolidaysManagement() {
                   className="rounded-md border mt-1 pointer-events-auto"
                 />
               </div>
+              <div>
+                <label className="text-sm font-medium">Reminder (days before)</label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={30}
+                  value={form.reminder_days}
+                  onChange={e => setForm(f => ({ ...f, reminder_days: parseInt(e.target.value) || 0 }))}
+                  placeholder="e.g. 2"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Send notification this many days before the event</p>
+              </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={closeDialog}>Cancel</Button>
