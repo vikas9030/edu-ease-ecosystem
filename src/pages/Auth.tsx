@@ -537,7 +537,7 @@ export default function Auth() {
                 </CardTitle>
                 <CardDescription className="text-sm">
                   {loginMode === 'staff' 
-                    ? 'Super Admin: Email | Admin: School + Email | Teacher: School + Teacher ID' 
+                    ? 'Use your staff credentials to sign in' 
                     : 'Login with Student ID provided by teacher'}
                 </CardDescription>
               </CardHeader>
