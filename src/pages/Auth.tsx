@@ -102,7 +102,7 @@ export default function Auth() {
   // Check if user is logging in as admin (email) — no school needed
   const isAdminEmail = (identifier: string) => identifier.includes('@');
 
-  const validateEmailStaffAccess = async () => {
+  const validateEmailStaffAccess = async (): Promise<'super_admin' | 'admin'> => {
     const { data: authData, error: authError } = await supabase.auth.getUser();
 
     if (authError || !authData.user) {
@@ -131,6 +131,10 @@ export default function Auth() {
       throw new Error('Parents and students must sign in with School + Student ID.');
     }
 
+    if (roleData.role === 'super_admin') {
+      return 'super_admin';
+    }
+
     if (roleData.role === 'admin') {
       if (!roleData.school_id) {
         await supabase.auth.signOut();
@@ -144,9 +148,14 @@ export default function Auth() {
 
       if (selectedSchoolId && roleData.school_id !== selectedSchoolId) {
         await supabase.auth.signOut();
-        throw new Error('This admin account does not belong to the selected school.');
+        throw new Error('Incorrect school selected. Please choose the school linked to this admin account.');
       }
+
+      return 'admin';
     }
+
+    await supabase.auth.signOut();
+    throw new Error('This account is not configured for staff access.');
   };
 
   // Staff Login (Admin with email, Teacher with ID)
@@ -194,9 +203,9 @@ export default function Auth() {
         });
       } else {
         try {
-          await validateEmailStaffAccess();
-          // Validation passed — allow navigation
+          const validatedRole = await validateEmailStaffAccess();
           isValidatingRef.current = false;
+          navigate(validatedRole === 'super_admin' ? '/super-admin' : '/admin', { replace: true });
         } catch (error: any) {
           isValidatingRef.current = false;
           toast({
