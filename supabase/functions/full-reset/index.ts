@@ -12,94 +12,44 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Create admin client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify user is admin
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: userData, error: userError } = await userClient.auth.getUser();
-    if (userError || !userData.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: roleData } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userData.user.id)
-      .single();
-
-    if (!roleData || roleData.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const currentUserId = userData.user.id;
-
     // Delete all data from tables in order (respecting foreign keys)
-    await adminClient.from("exam_marks").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("exams").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("attendance").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("homework").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("fees").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("leave_requests").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("certificate_requests").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("complaints").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("student_reports").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("messages").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("timetable").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("announcements").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("student_parents").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("students").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("teacher_classes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("teachers").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("parents").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("classes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await adminClient.from("subjects").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    const tables = [
+      "exam_marks", "student_exam_answers", "student_exam_results",
+      "questions", "question_papers", "exams",
+      "attendance", "homework", "fee_payments", "fees",
+      "leave_requests", "certificate_requests", "complaints",
+      "student_reports", "messages", "timetable", "announcements",
+      "notifications", "push_subscriptions",
+      "lead_call_logs", "lead_status_history", "leads",
+      "student_discontinuation_archives",
+      "student_parents", "students",
+      "teacher_classes", "teachers",
+      "parents", "classes", "subjects",
+      "gallery_images", "gallery_folders",
+      "holidays", "settings_audit_log", "app_settings",
+      "school_module_overrides", "module_visibility", "exam_cycles",
+      "push_config", "profiles", "user_roles", "schools"
+    ];
 
-    // Get all user IDs except current admin
-    const { data: allUsers } = await adminClient
-      .from("user_roles")
-      .select("user_id")
-      .neq("user_id", currentUserId);
+    for (const table of tables) {
+      await adminClient.from(table).delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    }
 
-    // Delete profiles and roles for other users
-    if (allUsers && allUsers.length > 0) {
-      const userIds = allUsers.map(u => u.user_id);
-      
-      await adminClient.from("profiles").delete().in("user_id", userIds);
-      await adminClient.from("user_roles").delete().in("user_id", userIds);
-
-      // Delete auth users
-      for (const uid of userIds) {
-        await adminClient.auth.admin.deleteUser(uid);
+    // Delete ALL auth users
+    const { data: authUsers } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+    if (authUsers?.users) {
+      for (const u of authUsers.users) {
+        await adminClient.auth.admin.deleteUser(u.id);
       }
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: "Full reset complete. All data and accounts deleted except yours." }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true, message: "Complete reset done. All data and users deleted." }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
     console.error("Error in full-reset:", error);
