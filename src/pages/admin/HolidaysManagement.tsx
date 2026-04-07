@@ -410,7 +410,24 @@ export default function HolidaysManagement() {
                   mode="single"
                   selected={form.holiday_date}
                   onSelect={d => d && setForm(f => ({ ...f, holiday_date: d }))}
-                  className="rounded-md border mt-1 pointer-events-auto w-full p-2 [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-day]:h-9 [&_.rdp-day]:w-full"
+                  className="rounded-md border mt-1 pointer-events-auto w-full !p-0"
+                  classNames={{
+                    months: "w-full",
+                    month: "w-full space-y-3 p-3",
+                    table: "w-full border-collapse",
+                    head_row: "flex w-full",
+                    head_cell: "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] text-center",
+                    row: "flex w-full mt-1",
+                    cell: "flex-1 text-center text-sm p-0 relative",
+                    day: "h-9 w-full rounded-md text-sm font-normal hover:bg-accent hover:text-accent-foreground aria-selected:opacity-100 mx-auto flex items-center justify-center",
+                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                    day_today: "bg-accent text-accent-foreground",
+                    day_outside: "text-muted-foreground opacity-50",
+                    day_disabled: "text-muted-foreground opacity-50",
+                    nav: "space-x-1 flex items-center",
+                    caption: "flex justify-center pt-1 relative items-center",
+                    caption_label: "text-sm font-medium",
+                  }}
                 />
               </div>
               <div>
