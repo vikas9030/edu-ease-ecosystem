@@ -158,9 +158,9 @@ export default function HolidaysManagement() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+           <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
               <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              Holidays & Occasions
+              Academic Calendar
             </h1>
             <p className="text-sm text-muted-foreground hidden sm:block">Manage holidays, occasions, and events</p>
           </div>
