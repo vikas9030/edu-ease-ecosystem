@@ -1,0 +1,1 @@
+ALTER TABLE public.holidays ADD COLUMN IF NOT EXISTS reminder_days integer NOT NULL DEFAULT 2;
