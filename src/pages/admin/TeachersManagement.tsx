@@ -349,9 +349,13 @@ export default function TeachersManagement() {
         }).eq('user_id', editingTeacher.user_id);
       }
 
-      // Update teacher record
+      // Update teacher record — auto-regenerate teacher_id when name or subjects change
       const subjects = editFormData.subjects ? editFormData.subjects.split(',').map(s => s.trim()) : [];
+      const namePart = editFormData.fullName.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '');
+      const subjectPart = subjects.length > 0 ? subjects[0].toUpperCase().replace(/[^A-Z]/g, '') : 'GEN';
+      const newTeacherId = `${namePart}-${subjectPart}`;
       await supabase.from('teachers').update({
+        teacher_id: newTeacherId,
         qualification: editFormData.qualification,
         subjects,
         status: editFormData.status,

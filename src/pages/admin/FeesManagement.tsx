@@ -138,6 +138,7 @@ export default function FeesManagement() {
       className: getClassName(fee),
       feeType: fee.fee_type,
       amount: fee.amount,
+      discount: fee.discount || 0,
       paidAmount: fee.paid_amount || 0,
       paidAt: fee.paid_at,
       template: receiptTemplate || undefined,

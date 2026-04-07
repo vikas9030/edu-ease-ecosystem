@@ -682,6 +682,7 @@ export type Database = {
           holiday_date: string
           holiday_type: string
           id: string
+          reminder_days: number
           school_id: string | null
           title: string
         }
@@ -692,6 +693,7 @@ export type Database = {
           holiday_date: string
           holiday_type?: string
           id?: string
+          reminder_days?: number
           school_id?: string | null
           title: string
         }
@@ -702,6 +704,7 @@ export type Database = {
           holiday_date?: string
           holiday_type?: string
           id?: string
+          reminder_days?: number
           school_id?: string | null
           title?: string
         }

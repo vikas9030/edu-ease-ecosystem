@@ -16,23 +16,35 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Get holidays within next 2 days
+    // Get all upcoming holidays (within next 30 days max)
     const today = new Date()
-    const twoDaysLater = new Date(today)
-    twoDaysLater.setDate(today.getDate() + 2)
-
     const todayStr = today.toISOString().split('T')[0]
-    const futureStr = twoDaysLater.toISOString().split('T')[0]
+    const maxFuture = new Date(today)
+    maxFuture.setDate(today.getDate() + 30)
+    const maxStr = maxFuture.toISOString().split('T')[0]
 
     const { data: holidays, error: hErr } = await supabase
       .from('holidays')
       .select('*')
       .gte('holiday_date', todayStr)
-      .lte('holiday_date', futureStr)
+      .lte('holiday_date', maxStr)
 
     if (hErr) throw hErr
     if (!holidays || holidays.length === 0) {
       return new Response(JSON.stringify({ message: 'No upcoming holidays' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // Filter holidays where today falls within their reminder window
+    const eligibleHolidays = holidays.filter(h => {
+      const holidayDate = new Date(h.holiday_date)
+      const reminderDays = h.reminder_days ?? 2
+      const diffMs = holidayDate.getTime() - today.getTime()
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+      return diffDays >= 0 && diffDays <= reminderDays
+    })
+
+    if (eligibleHolidays.length === 0) {
+      return new Response(JSON.stringify({ message: 'No holidays in reminder window' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     // Get all teacher and parent user IDs
@@ -45,7 +57,7 @@ Deno.serve(async (req) => {
 
     let notificationsInserted = 0
 
-    for (const holiday of holidays) {
+    for (const holiday of eligibleHolidays) {
       const notifications = (users || []).map(u => ({
         user_id: u.user_id,
         title: `Reminder: ${holiday.title}`,
@@ -62,7 +74,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ message: `Sent ${notificationsInserted} reminders for ${holidays.length} holidays` }),
+      JSON.stringify({ message: `Sent ${notificationsInserted} reminders for ${eligibleHolidays.length} holidays` }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {

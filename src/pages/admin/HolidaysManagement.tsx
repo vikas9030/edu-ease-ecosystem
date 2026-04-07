@@ -23,6 +23,7 @@ interface Holiday {
   description: string | null;
   holiday_date: string;
   holiday_type: string;
+  reminder_days: number;
   created_by: string | null;
   created_at: string | null;
 }
@@ -59,7 +60,7 @@ export default function HolidaysManagement() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
-  const [form, setForm] = useState({ title: '', description: '', holiday_date: new Date(), holiday_type: 'holiday' });
+  const [form, setForm] = useState({ title: '', description: '', holiday_date: new Date(), holiday_type: 'holiday', reminder_days: 2 });
 
   const { data: holidays = [], isLoading } = useQuery({
     queryKey: ['holidays'],
@@ -102,6 +103,7 @@ export default function HolidaysManagement() {
         description: form.description || null,
         holiday_date: format(form.holiday_date, 'yyyy-MM-dd'),
         holiday_type: form.holiday_type,
+        reminder_days: form.reminder_days,
         created_by: user?.id,
         school_id: schoolId,
       };
@@ -138,12 +140,12 @@ export default function HolidaysManagement() {
   const closeDialog = () => {
     setDialogOpen(false);
     setEditingHoliday(null);
-    setForm({ title: '', description: '', holiday_date: new Date(), holiday_type: 'holiday' });
+    setForm({ title: '', description: '', holiday_date: new Date(), holiday_type: 'holiday', reminder_days: 2 });
   };
 
   const openEdit = (h: Holiday) => {
     setEditingHoliday(h);
-    setForm({ title: h.title, description: h.description || '', holiday_date: parseISO(h.holiday_date), holiday_type: h.holiday_type });
+    setForm({ title: h.title, description: h.description || '', holiday_date: parseISO(h.holiday_date), holiday_type: h.holiday_type, reminder_days: h.reminder_days ?? 2 });
     setDialogOpen(true);
   };
 
@@ -158,9 +160,9 @@ export default function HolidaysManagement() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+           <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
               <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              Holidays & Occasions
+              Academic Calendar
             </h1>
             <p className="text-sm text-muted-foreground hidden sm:block">Manage holidays, occasions, and events</p>
           </div>
@@ -410,6 +412,18 @@ export default function HolidaysManagement() {
                   onSelect={d => d && setForm(f => ({ ...f, holiday_date: d }))}
                   className="rounded-md border mt-1 pointer-events-auto"
                 />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Reminder (days before)</label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={30}
+                  value={form.reminder_days}
+                  onChange={e => setForm(f => ({ ...f, reminder_days: parseInt(e.target.value) || 0 }))}
+                  placeholder="e.g. 2"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Send notification this many days before the event</p>
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
