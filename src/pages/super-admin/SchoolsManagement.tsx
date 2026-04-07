@@ -181,7 +181,7 @@ export default function SchoolsManagement() {
         .eq('id', editingSchool.id);
 
       if (error) {
-        toast({ variant: 'destructive', title: 'Error', description: error.message.includes('duplicate') ? 'School code already exists' : error.message });
+        toast({ variant: 'destructive', title: 'Error', description: error.message.includes('duplicate') || error.message.includes('schools_code_key') ? 'This school code is already taken. Each school must have a unique code.' : error.message });
       } else {
         toast({ title: 'School updated successfully' });
         setDialogOpen(false);
@@ -202,7 +202,7 @@ export default function SchoolsManagement() {
         .single();
 
       if (error) {
-        toast({ variant: 'destructive', title: 'Error', description: error.message.includes('duplicate') ? 'School code already exists' : error.message });
+        toast({ variant: 'destructive', title: 'Error', description: error.message.includes('duplicate') || error.message.includes('schools_code_key') ? 'This school code is already taken. Each school must have a unique code.' : error.message });
       } else if (newSchool) {
         // Upload logo for newly created school
         if (logoFile) {
