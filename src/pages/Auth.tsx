@@ -587,9 +587,7 @@ export default function Auth() {
 
                     <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                       <p className="text-xs text-muted-foreground text-center">
-                        <strong>Super Admin:</strong> Use email only<br />
-                        <strong>Admin:</strong> Select school, then use email<br />
-                        <strong>Teacher:</strong> Select school, then use Teacher ID
+                        Use your email or Teacher ID to sign in
                       </p>
                     </div>
                   </form>
