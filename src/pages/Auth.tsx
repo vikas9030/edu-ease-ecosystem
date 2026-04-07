@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,6 +43,7 @@ export default function Auth() {
   const [schools, setSchools] = useState<SchoolOption[]>([]);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
   const [loadingSchools, setLoadingSchools] = useState(true);
+  const isValidatingRef = useRef(false);
   
   const [staffForm, setStaffForm] = useState({ identifier: '', password: '' });
   const [parentForm, setParentForm] = useState({ studentId: '', password: '' });
@@ -92,7 +93,7 @@ export default function Auth() {
       checkAdmins();
     }
     
-    if (!loading && user && userRole) {
+    if (!loading && user && userRole && !isValidatingRef.current) {
       const path = userRole === 'super_admin' ? '/super-admin' : `/${userRole}`;
       navigate(path);
     }
@@ -180,8 +181,10 @@ export default function Auth() {
     
     if (isAdminEmail(identifier)) {
       // Email login is only for super admin/admin accounts
+      isValidatingRef.current = true;
       const { error } = await signIn(identifier, staffForm.password);
       if (error) {
+        isValidatingRef.current = false;
         toast({
           variant: "destructive",
           title: "Login failed",
@@ -192,7 +195,10 @@ export default function Auth() {
       } else {
         try {
           await validateEmailStaffAccess();
+          // Validation passed — allow navigation
+          isValidatingRef.current = false;
         } catch (error: any) {
+          isValidatingRef.current = false;
           toast({
             variant: 'destructive',
             title: 'Login failed',
