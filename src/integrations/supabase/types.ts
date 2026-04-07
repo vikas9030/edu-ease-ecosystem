@@ -157,6 +157,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          parent_custom_name: string | null
           requested_by: string | null
           school_id: string | null
           status: string | null
@@ -170,6 +171,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          parent_custom_name?: string | null
           requested_by?: string | null
           school_id?: string | null
           status?: string | null
@@ -183,6 +185,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          parent_custom_name?: string | null
           requested_by?: string | null
           school_id?: string | null
           status?: string | null
@@ -2367,8 +2370,10 @@ export type Database = {
           created_at: string | null
           id: string
           joining_date: string | null
+          main_subject: string | null
           qualification: string | null
           school_id: string | null
+          secondary_subjects: string[] | null
           status: string | null
           subjects: string[] | null
           teacher_id: string
@@ -2379,8 +2384,10 @@ export type Database = {
           created_at?: string | null
           id?: string
           joining_date?: string | null
+          main_subject?: string | null
           qualification?: string | null
           school_id?: string | null
+          secondary_subjects?: string[] | null
           status?: string | null
           subjects?: string[] | null
           teacher_id: string
@@ -2391,8 +2398,10 @@ export type Database = {
           created_at?: string | null
           id?: string
           joining_date?: string | null
+          main_subject?: string | null
           qualification?: string | null
           school_id?: string | null
+          secondary_subjects?: string[] | null
           status?: string | null
           subjects?: string[] | null
           teacher_id?: string
