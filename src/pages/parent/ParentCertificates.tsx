@@ -121,7 +121,8 @@ export default function ParentCertificates() {
       requested_by: user.id,
       attachment_url: attachmentUrl,
       description: description.trim() || null,
-    });
+      parent_custom_name: parentCustomName.trim() || null,
+    } as any);
 
     if (error) {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -131,6 +132,7 @@ export default function ParentCertificates() {
       setSelectedType('');
       setAttachmentFile(null);
       setDescription('');
+      setParentCustomName('');
       fetchData();
     }
     setIsSubmitting(false);
@@ -180,6 +182,14 @@ export default function ParentCertificates() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Parent / Guardian Name <span className="text-xs text-muted-foreground">(as you want on the certificate)</span></Label>
+                  <Input 
+                    placeholder="Enter your preferred name for the certificate"
+                    value={parentCustomName}
+                    onChange={(e) => setParentCustomName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Description / Reason</Label>
