@@ -130,13 +130,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     authRequestIdRef.current += 1;
+    const requestId = authRequestIdRef.current;
+
     setLoading(true);
-    await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setUserRole(null);
     setSchoolId(null);
-    setLoading(false);
+
+    await supabase.auth.signOut();
+
+    if (authRequestIdRef.current === requestId) {
+      setLoading(false);
+    }
   };
 
   return (
