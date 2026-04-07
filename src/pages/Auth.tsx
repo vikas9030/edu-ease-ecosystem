@@ -101,6 +101,53 @@ export default function Auth() {
   // Check if user is logging in as admin (email) — no school needed
   const isAdminEmail = (identifier: string) => identifier.includes('@');
 
+  const validateEmailStaffAccess = async () => {
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !authData.user) {
+      await supabase.auth.signOut();
+      throw new Error('Unable to verify this account. Please try again.');
+    }
+
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role, school_id')
+      .eq('user_id', authData.user.id)
+      .maybeSingle();
+
+    if (roleError || !roleData) {
+      await supabase.auth.signOut();
+      throw new Error('This account is not configured for staff access.');
+    }
+
+    if (roleData.role === 'teacher') {
+      await supabase.auth.signOut();
+      throw new Error('Teachers must sign in with School + Teacher ID.');
+    }
+
+    if (roleData.role === 'parent') {
+      await supabase.auth.signOut();
+      throw new Error('Parents and students must sign in with School + Student ID.');
+    }
+
+    if (roleData.role === 'admin') {
+      if (!roleData.school_id) {
+        await supabase.auth.signOut();
+        throw new Error('This admin account is not linked to any school.');
+      }
+
+      if (schools.length > 0 && !selectedSchoolId) {
+        await supabase.auth.signOut();
+        throw new Error('Please select your school before signing in as admin.');
+      }
+
+      if (selectedSchoolId && roleData.school_id !== selectedSchoolId) {
+        await supabase.auth.signOut();
+        throw new Error('This admin account does not belong to the selected school.');
+      }
+    }
+  };
+
   // Staff Login (Admin with email, Teacher with ID)
   const handleStaffLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,7 +179,7 @@ export default function Auth() {
     setIsLoading(true);
     
     if (isAdminEmail(identifier)) {
-      // Admin login with email — no school needed
+      // Email login is only for super admin/admin accounts
       const { error } = await signIn(identifier, staffForm.password);
       if (error) {
         toast({
@@ -142,6 +189,16 @@ export default function Auth() {
             ? 'Invalid email or password. Please try again.'
             : error.message,
         });
+      } else {
+        try {
+          await validateEmailStaffAccess();
+        } catch (error: any) {
+          toast({
+            variant: 'destructive',
+            title: 'Login failed',
+            description: error.message,
+          });
+        }
       }
     } else {
       // Teacher login with Teacher ID — use school-scoped lookup
@@ -480,7 +537,7 @@ export default function Auth() {
                 </CardTitle>
                 <CardDescription className="text-sm">
                   {loginMode === 'staff' 
-                    ? 'Admin: Email | Teacher: Teacher ID' 
+                    ? 'Super Admin: Email | Admin: School + Email | Teacher: School + Teacher ID' 
                     : 'Login with Student ID provided by teacher'}
                 </CardDescription>
               </CardHeader>
@@ -530,7 +587,8 @@ export default function Auth() {
 
                     <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                       <p className="text-xs text-muted-foreground text-center">
-                        <strong>Admin:</strong> Use your email address<br />
+                        <strong>Super Admin:</strong> Use email only<br />
+                        <strong>Admin:</strong> Select school, then use email<br />
                         <strong>Teacher:</strong> Select school, then use Teacher ID
                       </p>
                     </div>

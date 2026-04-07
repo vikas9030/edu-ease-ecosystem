@@ -247,13 +247,23 @@ export default function SchoolsManagement() {
     }
 
     setDeleting(true);
-    const { error } = await supabase.from('schools').delete().eq('id', deletingSchool.id);
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message });
-    } else {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) throw new Error('Not authenticated');
+
+      const response = await supabase.functions.invoke('delete-school', {
+        body: { schoolId: deletingSchool.id },
+        headers: { Authorization: `Bearer ${session.session.access_token}` },
+      });
+
+      if (response.error) throw response.error;
+
       toast({ title: 'School deleted successfully' });
       fetchSchools();
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
     }
+
     setDeleting(false);
     setDeletingSchool(null);
   };

@@ -1,10 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { clearAllData, seedDefaultModules } from "../_shared/school-maintenance.ts";
+import { clearSchoolData } from "../_shared/school-maintenance.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 Deno.serve(async (req: Request) => {
@@ -49,8 +48,17 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (roleError || roleData?.role !== "super_admin") {
-      return new Response(JSON.stringify({ error: "Only super admins can run a full reset" }), {
+      return new Response(JSON.stringify({ error: "Only super admins can delete schools" }), {
         status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { schoolId } = await req.json();
+
+    if (!schoolId) {
+      return new Response(JSON.stringify({ error: "schoolId is required" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -59,24 +67,38 @@ Deno.serve(async (req: Request) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    await clearAllData(adminClient);
+    const { data: school, error: schoolError } = await adminClient
+      .from("schools")
+      .select("id")
+      .eq("id", schoolId)
+      .maybeSingle();
 
-    // Delete ALL auth users
-    const { data: authUsers } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
-    if (authUsers?.users) {
-      for (const u of authUsers.users) {
-        await adminClient.auth.admin.deleteUser(u.id);
-      }
+    if (schoolError) {
+      throw schoolError;
     }
 
-    await seedDefaultModules(adminClient);
+    if (!school) {
+      return new Response(JSON.stringify({ error: "School not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    return new Response(
-      JSON.stringify({ success: true, message: "Complete reset done. All data and users deleted, and default modules were restored." }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    await clearSchoolData(adminClient, schoolId);
+
+    const { error: deleteSchoolError } = await adminClient.from("schools").delete().eq("id", schoolId);
+
+    if (deleteSchoolError) {
+      throw deleteSchoolError;
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error: any) {
-    console.error("Error in full-reset:", error);
+    console.error("Error in delete-school:", error);
+
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
