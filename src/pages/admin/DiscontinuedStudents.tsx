@@ -494,6 +494,13 @@ export default function DiscontinuedStudents() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <DiscontinuedArchiveDialog
+        open={!!archiveStudentId}
+        onOpenChange={(open) => { if (!open) { setArchiveStudentId(null); setArchiveStudentName(''); } }}
+        studentId={archiveStudentId}
+        studentName={archiveStudentName}
+      />
     </DashboardLayout>
   );
 }
