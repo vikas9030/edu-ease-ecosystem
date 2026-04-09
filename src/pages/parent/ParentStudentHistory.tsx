@@ -21,6 +21,8 @@ export default function ParentStudentHistory() {
   const [allChildren, setAllChildren] = useState<StudentRecord[]>([]);
   const [loadingChildren, setLoadingChildren] = useState(true);
   const [selectedAdmNo, setSelectedAdmNo] = useState('');
+  const [archiveStudentId, setArchiveStudentId] = useState<string | null>(null);
+  const [archiveStudentName, setArchiveStudentName] = useState('');
 
   useEffect(() => {
     if (!authLoading && (!user || userRole !== 'parent')) {
