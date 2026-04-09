@@ -72,22 +72,41 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: fullName,
-        role,
-        phone,
-      },
-    });
+    // Check if user already exists
+    const { data: existingUserData } = await adminClient.auth.admin.listUsers();
+    const existingUser = existingUserData?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
 
-    if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    let userId: string;
+
+    if (existingUser) {
+      userId = existingUser.id;
+      // Check if this user already has the requested role
+      const { data: existingRole } = await adminClient.from("user_roles").select("id").eq("user_id", userId).eq("role", role).maybeSingle();
+      if (existingRole) {
+        return new Response(JSON.stringify({ error: "This user already has the " + role + " role assigned" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          role,
+          phone,
+        },
       });
+
+      if (createError) {
+        return new Response(JSON.stringify({ error: createError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      userId = newUser.user.id;
     }
 
     const userId = newUser.user.id;
