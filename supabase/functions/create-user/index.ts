@@ -135,7 +135,7 @@ serve(async (req) => {
       console.error("Error creating role:", roleError);
     }
 
-    return new Response(JSON.stringify({ user: newUser.user }), {
+    return new Response(JSON.stringify({ user: { id: userId, email } }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
