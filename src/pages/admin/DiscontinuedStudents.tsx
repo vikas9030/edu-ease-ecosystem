@@ -22,8 +22,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { BackButton } from '@/components/ui/back-button';
-import { UserMinus, Loader2, Users, RotateCcw, Search } from 'lucide-react';
+import { UserMinus, Loader2, Users, RotateCcw, Search, Eye } from 'lucide-react';
 import { formatClassName } from "@/lib/utils";
+import DiscontinuedArchiveDialog from '@/components/students/DiscontinuedArchiveDialog';
 
 interface Student {
   id: string;
