@@ -182,13 +182,13 @@ export default function DiscontinuedStudents() {
 
     let newAdmissionNumber = student?.admission_number || '';
     if (student && targetClass) {
-      // Extract base name from admission number (same logic as promotion)
-      let baseName = student.admission_number;
-      baseName = baseName.replace(/-[^-]+-[^-]+$/, '');
-      baseName = baseName.replace(/^[A-Za-z0-9]+[A-Za-z]\//, '');
-      baseName = baseName.replace(/\/\d{4}$/, '');
-      if (!baseName.trim()) baseName = student.full_name.toUpperCase().replace(/\s+/g, '');
-      newAdmissionNumber = `${baseName}-${formatClassName(targetClass.name, targetClass.section)}`;
+      // Extract the student's base name from their full name
+      const baseName = student.full_name.toUpperCase().replace(/\s+/g, '');
+      // Build compact class suffix without spaces (e.g., "1-A" or just "LKG")
+      const classSuffix = (!targetClass.section || targetClass.section === '-')
+        ? targetClass.name
+        : `${targetClass.name}-${targetClass.section}`;
+      newAdmissionNumber = `${baseName}-${classSuffix}`;
     }
 
     const { error } = await supabase
