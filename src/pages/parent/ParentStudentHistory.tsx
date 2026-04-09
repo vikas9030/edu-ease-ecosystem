@@ -5,10 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useParentSidebar } from '@/hooks/useParentSidebar';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BackButton } from '@/components/ui/back-button';
-import { Loader2, History } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, History, Eye } from 'lucide-react';
 import StudentHistoryContent, { StudentRecord } from '@/components/history/StudentHistoryContent';
+import DiscontinuedArchiveDialog from '@/components/students/DiscontinuedArchiveDialog';
 
 export default function ParentStudentHistory() {
   const parentSidebarItems = useParentSidebar();
