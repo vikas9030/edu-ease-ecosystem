@@ -109,7 +109,7 @@ serve(async (req) => {
       userId = newUser.user.id;
     }
 
-    const userId = newUser.user.id;
+    
 
     // Upsert profile with school_id
     const { error: profileError } = await adminClient.from("profiles").upsert({
