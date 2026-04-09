@@ -409,7 +409,15 @@ export default function DiscontinuedStudents() {
                             <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                               {s.updated_at ? new Date(s.updated_at).toLocaleDateString() : '-'}
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right space-x-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => { setArchiveStudentId(s.id); setArchiveStudentName(s.full_name); }}
+                                title="View archived data"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
