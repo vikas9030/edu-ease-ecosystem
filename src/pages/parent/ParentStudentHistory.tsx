@@ -81,6 +81,10 @@ export default function ParentStudentHistory() {
     return allChildren.filter(c => c.full_name === selectedAdmNo);
   }, [allChildren, selectedAdmNo]);
 
+  const discontinuedChildren = useMemo(() => {
+    return allChildren.filter(c => c.status === 'discontinued');
+  }, [allChildren]);
+
   const selectedChild = uniqueChildren.find(c => c.admNo === selectedAdmNo);
 
   if (authLoading || loadingChildren) {
