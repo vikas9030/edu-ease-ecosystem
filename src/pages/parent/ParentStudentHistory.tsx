@@ -131,6 +131,28 @@ export default function ParentStudentHistory() {
           />
         )}
 
+        {discontinuedChildren.length > 0 && (
+          <Card>
+            <CardContent className="pt-6 space-y-3">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <History className="h-4 w-4 text-destructive" />
+                Discontinued Records
+              </h3>
+              {discontinuedChildren.map(child => (
+                <div key={child.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">{child.full_name}</p>
+                    <p className="text-xs text-muted-foreground">Adm# {child.admission_number}</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => { setArchiveStudentId(child.id); setArchiveStudentName(child.full_name); }}>
+                    <Eye className="h-3.5 w-3.5 mr-1" /> View Data
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         {allChildren.length === 0 && (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
@@ -139,6 +161,13 @@ export default function ParentStudentHistory() {
             </CardContent>
           </Card>
         )}
+
+        <DiscontinuedArchiveDialog
+          open={!!archiveStudentId}
+          onOpenChange={(open) => { if (!open) { setArchiveStudentId(null); setArchiveStudentName(''); } }}
+          studentId={archiveStudentId}
+          studentName={archiveStudentName}
+        />
       </div>
     </DashboardLayout>
   );
