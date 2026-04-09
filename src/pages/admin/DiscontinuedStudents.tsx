@@ -22,8 +22,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { BackButton } from '@/components/ui/back-button';
-import { UserMinus, Loader2, Users, RotateCcw, Search } from 'lucide-react';
+import { UserMinus, Loader2, Users, RotateCcw, Search, Eye } from 'lucide-react';
 import { formatClassName } from "@/lib/utils";
+import DiscontinuedArchiveDialog from '@/components/students/DiscontinuedArchiveDialog';
 
 interface Student {
   id: string;
@@ -59,6 +60,8 @@ export default function DiscontinuedStudents() {
   const [reAdmitConfirmOpen, setReAdmitConfirmOpen] = useState(false);
   const [reAdmitStudentId, setReAdmitStudentId] = useState<string | null>(null);
   const [reAdmitClassId, setReAdmitClassId] = useState('');
+  const [archiveStudentId, setArchiveStudentId] = useState<string | null>(null);
+  const [archiveStudentName, setArchiveStudentName] = useState('');
 
   const [discontinuedStudents, setDiscontinuedStudents] = useState<Student[]>([]);
   const [loadingDiscontinued, setLoadingDiscontinued] = useState(false);
@@ -406,7 +409,15 @@ export default function DiscontinuedStudents() {
                             <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                               {s.updated_at ? new Date(s.updated_at).toLocaleDateString() : '-'}
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right space-x-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => { setArchiveStudentId(s.id); setArchiveStudentName(s.full_name); }}
+                                title="View archived data"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -483,6 +494,13 @@ export default function DiscontinuedStudents() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <DiscontinuedArchiveDialog
+        open={!!archiveStudentId}
+        onOpenChange={(open) => { if (!open) { setArchiveStudentId(null); setArchiveStudentName(''); } }}
+        studentId={archiveStudentId}
+        studentName={archiveStudentName}
+      />
     </DashboardLayout>
   );
 }

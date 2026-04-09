@@ -5,10 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useParentSidebar } from '@/hooks/useParentSidebar';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BackButton } from '@/components/ui/back-button';
-import { Loader2, History } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, History, Eye } from 'lucide-react';
 import StudentHistoryContent, { StudentRecord } from '@/components/history/StudentHistoryContent';
+import DiscontinuedArchiveDialog from '@/components/students/DiscontinuedArchiveDialog';
 
 export default function ParentStudentHistory() {
   const parentSidebarItems = useParentSidebar();
@@ -18,6 +21,8 @@ export default function ParentStudentHistory() {
   const [allChildren, setAllChildren] = useState<StudentRecord[]>([]);
   const [loadingChildren, setLoadingChildren] = useState(true);
   const [selectedAdmNo, setSelectedAdmNo] = useState('');
+  const [archiveStudentId, setArchiveStudentId] = useState<string | null>(null);
+  const [archiveStudentName, setArchiveStudentName] = useState('');
 
   useEffect(() => {
     if (!authLoading && (!user || userRole !== 'parent')) {
@@ -76,6 +81,10 @@ export default function ParentStudentHistory() {
     return allChildren.filter(c => c.full_name === selectedAdmNo);
   }, [allChildren, selectedAdmNo]);
 
+  const discontinuedChildren = useMemo(() => {
+    return allChildren.filter(c => c.status === 'discontinued');
+  }, [allChildren]);
+
   const selectedChild = uniqueChildren.find(c => c.admNo === selectedAdmNo);
 
   if (authLoading || loadingChildren) {
@@ -122,6 +131,28 @@ export default function ParentStudentHistory() {
           />
         )}
 
+        {discontinuedChildren.length > 0 && (
+          <Card>
+            <CardContent className="pt-6 space-y-3">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <History className="h-4 w-4 text-destructive" />
+                Discontinued Records
+              </h3>
+              {discontinuedChildren.map(child => (
+                <div key={child.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">{child.full_name}</p>
+                    <p className="text-xs text-muted-foreground">Adm# {child.admission_number}</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => { setArchiveStudentId(child.id); setArchiveStudentName(child.full_name); }}>
+                    <Eye className="h-3.5 w-3.5 mr-1" /> View Data
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         {allChildren.length === 0 && (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
@@ -130,6 +161,13 @@ export default function ParentStudentHistory() {
             </CardContent>
           </Card>
         )}
+
+        <DiscontinuedArchiveDialog
+          open={!!archiveStudentId}
+          onOpenChange={(open) => { if (!open) { setArchiveStudentId(null); setArchiveStudentName(''); } }}
+          studentId={archiveStudentId}
+          studentName={archiveStudentName}
+        />
       </div>
     </DashboardLayout>
   );
