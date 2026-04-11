@@ -7,7 +7,7 @@ import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lu
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-import { formatClassName } from "@/lib/utils";
+
 
 interface StudentExcelImportProps {
   open: boolean;
