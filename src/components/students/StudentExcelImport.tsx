@@ -82,13 +82,20 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
   };
 
   const findClassId = (classStr: string): string | null => {
-    const trimmed = classStr.trim();
-    // Try "5-A" or "5 - A" or "5A" formats
+    // Normalize: lowercase, remove all spaces
+    const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, '');
+    const input = normalize(classStr.trim());
+    
     for (const cls of classes) {
-      const full = `${formatClassName(cls.name, cls.section)}`;
-      if (full.toLowerCase() === trimmed.toLowerCase()) return cls.id;
-      if (`${formatClassName(cls.name, cls.section)}`.toLowerCase() === trimmed.toLowerCase()) return cls.id;
-      if (`${cls.name}${cls.section}`.toLowerCase() === trimmed.toLowerCase()) return cls.id;
+      // Match against "5-A", "5 - A", "5A", or just "5" (when section is "-")
+      const formatted = normalize(formatClassName(cls.name, cls.section));
+      const compact = normalize(`${cls.name}-${cls.section}`);
+      const noSep = normalize(`${cls.name}${cls.section}`);
+      const nameOnly = normalize(cls.name);
+      
+      if (input === formatted || input === compact || input === noSep || input === nameOnly) {
+        return cls.id;
+      }
     }
     return null;
   };
