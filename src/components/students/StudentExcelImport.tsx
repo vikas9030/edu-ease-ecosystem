@@ -7,7 +7,7 @@ import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lu
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-import { formatClassName } from "@/lib/utils";
+
 
 interface StudentExcelImportProps {
   open: boolean;
@@ -25,7 +25,7 @@ interface ImportResult {
 }
 
 const TEMPLATE_COLUMNS = [
-  'Student Name', 'Date of Birth', 'Class', 'Password',
+  'Student Name', 'Date of Birth', 'Class', 'Section', 'Password',
   'Parent Name', 'Parent Phone', 'Address', 'Blood Group',
   'Emergency Contact', 'Emergency Contact Name',
 ];
@@ -49,7 +49,7 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
 
   const downloadTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([TEMPLATE_COLUMNS, [
-      'John Doe', '2015-03-15', '5-A', 'Pass1234',
+      'John Doe', '2015-03-15', '5', 'A', 'Pass1234',
       'Robert Doe', '9876543210', '123 Main St', 'O+',
       '9876543211', 'Jane Doe',
     ]]);
@@ -81,20 +81,24 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
     return null;
   };
 
-  const findClassId = (classStr: string): string | null => {
-    // Normalize: lowercase, remove all spaces
-    const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, '');
-    const input = normalize(classStr.trim());
+  const findClassId = (className: string, sectionName: string): string | null => {
+    const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, '').replace(/-/g, '');
+    const inputClass = normalize(className);
+    const inputSection = normalize(sectionName || '-');
     
     for (const cls of classes) {
-      // Match against "5-A", "5 - A", "5A", or just "5" (when section is "-")
-      const formatted = normalize(formatClassName(cls.name, cls.section));
-      const compact = normalize(`${cls.name}-${cls.section}`);
-      const noSep = normalize(`${cls.name}${cls.section}`);
-      const nameOnly = normalize(cls.name);
+      const dbClass = normalize(cls.name);
+      const dbSection = normalize(cls.section || '-');
       
-      if (input === formatted || input === compact || input === noSep || input === nameOnly) {
-        return cls.id;
+      // Match class name and section separately
+      if (dbClass === inputClass) {
+        // If no section provided and db section is "-", match
+        if ((!sectionName || sectionName.trim() === '' || sectionName.trim() === '-') && (cls.section === '-' || !cls.section)) {
+          return cls.id;
+        }
+        if (dbSection === inputSection) {
+          return cls.id;
+        }
       }
     }
     return null;
@@ -143,7 +147,8 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
         const row = rows[i];
         const rowNum = i + 2;
         const name = String(row['Student Name'] || '').trim();
-        const classStr = String(row['Class'] || '').trim();
+        const className = String(row['Class'] || '').trim();
+        const sectionName = String(row['Section'] || '').trim();
         const password = String(row['Password'] || '').trim();
 
         if (!name) {
@@ -151,8 +156,8 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
           setProgress(((i + 1) / rows.length) * 100);
           continue;
         }
-        if (!classStr) {
-          importResults.push({ row: rowNum, name, status: 'error', message: 'Class is required (e.g. "5-A")' });
+        if (!className) {
+          importResults.push({ row: rowNum, name, status: 'error', message: 'Class is required' });
           setProgress(((i + 1) / rows.length) * 100);
           continue;
         }
@@ -162,9 +167,10 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
           continue;
         }
 
-        const classId = findClassId(classStr);
+        const classId = findClassId(className, sectionName);
         if (!classId) {
-          importResults.push({ row: rowNum, name, status: 'error', message: `Class "${classStr}" not found` });
+          const displayClass = sectionName && sectionName !== '-' ? `${className}-${sectionName}` : className;
+          importResults.push({ row: rowNum, name, status: 'error', message: `Class "${displayClass}" not found` });
           setProgress(((i + 1) / rows.length) * 100);
           continue;
         }
@@ -258,7 +264,7 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
           </div>
 
           <div className="text-sm text-muted-foreground space-y-1">
-            <p>• <strong>Student Name</strong>, <strong>Class</strong> (e.g. "5-A"), and <strong>Password</strong> are mandatory</p>
+            <p>• <strong>Student Name</strong>, <strong>Class</strong>, and <strong>Password</strong> are mandatory. <strong>Section</strong> is optional.</p>
             <p>• Each row creates a student + parent login account</p>
             <p>• Import may take time as each student is created sequentially</p>
           </div>
