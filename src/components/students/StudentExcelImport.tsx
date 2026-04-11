@@ -147,8 +147,17 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
         const row = rows[i];
         const rowNum = i + 2;
         const name = String(row['Student Name'] || '').trim();
-        const className = String(row['Class'] || '').trim();
-        const sectionName = String(row['Section'] || '').trim();
+        let className = String(row['Class'] || '').trim();
+        let sectionName = String(row['Section'] || '').trim();
+
+        // Fallback: if Section is empty but Class contains a separator (e.g. "5-A", "5 A", "5 - A"), split it
+        if (!sectionName && className) {
+          const match = className.match(/^(.+?)[\s\-]+([A-Za-z])$/);
+          if (match) {
+            className = match[1].trim();
+            sectionName = match[2].trim();
+          }
+        }
         const password = String(row['Password'] || '').trim();
 
         if (!name) {
