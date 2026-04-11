@@ -147,17 +147,8 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
         const row = rows[i];
         const rowNum = i + 2;
         const name = String(row['Student Name'] || '').trim();
-        let className = String(row['Class'] || '').trim();
-        let sectionName = String(row['Section'] || '').trim();
-
-        // Fallback: if Section is empty but Class contains a separator (e.g. "5-A", "5 A", "5 - A"), split it
-        if (!sectionName && className) {
-          const match = className.match(/^(.+?)[\s\-]+([A-Za-z])$/);
-          if (match) {
-            className = match[1].trim();
-            sectionName = match[2].trim();
-          }
-        }
+        const className = String(row['Class'] || '').trim();
+        const sectionName = String(row['Section'] || '').trim();
         const password = String(row['Password'] || '').trim();
 
         if (!name) {
@@ -273,7 +264,8 @@ export default function StudentExcelImport({ open, onOpenChange, onSuccess }: St
           </div>
 
           <div className="text-sm text-muted-foreground space-y-1">
-            <p>• <strong>Student Name</strong>, <strong>Class</strong>, and <strong>Password</strong> are mandatory. <strong>Section</strong> is optional.</p>
+            <p>• <strong>Student Name</strong>, <strong>Class</strong>, <strong>Section</strong>, and <strong>Password</strong> are mandatory</p>
+            <p>• Enter <strong>Class</strong> and <strong>Section</strong> in separate columns (e.g. Class: "5", Section: "A")</p>
             <p>• Each row creates a student + parent login account</p>
             <p>• Import may take time as each student is created sequentially</p>
           </div>
